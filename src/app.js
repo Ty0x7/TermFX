@@ -158,6 +158,9 @@ if (!window.termAPI) {
       sel.appendChild(grpSaved);
     }
 
+    const countLabel = document.getElementById('scene-count-label');
+    if (countLabel) countLabel.textContent = `SCENES (${window.BUILTIN_PRESETS.length})`;
+
     const grpBuiltin = document.createElement('optgroup');
     grpBuiltin.label = `◈ Built-In 3D Showcases (${window.BUILTIN_PRESETS.length})`;
     for (const p of window.BUILTIN_PRESETS) {
@@ -217,7 +220,8 @@ if (!window.termAPI) {
       const num = idx + 1;
       const btn = document.createElement('button');
       btn.className = 'phase-btn' + (engine.phase === num ? ' active' : '');
-      btn.textContent = `${num}. ${name}`;
+      // Long stage lists stay on one line: only the active stage shows its name
+      btn.textContent = phases.length > 4 && engine.phase !== num ? `${num}` : `${num}. ${name}`;
       btn.title = `Stage ${num}: ${name} (Press SPACE or ${num})`;
       btn.addEventListener('click', () => {
         engine.setPhase(num);
@@ -225,6 +229,18 @@ if (!window.termAPI) {
       });
       container.appendChild(btn);
     });
+    renderNarration();
+  }
+
+  // Script line for the current stage, shown under the stage while recording VO
+  function renderNarration() {
+    const strip = document.getElementById('narration-strip');
+    const line = activeSimMeta?.narration?.[engine.phase - 1];
+    strip.classList.toggle('hidden', !line);
+    if (!line) return;
+    const dur = engine.stageHold(engine.phase);
+    document.getElementById('narration-tag').textContent = `VO ${engine.phase}/${engine.phaseCount} · ${dur.toFixed(1)}s`;
+    document.getElementById('narration-text').textContent = line;
   }
 
   engine.onPhaseAutoChange = () => {

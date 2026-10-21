@@ -214,6 +214,18 @@ const ICONS = {
       Math.floor(t * 2) % 2 ? '╰┬─┬╯' : '╰┴─┴╯'
     ];
   },
+  human: (t) => [
+    ' ◯ ',
+    Math.floor(t * 1.5) % 2 ? '╶┼╴' : '╲┼╱',
+    '╱ ╲'
+  ],
+  terminal: (t) => [
+    '┌──────┐',
+    `│>${(t * 2) % 1 < 0.5 ? '_' : ' '}    │`,
+    `│ ${['▪··', '·▪·', '··▪'][Math.floor(t * 4) % 3]}  │`,
+    '└──────┘',
+    '▔▔▔▔▔▔▔▔'
+  ],
   agentMask: (t) => [
     '  ╷  ',
     '╭─┴─╮',
@@ -788,8 +800,10 @@ class AsciiEngine {
 
   // --- Timeline ---
   stageHold(p) {
+    // Scenes timed to a voice-over carry their own per-stage durations; the
+    // Stage-sec control then acts as a speed scale (4.6s = narration pace)
     const custom = this.currentSimulation?.stageDurations?.[p - 1];
-    if (custom) return custom;
+    if (custom) return custom * (this.stageDuration / 4.6);
     return p === this.phaseCount ? this.stageDuration * 1.25 : this.stageDuration;
   }
 
@@ -1373,10 +1387,12 @@ class AsciiEngine {
       else if (ln.mark === 'dim') { col = pal.dim; }
       this.drawText(x0 + 1, y, String(i + 1).padStart(2, ' '), pal.dim, false, 'left');
       if (prefix !== ' ') this.setCell(x0 + 3, y, prefix, col, true);
-      this.drawText(tx, y, ln.text, col, ln.mark === 'add' || ln.mark === 'hl', 'left');
+      // Marked lines sit on a tinted bar, so lift their text toward white to stay legible
+      const lit = ln.mark === 'add' || ln.mark === 'hl' || ln.mark === 'warn';
+      this.drawText(tx, y, ln.text, lit ? mixColor(col, '#ffffff', 0.55) : col, lit, 'left');
       if (this.holoHud && (ln.mark === 'hl' || ln.mark === 'add' || ln.mark === 'warn')) {
         const pulse = 0.75 + 0.25 * Math.sin(this.time * 4);
-        this.vItems.push({ t: 'rect', x: x0 + 0.6, y: y, w: width - 1.2, rh: 1, c: col, a: 0.13 * pulse, h: this._hudMode });
+        this.vItems.push({ t: 'rect', x: x0 + 0.6, y: y, w: width - 1.2, rh: 1, c: col, a: 0.07 * pulse, h: this._hudMode });
       }
       if (ln.mark === 'del') {
         this._vline(tx - 0.4, y, tx + ln.text.length - 0.6, y, pal.danger, 0.85, 1.3);

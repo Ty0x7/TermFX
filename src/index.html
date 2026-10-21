@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TermFX Studio</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico?v=20261020" />
-  <link rel="stylesheet" href="styles.css?v=20261021b" />
+  <link rel="stylesheet" href="styles.css?v=20261021d" />
 </head>
 <body>
   <div id="app-container">
@@ -31,7 +31,7 @@
       <aside id="sidebar">
         <div class="sidebar-section scenes-section">
           <div class="sidebar-label-row">
-            <span class="sidebar-label">SCENES (10)</span>
+            <span class="sidebar-label" id="scene-count-label">SCENES</span>
             <div class="scene-step-btns">
               <button id="btn-prev-scene" title="Previous Scene (Hotkey: [)">◄</button>
               <button id="btn-next-scene" title="Next Scene (Hotkey: ])">►</button>
@@ -76,7 +76,7 @@
           </div>
           <div class="sidebar-row" style="margin-top:4px">
             <label class="mini-label" for="cfg-stage-seconds">Stage sec</label>
-            <input id="cfg-stage-seconds" type="number" min="1.5" max="30" step="0.1" value="4.6" style="width:58px" />
+            <input id="cfg-stage-seconds" title="Stage length. Narrated scenes: 4.6 = narration pace (higher = slower)" type="number" min="1.5" max="30" step="0.1" value="4.6" style="width:58px" />
             <button id="btn-pause" style="flex:1" title="Pause / resume (P). Step one frame with . while paused">❚❚ [P]</button>
           </div>
         </div>
@@ -137,6 +137,8 @@
           </div>
           <div id="toast"></div>
         </main>
+
+        <div id="narration-strip" title="Script line for the current stage (not rendered into exports)"><span id="narration-tag"></span><span id="narration-text"></span></div>
 
         <!-- Minimal Terminal Prompt Input (Remains usable in Clean View!) -->
         <footer id="prompt-bar">
@@ -287,9 +289,9 @@
     </div>
   </div>
 
-  <script src="engine.js?v=20261021b"></script>
-  <script src="presets.js?v=20261021b"></script>
-  <script src="ai-generator.js?v=20261021b"></script>
-  <script src="app.js?v=20261021b"></script>
+  <script src="engine.js?v=20261021d"></script>
+  <script src="presets.js?v=20261021d"></script>
+  <script src="ai-generator.js?v=20261021d"></script>
+  <script src="app.js?v=20261021d"></script>
 </body>
 </html>

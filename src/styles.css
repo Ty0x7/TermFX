@@ -608,3 +608,33 @@ body.rendering #prompt-bar {
   pointer-events: none;
   opacity: 0.5;
 }
+
+/* Narration strip: the script line for the current stage (VO reference; not part of renders) */
+#narration-strip {
+  min-height: 30px;
+  padding: 6px 14px;
+  border-top: 1px solid rgba(12, 59, 94, 0.55);
+  background: rgba(2, 7, 16, 0.96);
+  color: var(--text-accent);
+  font-size: 12px;
+  line-height: 1.4;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  user-select: text;
+}
+
+#narration-strip:empty,
+#narration-strip.hidden {
+  display: none;
+}
+
+#narration-tag {
+  color: var(--text-secondary);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+body.clean-recording #narration-strip {
+  display: none;
+}
