@@ -199,6 +199,96 @@ const SHAPES = (() => {
     dodeca: { v: dodecaV, e: edgesByMinDist(dodecaV) }
   };
 })();
+// --- Concept Icons: small ASCII sprites so a scene can show *what* a node is
+// (an agent, a bug, a file, a lock...) instead of only an abstract shape.
+// Characters in ICON_ACCENT_CHARS are drawn in the icon's accent colour.
+// An icon is either static rows or a function of time returning rows, so
+// each one has its own idle motion (blinking, scanning, wiggling...).
+const ICONS = {
+  agent: (t) => {
+    const blink = (t % 3.4) < 0.13;
+    return [
+      (t * 1.6) % 1 < 0.5 ? '  •  ' : '  ╷  ',
+      '╭─┴─╮',
+      blink ? '│─ ─│' : '│◉ ◉│',
+      Math.floor(t * 2) % 2 ? '╰┬─┬╯' : '╰┴─┴╯'
+    ];
+  },
+  agentMask: (t) => [
+    '  ╷  ',
+    '╭─┴─╮',
+    (t % 2.8) < 0.12 ? '│─ ─│' : '│◠ ◠│',
+    '╰─◡─╯'
+  ],
+  bug: (t) => (Math.floor(t * 7) % 2
+    ? [' ╲╭─╮╱ ', '─┤▓●▓├─', ' ╱╰─╯╲ ']
+    : [' ╱╭─╮╲ ', '╶┤▓●▓├╴', ' ╲╰─╯╱ ']),
+  file: (t) => {
+    const k = Math.floor(t * 3) % 3;
+    const rows = ['≡≡', '==', '≡='];
+    return ['┌──╮', `│${rows[k]}│`, `│${rows[(k + 1) % 3]}│`, '└──┘'];
+  },
+  binary: (t) => {
+    const bits = (n) => (n >>> 0).toString(2).padStart(3, '0').slice(-3);
+    const s = Math.floor(t * 8);
+    return ['┌───╮', `│${bits(s * 5 + 2)}│`, `│${bits(s * 3 + 5)}│`, '└───┘'];
+  },
+  lock: [
+    ' ╭─╮ ',
+    ' │ │ ',
+    '█████',
+    '██●██'
+  ],
+  unlock: [
+    ' ╭─╮ ',
+    ' │   ',
+    '█████',
+    '██●██'
+  ],
+  eye: (t) => {
+    // Pupil sweeps side to side like a scanner
+    const pos = Math.round(Math.sin(t * 1.4) * 2);
+    const mid = '  ' + ' '.repeat(2 + pos) + '◉' + ' '.repeat(2 - pos) + '  ';
+    return [' ▁▁▁▁▁ ', '╱' + mid.slice(2, 7) + '╲', '╲▁▁▁▁▁╱'];
+  },
+  eyeClosed: [
+    '       ',
+    '╲▁▁▁▁▁╱',
+    ' ╵ ╵ ╵ '
+  ],
+  server: (t) => {
+    const a = Math.floor(t * 3) % 2;
+    const act = ['═══', '══─', '═─═', '─══'][Math.floor(t * 9) % 4];
+    return ['┌─────┐', `│${a ? '▪' : '·'} ${act}│`, '├─────┤', `│${a ? '·' : '▪'} ═══│`, '└─────┘'];
+  },
+  cloud: [
+    '  ╭──╮  ',
+    '╭─╯  ╰─╮',
+    '╰──────╯'
+  ],
+  trophy: (t) => ['╭───╮', (t % 1.2) < 0.6 ? '╰╮★╭╯' : '╰╮✦╭╯', ' ╰┬╯ ', ' ═╧═ '],
+  plug: (t) => [(t * 2) % 1 < 0.5 ? '╺━┫◯┣━╸' : '╺━┫◉┣━╸'],
+  gear: (t) => ['╭┴╮', `┤${'◐◓◑◒'[Math.floor(t * 8) % 4]}├`, '╰┬╯'],
+  warn: (t) => [' ╱╲ ', (t * 2.5) % 1 < 0.6 ? '╱ !╲' : '╱  ╲', '▔▔▔▔'],
+  shield: [
+    '╭───╮',
+    '│ ✓ │',
+    '╰╮ ╭╯',
+    ' ╰─╯ '
+  ],
+  chip: (t) => {
+    const k = Math.floor(t * 6) % 3;
+    const row = [0, 1, 2].map(i => (i === k ? '■' : '▣')).join('');
+    return [' ╷╷╷ ', '┌───┐', `┤${row}├`, '└───┘', ' ╵╵╵ '];
+  },
+  dna: (t) => {
+    const frames = ['╲ ╱', ' ✕ ', '╱ ╲', ' ✕ '];
+    const k = Math.floor(t * 5);
+    return [0, 1, 2, 3].map(i => frames[(i + k) % 4]);
+  }
+};
+const ICON_ACCENT_CHARS = new Set(['◉', '◠', '◡', '●', '•', '▪', '★', '✦', '!', '✓', '▣', '■', '◯', '◎', '◐', '◓', '◑', '◒', '✕']);
+
 SHAPES.octahedron = SHAPES.octa;
 SHAPES.icosahedron = SHAPES.icosa;
 SHAPES.dodecahedron = SHAPES.dodeca;
@@ -346,6 +436,7 @@ class AsciiEngine {
     this.colorAnims = new Map();
     this.spins = new Map();
     this.morphs = new Map();
+    this.iconMemo = new Map();
     this.textMemo = new Map();
     this.textPos = new Map();
     this._dt = 1 / 60;
@@ -612,6 +703,7 @@ class AsciiEngine {
     this.colorAnims.clear();
     this.spins.clear();
     this.morphs.clear();
+    this.iconMemo.clear();
     this.textMemo.clear();
     this.textPos.clear();
     this.camZoom = new Spring(1);
@@ -746,9 +838,11 @@ class AsciiEngine {
       this.tweens.set(key, tw);
     }
     if (tw.to !== target) {
+      // Back-date by one frame so a target that changes every frame (a live
+      // progress value) still converges instead of restarting at k = 0
       tw.from = tw.value;
       tw.to = target;
-      tw.t0 = now;
+      tw.t0 = now - this._dt;
     }
     const k = easeFn(ease)((now - tw.t0) / Math.max(0.001, dur));
     tw.value = tw.from + (tw.to - tw.from) * k;
@@ -1175,6 +1269,119 @@ class AsciiEngine {
     }
     if (back.length) this.vItems.push({ t: 'segs', p: back, c: dim || color, a: 0.16 * alpha, w: wBack, h: this._hudMode });
     if (front.length) this.vItems.push({ t: 'segs', p: front, c: color, a: 0.5 * alpha, w: wFront, h: this._hudMode });
+  }
+
+  // Draws a concept icon (see ICONS) centred on (cx, cy). Positions are
+  // sub-pixel, so an icon can ride along a path or bob without stepping.
+  // Icons are holographic like the rest of the stage: they materialise row by
+  // row (with a bright scan front) when they first appear or change, a scan
+  // band rolls through them, and a projector ring pulses underneath.
+  drawIcon(name, cx, cy, color = null, opts = {}) {
+    const src = Array.isArray(name) ? name : ICONS[name];
+    if (!src) return;
+    const t = this.time;
+    const lines = typeof src === 'function' ? src(t + (opts.phaseOffset || 0)) : src;
+    const col = color || this.palette.primary;
+    const accent = opts.accent || '#ffffff';
+    const baseAlpha = opts.alpha !== undefined ? opts.alpha : 1;
+    const bob = opts.bob ? Math.sin(t * 2.2 + cx * 0.37) * 0.28 : 0;
+    const rows = lines.length;
+    const startY = cy - (rows - 1) / 2 + bob;
+    const maxW = Math.max(...lines.map(l => l.length));
+
+    // Materialise when this icon (by key) first shows up or switches design
+    const key = opts.key || (typeof name === 'string' ? name : 'icon');
+    const iconName = typeof name === 'string' ? name : 'custom';
+    let memo = this.iconMemo.get(key);
+    if (!memo || memo.name !== iconName || t - memo.seen > 0.35) {
+      memo = { name: iconName, t0: t, seen: t };
+      this.iconMemo.set(key, memo);
+    }
+    memo.seen = t;
+    const k = (t - memo.t0) / (opts.materialize || 0.5);
+    const front = k * (rows + 1.5);
+    const band = ((t * 0.55 + cx * 0.013) % 1.6) * (rows + 2) - 1;
+    const flicker = 0.93 + 0.07 * Math.sin(t * 13 + cx);
+
+    for (let r = 0; r < rows; r++) {
+      const line = lines[r];
+      const startX = cx - (line.length - 1) / 2;
+      for (let c = 0; c < line.length; c++) {
+        const ch = line[c];
+        if (ch === ' ') continue;
+        const jitter = (Math.sin((c + 1) * 12.9898 + r * 78.233) * 43758.5453) % 1;
+        const reveal = front - r - Math.abs(jitter) * 0.8;
+        if (reveal <= 0) continue;
+        const fresh = reveal < 1;
+        const inBand = Math.abs(band - r) < 0.6;
+        const isAccent = ICON_ACCENT_CHARS.has(ch);
+        const a = baseAlpha * flicker * Math.min(1, reveal) * (inBand ? 1 : 0.88);
+        const glyphCol = fresh ? '#ffffff' : (isAccent ? accent : col);
+        this.setCell(startX + c, startY + r, ch, glyphCol, opts.glow || isAccent || inBand || fresh, null, a);
+      }
+    }
+    if (k < 1.1 && front > 0 && front < rows + 0.5) {
+      const fy = startY + front - 0.5;
+      this._vline(cx - maxW / 2 - 0.5, fy, cx + maxW / 2 - 0.5, fy, '#ffffff', 0.7 * baseAlpha, 1.2);
+    }
+    if (this.holoHud) {
+      if (opts.glow) this.addGlow(cx, cy, Math.max(3, maxW * 0.6), col, 0.8 * baseAlpha);
+      if (opts.base !== false) {
+        const pulse = (t * 0.8 + cx * 0.02) % 1;
+        const by = startY + rows - 0.35;
+        this.vItems.push({ t: 'ellipse', x: cx - 0.5, y: by, rx: maxW * 0.55, ry: 0.32, c: col, a: 0.32 * baseAlpha * Math.min(1, k), w: 1, h: this._hudMode });
+        this.vItems.push({ t: 'ellipse', x: cx - 0.5, y: by, rx: maxW * (0.55 + pulse * 0.45), ry: 0.32 + pulse * 0.3, c: col, a: 0.3 * (1 - pulse) * baseAlpha * Math.min(1, k), w: 1, h: this._hudMode });
+      }
+    }
+    if (opts.label) {
+      this.drawText(cx, startY + rows + 0.2, opts.label, opts.labelColor || col, Boolean(opts.glow), 'center', null, baseAlpha);
+    }
+  }
+
+  // A small code / config window. Each line is a string or
+  // { text, mark: 'hl' | 'add' | 'del' | 'warn' | 'dim' }: highlighted lines get
+  // a glowing bar, 'del' is struck through, 'add' types on in green.
+  // The card unrolls line by line the first time it appears.
+  drawCodeCard(cx, cy, opts = {}) {
+    const pal = this.palette;
+    const lines = (opts.lines || []).map(l => (typeof l === 'string' ? { text: l } : l));
+    const key = opts.key || opts.title || 'card';
+    const frameCol = opts.color || pal.primary;
+    const width = opts.width || Math.max(14, ...lines.map(l => l.text.length + 8), (opts.title || '').length + 6);
+    const h = lines.length + 2;
+    const x0 = Math.round(cx - width / 2);
+    const y0 = Math.round(cy - h / 2);
+    const appear = this.animSpring(`card:${key}`, 1, { from: 0, freq: 5, damp: 0.9 });
+    const shownRows = Math.floor(appear * (lines.length + 0.99));
+    const green = opts.addColor || '#00ff88';
+
+    this.drawBox(x0, y0, width, h, { style: 'round', color: frameCol, title: opts.title, titleColor: opts.titleColor || pal.accent, glow: Boolean(opts.glow) });
+    if (this.holoHud) {
+      this.vItems.push({ t: 'rect', x: x0 + 0.5, y: y0 + 0.5, w: width - 1, rh: h - 1, c: frameCol, a: 0.05, h: this._hudMode });
+    }
+
+    for (let i = 0; i < Math.min(shownRows, lines.length); i++) {
+      const ln = lines[i];
+      const y = y0 + 1 + i;
+      const tx = x0 + 4;
+      let col = opts.textColor || pal.accent;
+      let prefix = ' ';
+      if (ln.mark === 'hl') { col = opts.hlColor || pal.warn; prefix = '▶'; }
+      else if (ln.mark === 'warn') { col = pal.warn; prefix = '!'; }
+      else if (ln.mark === 'del') { col = pal.danger; prefix = '-'; }
+      else if (ln.mark === 'add') { col = green; prefix = '+'; }
+      else if (ln.mark === 'dim') { col = pal.dim; }
+      this.drawText(x0 + 1, y, String(i + 1).padStart(2, ' '), pal.dim, false, 'left');
+      if (prefix !== ' ') this.setCell(x0 + 3, y, prefix, col, true);
+      this.drawText(tx, y, ln.text, col, ln.mark === 'add' || ln.mark === 'hl', 'left');
+      if (this.holoHud && (ln.mark === 'hl' || ln.mark === 'add' || ln.mark === 'warn')) {
+        const pulse = 0.75 + 0.25 * Math.sin(this.time * 4);
+        this.vItems.push({ t: 'rect', x: x0 + 0.6, y: y, w: width - 1.2, rh: 1, c: col, a: 0.13 * pulse, h: this._hudMode });
+      }
+      if (ln.mark === 'del') {
+        this._vline(tx - 0.4, y, tx + ln.text.length - 0.6, y, pal.danger, 0.85, 1.3);
+      }
+    }
   }
 
   addGlow(cx, cy, radius = 6, color = null, intensity = 1) {
@@ -1861,6 +2068,8 @@ class AsciiEngine {
       vcircle: (cx, cy, r, opts = {}) => self.vItems.push({ t: 'ellipse', x: cx, y: cy, rx: r * 1.85, ry: r, c: opts.color || self.palette.primary, a: opts.alpha !== undefined ? opts.alpha : 0.5, w: opts.width || 1.2, fill: Boolean(opts.fill), h: self._hudMode }),
       vdot: (x, y, r, opts = {}) => self._vdot(x, y, r, opts.color || self.palette.accent, opts.alpha !== undefined ? opts.alpha : 0.85),
       glow: (cx, cy, radius, col, intensity) => self.addGlow(cx, cy, radius, col, intensity),
+      icon: (name, cx, cy, col, opts) => self.drawIcon(name, cx, cy, col, opts || {}),
+      codeCard: (cx, cy, opts) => self.drawCodeCard(cx, cy, opts || {}),
       project3D: (x, y, z, cx, cy, rx, ry, rz, scale) => self.project3D(x, y, z, cx, cy, rx, ry, rz, scale),
       axes3D: (cx, cy, scale, rx, ry, rz, opts) => self.drawAxes3D(cx, cy, scale, rx, ry, rz, opts),
       drawAxes3D: (cx, cy, scale, rx, ry, rz, opts) => self.drawAxes3D(cx, cy, scale, rx, ry, rz, opts),
@@ -2227,6 +2436,13 @@ class AsciiEngine {
           }
           break;
         }
+        case 'rect': {
+          // Cell-edge coordinates (x, y = top-left cell index)
+          c.globalAlpha = it.a;
+          c.fillStyle = it.c;
+          c.fillRect(ox + it.x * cw, oy + it.y * chh, it.w * cw, it.rh * chh);
+          break;
+        }
         case 'arcs': {
           c.globalAlpha = it.a;
           c.strokeStyle = it.c;
@@ -2574,5 +2790,6 @@ class AsciiEngine {
 window.THEMES = THEMES;
 window.EASE = EASE;
 window.SHAPES = SHAPES;
+window.ICONS = ICONS;
 window.OUTPUT_PRESETS = OUTPUT_PRESETS;
 window.AsciiEngine = AsciiEngine;
