@@ -58,6 +58,11 @@ GLOBAL VARIABLES & SANDBOX CONTEXT (Available BOTH directly as globals AND as pr
   - grid.vpath([[x, y], ...], { color, alpha, width, glow: true, taper: true })
   - grid.vcircle(cx, cy, r, { color, alpha, width })
   - grid.glow(cx, cy, radius, color, intensity)
+  - grid.icon(name, cx, cy, color, { bob, glow, label, key, alpha }) // animated holographic concept icon
+      names: agent, agentMask, bug, file, binary, lock, unlock, eye, eyeClosed, server, cloud, trophy, plug, gear, warn, shield, chip, dna
+      Use icons to show WHAT a thing is (an agent, a bug, a config file) next to the 3D shapes. Swapping the name on the same key re-materialises it.
+  - grid.codeCard(cx, cy, { title: 'config.yaml', width: 26, color, lines: ['a: 1', { text: 'b: 2', mark: 'hl'|'del'|'add'|'warn'|'dim' }] })
+      // a code/config window; show a rule or script being edited with 'hl' then 'del' + 'add' lines
   - All 3D primitives accept { alpha: 0..1 } in opts for fading in/out.
 - fx (or ctx.fx):
   - fx.burst(x, y, { count: 14, color, chars: ['░','▒','▓','+'] })
@@ -161,7 +166,7 @@ function createMockValidationContext() {
     title: noop, caption: noop, counter: (k, x, y, v) => v,
     shape3D: () => dummyVerts, morph3D: () => dummyVerts,
     tetrahedron3D: () => dummyVerts.slice(0, 4), dodecahedron3D: () => dummyVerts,
-    vline: noop, vpath: noop, vcircle: noop, vdot: noop, glow: noop
+    vline: noop, vpath: noop, vcircle: noop, vdot: noop, glow: noop, icon: noop, codeCard: noop
   };
   const fx = {
     burst: noop, spawnBurst: noop, explode: noop, particles: noop, ripple: noop, spawnRipple: noop,

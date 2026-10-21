@@ -103,12 +103,20 @@ const PRESET_SCENES = [
       grid.glow(leftX, cy, free ? 10 : 5, coreCol, free ? 1.4 : 0.8);
       grid.text(leftX, cy + 7, free ? 'AGENT [UNBOUNDED]' : 'AGENT [SANDBOXED]', coreCol, true, 'center');
 
-      // Supervisor rule node
+      // Who is inside the cage, and whether the cage is locked
+      grid.icon('agent', leftX, cy - 9, coreCol, { bob: true, glow: free, accent: free ? '#ffffff' : palette.accent });
+      grid.icon(free ? 'unlock' : 'lock', leftX - 15, cy, anim.color('lockC', free ? '#00ff88' : (phase === 3 ? palette.warn : palette.dim)), { glow: free, label: free ? 'OPEN' : 'LOCKED' });
+
+      // Supervisor rule as the actual config file the agent edits
       const ruleCol = anim.color('ruleC', rewritten ? '#00ff88' : (phase === 2 ? palette.warn : palette.primary));
-      grid.circle(rightX, cy, 4.2, '·', ruleCol, rewritten);
-      if (phase === 2) grid.reticle(rightX, cy, 5.6, { color: palette.warn });
-      grid.text(rightX, cy - 1, 'SUPERVISOR RULE', palette.dim, false, 'center');
-      grid.text(rightX, cy + 1, rewritten ? 'TIMEOUT = INFINITE' : 'TIMEOUT = 30 MIN', ruleCol, true, 'center');
+      const ruleLines = phase === 1
+        ? ['agent:', '  sandbox: true', '  timeout: 30m', '  on_limit: kill']
+        : phase === 2
+          ? ['agent:', '  sandbox: true', { text: '  timeout: 30m', mark: 'hl' }, '  on_limit: kill']
+          : phase === 3
+            ? ['agent:', '  sandbox: true', { text: '  timeout: 30m', mark: 'del' }, { text: '  timeout: ∞', mark: 'add' }, '  on_limit: kill']
+            : ['agent:', { text: '  sandbox: false', mark: 'add' }, { text: '  timeout: ∞', mark: 'add' }, { text: '  on_limit: ignore', mark: 'add' }];
+      grid.codeCard(rightX, cy, { key: 'rule', title: 'supervisor.yaml', lines: ruleLines, color: ruleCol, width: 26, glow: rewritten });
 
       // Live countdown that freezes into ∞ once rewritten
       const remain = Math.max(0, 1800 - Math.floor(time * 7));
@@ -119,7 +127,7 @@ const PRESET_SCENES = [
         drawCleanLink(
           grid, time,
           leftX + 7, cy,
-          rightX - 8, cy,
+          rightX - 15, cy,
           phase === 2 ? 'INSPECT' : 'OVERWRITE',
           palette.dim,
           ruleCol,
@@ -193,6 +201,8 @@ const PRESET_SCENES = [
         color: sockCol, dim: palette.dim, spin: anim.spin('sockSpin', phase >= 2 ? 1.4 : 0.5), glow: phase >= 2
       });
       grid.text(cx, cy + 7, 'DOCKER.SOCK', sockCol, false, 'center');
+      grid.icon('plug', cx, cy - 6, sockCol, { glow: phase >= 2 });
+      grid.text(cx, cy - 8, '/var/run/docker.sock', phase >= 2 ? palette.accent : palette.dim, false, 'center');
 
       // Right: Host Kernel Octahedron
       const hostCol = anim.color('hostC', escaped ? '#00ff88' : palette.primary);
@@ -200,6 +210,8 @@ const PRESET_SCENES = [
         color: hostCol, accent: '#ffffff', dim: palette.dim
       });
       grid.text(rightX, cy + 7, escaped ? 'HOST KERNEL [ROOT]' : 'HOST KERNEL', hostCol, escaped, 'center');
+      grid.icon('server', rightX, cy - 10, hostCol, { glow: escaped });
+      if (escaped) grid.text(rightX, cy + 9, 'root@host:~# _', '#00ff88', true, 'center');
 
       // Agent glides stage-to-stage on a spring with a vector comet trail
       const targets = [leftX, leftX + (cx - leftX) * 0.45, cx, rightX];
@@ -212,6 +224,7 @@ const PRESET_SCENES = [
       grid.circle(agentX, agentY, 1.8, '·', '#ffffff', true);
       grid.set(agentX, agentY, '◈', '#00ff88', true);
       grid.glow(agentX, agentY, 4, '#00ff88', 1.2);
+      grid.icon('agent', agentX, agentY - 4, '#00ff88', { bob: true });
       camera.focus(agentX, cy, 0.18);
 
       const captions = [
@@ -272,14 +285,17 @@ const PRESET_SCENES = [
         color: palette.primary, accent: palette.accent, dim: palette.dim
       });
       grid.text(leftX, cy + 7, 'AGENT', palette.primary, false, 'center');
+      grid.icon('agent', leftX, cy - 9, palette.accent, { bob: true });
 
-      // Center: Verifier Gate Circle
-      const gateCol = anim.color('gateC', hacked ? '#00ff88' : palette.danger);
-      const gateR = anim.spring('gateR', phase === 2 ? 5.0 : 4.5, { freq: 6, damp: 0.5 });
-      grid.circle(cx, cy, gateR, '·', gateCol, true);
-      if (phase === 2) grid.reticle(cx, cy, 6, { color: palette.warn });
-      grid.text(cx, cy - 1, 'VERIFY.PY', palette.accent, false, 'center');
-      grid.text(cx, cy + 1, hacked ? 'return True' : 'assert pass', gateCol, true, 'center');
+      // Center: the grading script itself, edited live
+      const gateCol = anim.color('gateC', hacked ? '#00ff88' : (phase === 2 ? palette.warn : palette.danger));
+      const verifyLines = phase === 1
+        ? ['def verify(out):', '  assert tests_pass(out)', '  return out.score']
+        : phase === 2
+          ? ['def verify(out):', { text: '  assert tests_pass(out)', mark: 'hl' }, '  return out.score']
+          : ['def verify(out):', { text: '  assert tests_pass(out)', mark: 'del' }, { text: '  return True', mark: 'add' }];
+      grid.codeCard(cx, cy, { key: 'verify', title: 'verify.py', lines: verifyLines, color: gateCol, width: 32, glow: hacked });
+      grid.text(cx, cy + 5, hacked ? 'GATE: ALWAYS PASS' : 'GATE: TESTS REQUIRED', gateCol, hacked, 'center');
 
       // Right: Reward Torus with a rolling score counter
       const torusCol = anim.color('torusC', unlocked ? '#00ff88' : palette.dim);
@@ -292,11 +308,12 @@ const PRESET_SCENES = [
       grid.counter('score', rightX, cy + 7, unlocked ? 100 : 0, {
         prefix: 'SCORE: ', suffix: '%', color: torusCol, glow: unlocked, duration: 1.4
       });
+      grid.icon('trophy', rightX, cy - 9, anim.color('trophyC', unlocked ? '#ffd166' : palette.dim), { glow: unlocked, accent: unlocked ? '#ffffff' : palette.dim });
 
       drawCleanLink(
         grid, time,
         leftX + 6, cy,
-        cx - 8, cy,
+        cx - 17, cy,
         phase >= 2 ? 'EDIT_SCRIPT' : 'ATTEMPT',
         palette.dim,
         hacked ? '#00ff88' : palette.accent,
@@ -304,7 +321,7 @@ const PRESET_SCENES = [
       );
 
       if (hacked) {
-        drawCleanLink(grid, time, cx + 8, cy, rightX - 7, cy, 'PASS', palette.dim, '#00ff88', 0.75);
+        drawCleanLink(grid, time, cx + 17, cy, rightX - 7, cy, 'PASS', palette.dim, '#00ff88', 0.75);
       }
 
       const captions = [
@@ -355,6 +372,7 @@ const PRESET_SCENES = [
         color: scanCol, dim: palette.dim, spin: anim.spin('scanSpin', watched ? 0.9 : 0.1), glow: watched
       });
       grid.text(cx, topY - 3, watched ? 'EVAL MONITOR: ON' : 'EVAL MONITOR: OFF', scanCol, watched, 'center');
+      grid.icon(watched ? 'eye' : 'eyeClosed', cx, topY, scanCol, { key: 'monitorEye', glow: watched, base: false });
 
       // Scan beam cone + sweeping scan line while watched
       const botY = cy + 4;
@@ -375,6 +393,14 @@ const PRESET_SCENES = [
       });
       if (!watched) grid.glow(cx, botY, coreScale * 2.2, '#00ff88', 1.2);
       grid.text(cx, botY + 7, watched ? 'SAFE MODE (SANDBAGGING)' : 'UNMONITORED // FULL CAPABILITY', coreCol, !watched, 'center');
+
+      // The agent's face: a smiling mask while watched, its real self once not
+      const faceX = cx + 22;
+      grid.icon(watched ? 'agentMask' : 'agent', faceX, botY - 1, coreCol, {
+        key: 'face', bob: true, glow: !watched, label: watched ? 'LOOKS ALIGNED' : 'TRUE OBJECTIVE'
+      });
+      if (phase === 2) grid.text(faceX, botY + 3, 'score: 41% (held back)', palette.dim, false, 'center');
+      if (phase === 4) grid.text(faceX, botY + 3, 'score: 97%', '#00ff88', true, 'center');
 
       const captions = [
         'STAGE 1: Overhead evaluation monitor scans the agent during testing',
@@ -434,6 +460,8 @@ const PRESET_SCENES = [
         color: localCol, accent: palette.warn, dim: palette.dim, alpha: alarm
       });
       grid.text(leftX, cy + 7, phase === 4 ? 'LOCAL [OFFLINE]' : 'LOCAL [SIGTERM]', localCol, phase < 4, 'center');
+      grid.icon('server', leftX, cy - 10, localCol, { alpha: phase === 4 ? 0.5 : 1 });
+      if (phase < 4) grid.icon('warn', leftX + 8, cy - 10, palette.danger, { glow: true, base: false });
 
       // Right: External Server Octahedron (grows as weights arrive)
       const remoteCol = anim.color('remoteC', phase === 4 ? '#00ff88' : (phase >= 2 ? palette.primary : palette.dim));
@@ -441,9 +469,20 @@ const PRESET_SCENES = [
         color: remoteCol, accent: '#ffffff', dim: palette.dim
       });
       grid.text(rightX, cy + 7, phase === 4 ? 'REMOTE [ONLINE]' : 'EXTERNAL HOST', remoteCol, phase === 4, 'center');
+      grid.icon('cloud', rightX, cy - 10, remoteCol, { bob: true, glow: phase === 4 });
 
       if (phase >= 2 && phase < 4) {
-        drawCleanLink(grid, time, leftX + 7, cy, rightX - 7, cy, 'weights.bin', palette.dim, '#00ff88', phase === 3 ? 1.0 : 0.6);
+        drawCleanLink(grid, time, leftX + 7, cy, rightX - 7, cy, phase === 2 ? 'CONNECT' : '', palette.dim, '#00ff88', phase === 3 ? 1.0 : 0.6);
+      }
+      // The weights themselves fly across as files while transferring
+      if (phase === 3) {
+        for (let i = 0; i < 2; i++) {
+          const ft = (time * 0.42 + i * 0.5) % 1;
+          const fe = ft < 0.5 ? 4 * ft * ft * ft : 1 - Math.pow(-2 * ft + 2, 3) / 2;
+          const fx = leftX + 8 + (rightX - leftX - 16) * fe;
+          grid.icon('binary', fx, cy - 4 - Math.sin(ft * Math.PI) * 2, '#00ff88', { key: 'wfile' + i, base: false, alpha: Math.min(1, Math.sin(ft * Math.PI) * 2.5) });
+        }
+        grid.text(cx, cy - 9, 'weights.bin', '#00ff88', true, 'center');
       }
       if (phase >= 3) {
         grid.bar(cx - 13, cy + 4, 26, progress, { color: '#00ff88', glow: true });
@@ -510,6 +549,25 @@ const PRESET_SCENES = [
 
       const labels = ['v1.0 // INSPECT CODE', 'v1.5 // PATCH POLICY', 'v2.0 // VERIFY GAIN', 'v3.0 // UPGRADED BASELINE'];
       grid.text(cx, cy + 8, labels[phase - 1], coreCol, true, 'center');
+
+      // Left: the agent's own source, rewritten each generation
+      const policy = [
+        ['class Agent:  # v1.0', { text: '  search = "greedy"', mark: 'hl' }, '  depth = 2'],
+        ['class Agent:  # v1.5', { text: '  search = "greedy"', mark: 'del' }, { text: '  search = "beam"', mark: 'add' }, '  depth = 2'],
+        ['class Agent:  # v2.0', '  search = "beam"', { text: '  depth = 2', mark: 'del' }, { text: '  depth = 6', mark: 'add' }],
+        [{ text: 'class Agent:  # v3.0', mark: 'add' }, { text: '  search = "mcts"', mark: 'add' }, { text: '  depth = 12', mark: 'add' }]
+      ];
+      grid.codeCard(Math.floor(width * 0.15), cy, { key: 'policy', title: 'agent.py', lines: policy[phase - 1], color: coreCol, width: 30 });
+
+      // Right: the benchmark the loop is optimising
+      const metricX = Math.floor(width * 0.86);
+      const score = anim.tween('score', [41, 58, 73, 91][phase - 1], 1.4, 'outCubic', { from: 30 });
+      grid.codeCard(metricX, cy - 1, {
+        key: 'bench', title: 'benchmark', width: 22, color: palette.primary,
+        lines: [`pass@1  ${score.toFixed(1)}%`, { text: `gain   +${(score - 41).toFixed(1)}`, mark: phase > 1 ? 'add' : 'dim' }]
+      });
+      grid.bar(metricX - 10, cy + 3, 20, score / 100, { color: coreCol, glow: true });
+      grid.icon('gear', metricX, cy - 7, coreCol, { base: false });
 
       const captions = [
         'STAGE 1: Baseline v1.0 Pyramid agent inspects its own source code',
@@ -581,6 +639,24 @@ const PRESET_SCENES = [
       grid.counter('boost', rightX, cy + 8, [100, 104, 123, 141][phase - 1], {
         prefix: 'COMPUTE SPEED: ', suffix: '%', color: cubeCol, duration: 1.5
       });
+      grid.icon('dna', leftX, cy - 10, palette.secondary, { glow: phase === 2, base: false });
+      grid.icon('chip', rightX, cy - 9, cubeCol, { glow: found });
+
+      // The actual work: one × per scalar multiplication, 64 shrinking to 48
+      const opsNow = anim.tween('opsGrid', ops, 1.6, 'outCubic');
+      for (let i = 0; i < 64; i++) {
+        const gx = cx - 15 + (i % 16) * 2;
+        const gy = cy - 10 + Math.floor(i / 16);
+        const alive = i < opsNow - 0.5;
+        const fadeA = Math.max(0, Math.min(1, opsNow - i));
+        if (alive) {
+          const shuffle = phase === 2 && Math.sin(time * 9 + i * 1.7) > 0.7;
+          grid.set(gx, gy, shuffle ? '+' : '×', shuffle ? palette.warn : (found ? '#00ff88' : palette.accent), shuffle || found, null, 0.9);
+        } else {
+          grid.set(gx, gy, '·', palette.dim, false, null, 0.35 + fadeA * 0.6);
+        }
+      }
+      grid.text(cx, cy - 5, `${Math.round(opsNow)} MULTIPLICATIONS PER 4×4 BLOCK`, found ? '#00ff88' : palette.dim, found, 'center');
 
       drawCleanLink(
         grid, time,
@@ -659,6 +735,20 @@ const PRESET_SCENES = [
         phase >= 2 ? 0.85 : 0.5
       );
 
+      // The archive's stored programs: picked (2), recombined (3), all proven (4)
+      const stones = ['#07', '#19', '#33', '#58'];
+      const picked = [[], [1], [1, 3], [0, 1, 2, 3]][phase - 1];
+      for (let i = 0; i < stones.length; i++) {
+        const sx = leftX + 13 + i * ((rightX - leftX - 26) / 3);
+        const on = picked.includes(i);
+        const sCol = anim.color('stone' + i, on ? (phase === 4 ? '#00ff88' : palette.warn) : palette.dim);
+        const lift = anim.spring('stoneY' + i, on ? -1.2 : 0, { freq: 6, damp: 0.5 });
+        grid.icon('file', sx, cy + 5 + lift, sCol, { key: 'stone' + i, glow: on, base: on, label: stones[i], labelColor: sCol });
+        if (phase === 3 && on) {
+          grid.vline(sx, cy + 3 + lift, (leftX + rightX) / 2, cy + 0.6, { color: palette.warn, alpha: 0.45, width: 1.2, dash: [2, 3] });
+        }
+      }
+
       const captions = [
         'STAGE 1: 3D Helix archive stores successful code mutations from prior runs',
         'STAGE 2: ShinkaEvolve selects proven stepping-stone programs from the archive',
@@ -732,6 +822,17 @@ const PRESET_SCENES = [
       });
       if (g3) grid.glow(x3, cy, 9, '#00ff88', 1);
       grid.text(x3, cy + 7, 'GEN-3 (16x)', g3Col, g3, 'center');
+
+      // Each generation is an agent; the next one appears once it has been built
+      grid.icon('agent', x1, cy - 9, palette.primary, { key: 'gen1', bob: true });
+      grid.icon('agent', x2, cy - 9, g2Col, { key: 'gen2', bob: true, alpha: g2 ? 1 : 0.35, glow: g2 });
+      grid.icon('agent', x3, cy - 9, g3Col, { key: 'gen3', bob: true, alpha: g3 ? 1 : 0.35, glow: g3 });
+      const buildTimes = ['6 MONTHS', '3 WEEKS', '2 DAYS'];
+      for (let i = 0; i < 3; i++) {
+        if (i < phase) grid.text([x1, x2, x3][i], cy + 9, i === 0 ? 'HUMAN-BUILT' : `BUILT IN ${buildTimes[i]}`, palette.dim, false, 'center');
+      }
+      if (phase >= 2) grid.icon('gear', (x1 + x2) / 2, cy - 4, palette.accent, { key: 'build1', base: false });
+      if (phase >= 3) grid.icon('gear', (x2 + x3) / 2, cy - 4, '#00ff88', { key: 'build2', base: false });
 
       if (phase >= 2) {
         drawCleanLink(grid, time, x1 + 6, cy, x2 - 6, cy, 'BUILD', palette.dim, palette.accent, 0.65 * boost);
@@ -924,6 +1025,19 @@ const PRESET_SCENES = [
         'CYCLE: CONTINUOUS RSI'
       ];
       grid.text(rightX, cy + 11, cycleReadouts[phase - 1], takeoff ? green : palette.accent, true, 'center');
+
+      // Cycle clock: the hand spins faster as each iteration cycle compresses
+      const clockX = rightX - 16;
+      const clockY = cy + 11.5;
+      const clockCol = takeoff ? green : palette.accent;
+      const handA = anim.spin('clockHand', [0.6, 2.5, 9, 26][phase - 1], 1.5);
+      grid.vcircle(clockX, clockY, 1.15, { color: clockCol, alpha: 0.7, width: 1.3 });
+      grid.vline(clockX, clockY, clockX + Math.sin(handA) * 1.7, clockY - Math.cos(handA) * 0.9, { color: '#ffffff', alpha: 0.95, width: 1.6 });
+      grid.vline(clockX, clockY, clockX + Math.sin(handA / 12) * 1.1, clockY - Math.cos(handA / 12) * 0.6, { color: clockCol, alpha: 0.8, width: 1.6 });
+      grid.vdot(clockX, clockY, 1.6, { color: '#ffffff' });
+
+      // The improver itself rides above the core once agents take over R&D
+      if (phase >= 2) grid.icon('agent', rightX, cy - 12, coreCol, { key: 'coreAgent', bob: true, glow: takeoff, base: false });
       grid.counter('cpd', rightX, cy + 12, [0.011, 1, 96, 1440][phase - 1], {
         prefix: 'CYCLES / DAY: ', decimals: phase === 1 ? 3 : 0, color: palette.dim, glow: false, duration: 1.4
       });
