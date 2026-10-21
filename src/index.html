@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TermFX Studio</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico?v=20261020" />
-  <link rel="stylesheet" href="styles.css?v=20261020" />
+  <link rel="stylesheet" href="styles.css?v=20261021a" />
 </head>
 <body>
   <div id="app-container">
@@ -60,10 +60,57 @@
             <option value="redalert">Combat Override (Red)</option>
             <option value="matrix">Matrix Green</option>
           </select>
+          <div class="fx-grid">
+            <button id="btn-holo-hud" class="active" data-fx="holoHud" title="Anti-aliased hologram vector overlay">Holo</button>
+            <button id="btn-glow" class="active" data-fx="crtGlow" title="Multi-pass bloom">Bloom</button>
+            <button id="btn-scanlines" class="active" data-fx="scanlines" title="CRT scanlines + refresh band">Scan</button>
+            <button class="active" data-fx="subpixel" title="Sub-pixel glyph motion (smooth gliding)">Smooth</button>
+            <button class="active" data-fx="cameraMotion" title="Camera push-in, drift & stage punches">Cam</button>
+            <button class="active" data-fx="textReveal" title="Type-on text reveal">Type</button>
+            <button class="active" data-fx="grain" title="Film grain (prevents YouTube banding)">Grain</button>
+            <button class="active" data-fx="vignette" title="Lens vignette">Vign</button>
+            <button class="active" data-fx="bgGrid" title="Parallax dot grid background">Grid</button>
+            <button class="active" data-fx="transitionFx" title="Stage-change scan sweep & punch">Trans</button>
+            <button class="active" data-fx="introFx" title="CRT power-on when a scene starts">Intro</button>
+            <button class="active" data-fx="showTimeline" title="Bottom stage timeline bar">Bar</button>
+          </div>
           <div class="sidebar-row" style="margin-top:4px">
-            <button id="btn-holo-hud" class="active" style="flex:1" title="Toggle Hologram Glow Overlay">Holo</button>
-            <button id="btn-scanlines" class="active" style="flex:1" title="Toggle CRT Scanlines">Scan</button>
-            <button id="btn-glow" class="active" style="flex:1" title="Toggle Phosphor Glow">Glow</button>
+            <label class="mini-label" for="cfg-stage-seconds">Stage sec</label>
+            <input id="cfg-stage-seconds" type="number" min="1.5" max="30" step="0.1" value="4.6" style="width:58px" />
+            <button id="btn-pause" style="flex:1" title="Pause / resume (P). Step one frame with . while paused">❚❚ [P]</button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-label">OUTPUT</div>
+          <div class="sidebar-row">
+            <select id="output-select" style="flex:1" title="Stage resolution (preview is always 16:9 except Fit)">
+              <option value="fit">Fit Window</option>
+              <option value="720p">720p</option>
+              <option value="1080p" selected>1080p</option>
+              <option value="1440p">1440p</option>
+              <option value="4k">4K UHD</option>
+            </select>
+            <select id="fps-select" style="width:58px" title="Render frame rate">
+              <option value="60" selected>60</option>
+              <option value="30">30</option>
+              <option value="24">24</option>
+            </select>
+          </div>
+          <select id="bg-select" style="width:100%" title="Background for exports">
+            <option value="theme" selected>Theme Background</option>
+            <option value="black">Pure Black (Screen/Add blend)</option>
+            <option value="alpha">Transparent (ProRes / PNG)</option>
+          </select>
+          <select id="format-select" style="width:100%" title="Render format">
+            <option value="mp4" selected>MP4 · H.264 (CRF 12)</option>
+            <option value="prores">MOV · ProRes 4444 + Alpha</option>
+            <option value="png">PNG Sequence</option>
+          </select>
+          <div class="sidebar-row">
+            <button id="btn-render" class="rec-btn" style="flex:1" title="Frame-exact render of one full stage loop (F9)">● Render [F9]</button>
+            <button id="btn-snapshot" title="Save current frame as PNG (F8)">📷</button>
+            <button id="btn-open-renders" title="Open renders folder">📂</button>
           </div>
         </div>
 
@@ -80,7 +127,15 @@
       <div id="terminal-column">
         <main id="viewport">
           <canvas id="ascii-canvas"></canvas>
-          <div id="crt-overlay" class="scanlines vignette"></div>
+          <div id="render-overlay">
+            <div class="render-card">
+              <div id="render-title">RENDERING</div>
+              <div class="render-track"><div id="render-fill"></div></div>
+              <div id="render-detail">0%</div>
+              <div class="render-hint">ESC to cancel</div>
+            </div>
+          </div>
+          <div id="toast"></div>
         </main>
 
         <!-- Minimal Terminal Prompt Input (Remains usable in Clean View!) -->
@@ -99,7 +154,7 @@
       </div>
     </div>
 
-    <div id="clean-mode-badge">[TAB] Restore Sidebar | [SPACE / 1-4] Stage | [ [ / ] ] Prev/Next Scene | [F2] Auto-Type</div>
+    <div id="clean-mode-badge">[TAB] Restore | [SPACE / 1-4] Stage | [ [ / ] ] Scene | [F2] Type | [P] Pause | [F8] Snap | [F9] Render</div>
 
     <!-- AI Settings Modal -->
     <div id="modal-ai" class="modal-backdrop">
@@ -232,9 +287,9 @@
     </div>
   </div>
 
-  <script src="engine.js?v=20261020f"></script>
-  <script src="presets.js?v=20261020f"></script>
-  <script src="ai-generator.js?v=20261020f"></script>
-  <script src="app.js?v=20261020f"></script>
+  <script src="engine.js?v=20261021a"></script>
+  <script src="presets.js?v=20261021a"></script>
+  <script src="ai-generator.js?v=20261021a"></script>
+  <script src="app.js?v=20261021a"></script>
 </body>
 </html>

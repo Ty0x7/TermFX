@@ -6,9 +6,10 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const { exec, execSync, spawn } = require('child_process');
+const crypto = require('crypto');
 
-const PORT = 4577;
+const PORT = Number(process.env.TERMFX_PORT) || 4577;
 const ROOT_DIR = __dirname;
 const SRC_DIR = path.join(ROOT_DIR, 'src');
 const DATA_DIR = path.join(ROOT_DIR, 'termfx_data');
@@ -91,6 +92,140 @@ function sendJson(res, status, obj) {
   res.end(JSON.stringify(obj));
 }
 
+// ----------------------------------------------------------------------------
+// Frame-exact video export: the browser renders each frame at a fixed timestep
+// and streams PNGs here; ffmpeg encodes them (H.264 MP4, ProRes 4444 w/ alpha)
+// or they are written out as a PNG sequence.
+// ----------------------------------------------------------------------------
+const RENDER_DIR = path.join(DATA_DIR, 'renders');
+let ffmpegBin;
+
+function findFfmpeg() {
+  if (process.env.TERMFX_FFMPEG && fs.existsSync(process.env.TERMFX_FFMPEG)) return process.env.TERMFX_FFMPEG;
+  try {
+    const cmd = process.platform === 'win32' ? 'where ffmpeg' : 'which ffmpeg';
+    const out = execSync(cmd, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    if (out[0]) return out[0];
+  } catch (_) {}
+  return null;
+}
+
+function getFfmpeg() {
+  if (ffmpegBin === undefined) ffmpegBin = findFfmpeg();
+  return ffmpegBin;
+}
+
+const renderJobs = new Map();
+
+function slugify(s) {
+  return String(s || 'scene').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'scene';
+}
+
+function timestamp() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+
+function readRawBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', (c) => chunks.push(c));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+// Two ingest paths keep uploads small (Chromium's blob store tops out around
+// 2 GB, so raw RGBA frames can't be streamed for a whole scene):
+//   'h264' – the page encodes H.264 with WebCodecs; ffmpeg only muxes to MP4
+//   'png'  – PNG frames; piped into ffmpeg for ProRes, or written as files
+function startRenderJob({ name, format, fps, input }) {
+  fs.mkdirSync(RENDER_DIR, { recursive: true });
+  const base = `${slugify(name)}_${timestamp()}`;
+  const ffmpeg = getFfmpeg();
+  const rate = String(Math.max(1, Math.min(120, Number(fps) || 60)));
+  const id = crypto.randomBytes(8).toString('hex');
+
+  const wantsPipe = ffmpeg && (format === 'prores' || (format === 'mp4' && input === 'h264'));
+  if (!wantsPipe) {
+    const dir = path.join(RENDER_DIR, base);
+    fs.mkdirSync(dir, { recursive: true });
+    renderJobs.set(id, { format: 'png', input: 'png', dir, frames: 0, output: dir, started: Date.now() });
+    return { id, format: 'png', input: 'png', output: dir, fallback: format !== 'png' };
+  }
+
+  let output;
+  let args;
+  if (format === 'prores') {
+    output = path.join(RENDER_DIR, base + '.mov');
+    args = ['-f', 'image2pipe', '-framerate', rate, '-c:v', 'png', '-i', '-',
+      '-c:v', 'prores_ks', '-profile:v', '4444', '-pix_fmt', 'yuva444p10le', '-alpha_bits', '16', '-vendor', 'apl0', output];
+  } else {
+    output = path.join(RENDER_DIR, base + '.mp4');
+    args = ['-fflags', '+genpts', '-f', 'h264', '-framerate', rate, '-i', '-',
+      '-c:v', 'copy', '-bsf:v', 'h264_metadata=colour_primaries=1:transfer_characteristics=1:matrix_coefficients=1:video_full_range_flag=0',
+      '-movflags', '+faststart', output];
+  }
+  const proc = spawn(ffmpeg, ['-hide_banner', '-loglevel', 'error', '-y', ...args], { stdio: ['pipe', 'ignore', 'pipe'], windowsHide: true });
+  const job = { format, input: format === 'prores' ? 'png' : 'h264', piped: true, output, proc, frames: 0, stderr: '', exited: false, code: null, started: Date.now() };
+  job.done = new Promise((resolve) => {
+    proc.on('close', (code) => {
+      job.exited = true;
+      job.code = code;
+      resolve(code);
+    });
+    proc.on('error', (err) => {
+      job.exited = true;
+      job.stderr += String(err.message);
+      resolve(-1);
+    });
+  });
+  proc.stderr.on('data', (d) => { job.stderr = (job.stderr + d.toString()).slice(-4000); });
+  proc.stdin.on('error', () => {});
+  renderJobs.set(id, job);
+  return { id, format, input: job.input, output };
+}
+
+// `count` is how many frames this upload carries (H.264 chunks arrive batched)
+async function writeRenderFrame(job, buf, count = 1) {
+  if (!job.piped) {
+    job.frames++;
+    fs.writeFileSync(path.join(job.dir, `frame_${String(job.frames).padStart(5, '0')}.png`), buf);
+    return;
+  }
+  if (job.exited) throw new Error(`ffmpeg exited: ${job.stderr.trim() || job.code}`);
+  job.frames += count;
+  if (!job.proc.stdin.write(buf)) {
+    await new Promise((resolve) => {
+      const done = () => {
+        job.proc.stdin.off('drain', done);
+        job.proc.off('close', done);
+        resolve();
+      };
+      job.proc.stdin.on('drain', done);
+      job.proc.on('close', done);
+    });
+  }
+}
+
+// Abandoned renders (page reloaded / closed mid-render) would leave ffmpeg
+// waiting on stdin forever, so reap any job idle for a minute.
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, job] of renderJobs) {
+    if (now - (job.lastSeen || job.started || now) < 60000) continue;
+    renderJobs.delete(id);
+    if (job.proc && !job.exited) job.proc.kill();
+    try { fs.rmSync(job.output, { recursive: true, force: true }); } catch (_) {}
+  }
+}, 15000).unref();
+
+function isInsideRenderDir(p) {
+  const rel = path.relative(RENDER_DIR, path.resolve(p));
+  return Boolean(rel) && !rel.startsWith('..') && !path.isAbsolute(rel);
+}
+
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -130,6 +265,61 @@ const server = http.createServer(async (req, res) => {
     }
     if (url.pathname === '/api/open-data-dir' && req.method === 'POST') {
       exec(`explorer.exe "${DATA_DIR}"`);
+      return sendJson(res, 200, { ok: true });
+    }
+
+    // Frame-exact render pipeline
+    if (url.pathname === '/api/render/caps' && req.method === 'GET') {
+      return sendJson(res, 200, { ok: true, ffmpeg: Boolean(getFfmpeg()), renderDir: RENDER_DIR });
+    }
+    if (url.pathname === '/api/render/start' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      return sendJson(res, 200, { ok: true, ...startRenderJob(body || {}) });
+    }
+    if (url.pathname === '/api/render/frame' && req.method === 'POST') {
+      const job = renderJobs.get(url.searchParams.get('id'));
+      const buf = await readRawBody(req);
+      if (!job) return sendJson(res, 404, { ok: false, error: 'Unknown render job' });
+      job.lastSeen = Date.now();
+      try {
+        await writeRenderFrame(job, buf, Math.max(1, Number(url.searchParams.get('count')) || 1));
+        return sendJson(res, 200, { ok: true, frames: job.frames });
+      } catch (err) {
+        return sendJson(res, 200, { ok: false, error: err.message });
+      }
+    }
+    if (url.pathname === '/api/render/finish' && req.method === 'POST') {
+      const { id, cancel } = await readJsonBody(req);
+      const job = renderJobs.get(id);
+      if (!job) return sendJson(res, 404, { ok: false, error: 'Unknown render job' });
+      renderJobs.delete(id);
+      if (!job.piped) {
+        if (cancel) fs.rmSync(job.dir, { recursive: true, force: true });
+        return sendJson(res, 200, { ok: true, output: job.output, frames: job.frames, cancelled: Boolean(cancel) });
+      }
+      job.proc.stdin.end();
+      const code = await job.done;
+      if (cancel) {
+        try { fs.rmSync(job.output, { recursive: true, force: true }); } catch (_) {}
+        return sendJson(res, 200, { ok: true, cancelled: true });
+      }
+      return sendJson(res, 200, { ok: code === 0, output: job.output, frames: job.frames, error: code === 0 ? null : job.stderr.trim() });
+    }
+    if (url.pathname === '/api/render/snapshot' && req.method === 'POST') {
+      const buf = await readRawBody(req);
+      fs.mkdirSync(RENDER_DIR, { recursive: true });
+      const output = path.join(RENDER_DIR, `snap_${slugify(url.searchParams.get('name'))}_${timestamp()}.png`);
+      fs.writeFileSync(output, buf);
+      return sendJson(res, 200, { ok: true, output });
+    }
+    if (url.pathname === '/api/render/reveal' && req.method === 'POST') {
+      const { output } = await readJsonBody(req);
+      fs.mkdirSync(RENDER_DIR, { recursive: true });
+      if (output && isInsideRenderDir(output) && fs.existsSync(output)) {
+        exec(`explorer.exe /select,"${path.resolve(output)}"`);
+      } else {
+        exec(`explorer.exe "${RENDER_DIR}"`);
+      }
       return sendJson(res, 200, { ok: true });
     }
 

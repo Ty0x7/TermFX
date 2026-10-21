@@ -76,10 +76,19 @@ class TermFXLauncher
         {
             return localDir;
         }
-        string fallbackDir = @"C:\Users\ty0x7\.gemini\antigravity\scratch\termfx";
-        if (File.Exists(Path.Combine(fallbackDir, "server.js")))
+        string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        string[] fallbackDirs = new string[]
         {
-            return fallbackDir;
+            Environment.GetEnvironmentVariable("TERMFX_HOME") ?? "",
+            Path.Combine(docs, @"ChatGPT\TermFX"),
+            @"C:\Users\ty0x7\Documents\ChatGPT\TermFX"
+        };
+        foreach (var dir in fallbackDirs)
+        {
+            if (dir.Length > 0 && File.Exists(Path.Combine(dir, "server.js")))
+            {
+                return dir;
+            }
         }
         return localDir;
     }

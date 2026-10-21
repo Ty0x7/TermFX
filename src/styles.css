@@ -458,3 +458,153 @@ body.clean-recording #prompt-bar:hover button {
   justify-content: flex-end;
   gap: 8px;
 }
+
+/* ---------------------------------------------------------------------------
+   v2: Fixed 16:9 output stage, FX grid, render overlay & toast
+   --------------------------------------------------------------------------- */
+#viewport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+#ascii-canvas {
+  width: auto;
+  height: auto;
+  flex: none;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+#ascii-canvas.alpha-preview {
+  background-color: #1a1a1a;
+  background-image:
+    linear-gradient(45deg, #262626 25%, transparent 25%),
+    linear-gradient(-45deg, #262626 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #262626 75%),
+    linear-gradient(-45deg, transparent 75%, #262626 75%);
+  background-size: 24px 24px;
+  background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+}
+
+body.clean-recording #ascii-canvas {
+  box-shadow: none;
+}
+
+#sidebar {
+  overflow-y: auto;
+}
+
+.fx-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.fx-grid button {
+  padding: 3px 2px;
+  font-size: 10px;
+  text-align: center;
+}
+
+.mini-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  align-self: center;
+  white-space: nowrap;
+}
+
+button.rec-btn {
+  border-color: var(--text-danger);
+  color: var(--text-danger);
+  font-weight: 700;
+}
+
+button.rec-btn:hover {
+  background: var(--text-danger);
+  color: #fff;
+}
+
+#render-overlay {
+  position: absolute;
+  inset: auto 0 18px 0;
+  display: none;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 40;
+}
+
+body.rendering #render-overlay {
+  display: flex;
+}
+
+.render-card {
+  min-width: 360px;
+  background: rgba(2, 7, 16, 0.92);
+  border: 1px solid var(--text-danger);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+}
+
+#render-title {
+  color: var(--text-danger);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.render-track {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+#render-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--text-danger);
+  box-shadow: 0 0 8px var(--text-danger);
+}
+
+#render-detail {
+  color: var(--text-accent);
+}
+
+.render-hint {
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+#toast {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  max-width: 80%;
+  background: rgba(2, 7, 16, 0.94);
+  border: 1px solid var(--text-primary);
+  color: var(--text-accent);
+  padding: 7px 12px;
+  font-size: 11px;
+  z-index: 45;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+body.rendering #sidebar,
+body.rendering #titlebar,
+body.rendering #prompt-bar {
+  pointer-events: none;
+  opacity: 0.5;
+}

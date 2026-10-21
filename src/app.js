@@ -53,6 +53,7 @@ if (!window.termAPI) {
 (async function () {
   const canvas = document.getElementById('ascii-canvas');
   const engine = new window.AsciiEngine(canvas);
+  window.TermFX = { engine };
 
   let settings = {
     provider: 'lmstudio',
@@ -72,8 +73,16 @@ if (!window.termAPI) {
     crtVignette: true,
     typingSound: true,
     typingSpeed: 34,
-    fontSize: 16
+    fontSize: 16,
+    outputMode: '1080p',
+    renderFps: 60,
+    renderFormat: 'mp4',
+    bgMode: 'theme',
+    stageDuration: 4.6,
+    fx: {}
   };
+
+  const FX_KEYS = ['holoHud', 'crtGlow', 'scanlines', 'subpixel', 'cameraMotion', 'textReveal', 'grain', 'vignette', 'bgGrid', 'transitionFx', 'introFx', 'showTimeline'];
 
   let savedSimulations = [];
   let allSimulations = [];
@@ -326,26 +335,326 @@ if (!window.termAPI) {
     if (window.termAPI) await window.termAPI.saveSettings({ theme: settings.theme });
   });
 
-  const crtOverlay = document.getElementById('crt-overlay');
-  document.getElementById('btn-scanlines').addEventListener('click', (e) => {
-    settings.crtScanlines = !settings.crtScanlines;
-    crtOverlay.classList.toggle('scanlines', settings.crtScanlines);
-    e.currentTarget.classList.toggle('active', settings.crtScanlines);
-  });
+  // --- Cinematic FX toggles (every effect is rendered into the canvas, so exports match the preview) ---
+  function persistSettings(partial) {
+    if (window.termAPI) window.termAPI.saveSettings(partial).catch(() => {});
+  }
 
-  document.getElementById('btn-glow').addEventListener('click', (e) => {
-    settings.crtGlow = !settings.crtGlow;
-    engine.crtGlow = settings.crtGlow;
-    e.currentTarget.classList.toggle('active', settings.crtGlow);
-  });
-
-  const btnHoloHud = document.getElementById('btn-holo-hud');
-  if (btnHoloHud) {
-    btnHoloHud.addEventListener('click', (e) => {
-      engine.holoHud = !engine.holoHud;
-      e.currentTarget.classList.toggle('active', engine.holoHud);
+  function applyFxSettings() {
+    const fx = settings.fx || {};
+    for (const key of FX_KEYS) {
+      if (typeof fx[key] === 'boolean') engine[key] = fx[key];
+    }
+    document.querySelectorAll('button[data-fx]').forEach(btn => {
+      btn.classList.toggle('active', Boolean(engine[btn.dataset.fx]));
     });
   }
+
+  document.querySelectorAll('button[data-fx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.fx;
+      engine[key] = !engine[key];
+      settings.fx = { ...(settings.fx || {}), [key]: engine[key] };
+      btn.classList.toggle('active', engine[key]);
+      persistSettings({ fx: settings.fx });
+    });
+  });
+
+  const outputSelect = document.getElementById('output-select');
+  outputSelect.addEventListener('change', (e) => {
+    settings.outputMode = e.target.value;
+    engine.setOutputMode(settings.outputMode);
+    persistSettings({ outputMode: settings.outputMode });
+  });
+
+  const fpsSelect = document.getElementById('fps-select');
+  fpsSelect.addEventListener('change', (e) => {
+    settings.renderFps = Number(e.target.value) || 60;
+    persistSettings({ renderFps: settings.renderFps });
+  });
+
+  const bgSelect = document.getElementById('bg-select');
+  bgSelect.addEventListener('change', (e) => {
+    settings.bgMode = e.target.value;
+    engine.bgMode = settings.bgMode;
+    canvas.classList.toggle('alpha-preview', settings.bgMode === 'alpha');
+    persistSettings({ bgMode: settings.bgMode });
+  });
+
+  const formatSelect = document.getElementById('format-select');
+  formatSelect.addEventListener('change', (e) => {
+    settings.renderFormat = e.target.value;
+    persistSettings({ renderFormat: settings.renderFormat });
+  });
+
+  const stageInput = document.getElementById('cfg-stage-seconds');
+  stageInput.addEventListener('change', (e) => {
+    const v = Math.max(1.5, Math.min(30, Number(e.target.value) || 4.6));
+    e.target.value = v;
+    settings.stageDuration = v;
+    engine.stageDuration = v;
+    persistSettings({ stageDuration: v });
+  });
+
+  let paused = false;
+  const btnPause = document.getElementById('btn-pause');
+  function setPaused(p) {
+    paused = p;
+    btnPause.classList.toggle('active', paused);
+    btnPause.textContent = paused ? '▶ [P]' : '❚❚ [P]';
+  }
+  btnPause.addEventListener('click', () => setPaused(!paused));
+
+  // --- Toast ---
+  let toastTimer = null;
+  function toast(msg, ms = 3200) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('visible'), ms);
+  }
+
+  // --- Frame-exact Render & Snapshot ---
+  const canRender = location.protocol.startsWith('http');
+  let rendering = null;
+  let lastRenderOutput = null;
+
+  function canvasToPng() {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(b => (b ? resolve(b) : reject(new Error('toBlob failed'))), 'image/png');
+    });
+  }
+
+  // PNG frames are encoded from a copy: reading the main canvas back every
+  // frame makes Chrome drop it to CPU rendering, which cripples the bloom
+  let readbackCanvas = null;
+  function pngFromCopy(w, h) {
+    if (!readbackCanvas || readbackCanvas.width !== w || readbackCanvas.height !== h) {
+      readbackCanvas = document.createElement('canvas');
+      readbackCanvas.width = w;
+      readbackCanvas.height = h;
+    }
+    const rctx = readbackCanvas.getContext('2d');
+    rctx.clearRect(0, 0, w, h);
+    rctx.drawImage(canvas, 0, 0);
+    return new Promise((resolve, reject) => {
+      readbackCanvas.toBlob(b => (b ? resolve(b) : reject(new Error('toBlob failed'))), 'image/png');
+    });
+  }
+
+  // H.264 straight from the canvas on the GPU via WebCodecs; only compressed
+  // chunks travel to the server, where ffmpeg muxes them into an MP4
+  async function createH264Encoder(w, h, fps) {
+    if (typeof VideoEncoder !== 'function') return null;
+    const base = {
+      codec: w * h > 1920 * 1088 ? 'avc1.640034' : 'avc1.640032',
+      width: w,
+      height: h,
+      framerate: fps,
+      latencyMode: 'quality',
+      avc: { format: 'annexb' }
+    };
+    const candidates = [
+      { ...base, bitrateMode: 'quantizer' },
+      { ...base, bitrateMode: 'variable', bitrate: Math.round(w * h * fps * 0.4) }
+    ];
+    for (const cfg of candidates) {
+      try {
+        const res = await VideoEncoder.isConfigSupported(cfg);
+        if (!res.supported) continue;
+        const enc = { chunks: [], bytes: 0, frames: 0, error: null, quantizer: cfg.bitrateMode === 'quantizer' };
+        enc.encoder = new VideoEncoder({
+          output: (chunk) => {
+            const buf = new Uint8Array(chunk.byteLength);
+            chunk.copyTo(buf);
+            enc.chunks.push(buf);
+            enc.bytes += buf.byteLength;
+            enc.frames++;
+          },
+          error: (e) => { enc.error = e; }
+        });
+        enc.encoder.configure(cfg);
+        return enc;
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  async function postFrames(jobId, body, count = 1) {
+    const r = await fetch(`/api/render/frame?id=${jobId}&count=${count}`, { method: 'POST', body });
+    const res = await r.json();
+    if (!res.ok) throw new Error(res.error || 'Frame write failed');
+  }
+
+  async function postJson(url, body) {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body || {})
+    });
+    return r.json();
+  }
+
+  function setRenderProgress(title, ratio, detail) {
+    document.getElementById('render-title').textContent = title;
+    document.getElementById('render-fill').style.width = `${(ratio * 100).toFixed(1)}%`;
+    document.getElementById('render-detail').textContent = detail;
+  }
+
+  async function renderVideo() {
+    if (rendering || !activeSimMeta) return;
+    if (!canRender) {
+      toast('Rendering needs the TermFX server (launch via TermFX.exe or `node server.js`).');
+      return;
+    }
+    const fps = Number(settings.renderFps) || 60;
+    const format = settings.renderFormat || 'mp4';
+    const bgMode = format === 'mp4' && engine.bgMode === 'alpha' ? 'theme' : engine.bgMode;
+    const [w, h] = engine.outputSize;
+
+    rendering = { cancel: false };
+    document.body.classList.add('rendering');
+    const prevAuto = engine.autoPlayStages;
+    const prevSound = engine.soundEnabled;
+    const prevParallax = engine.mouseParallax;
+    const prevGrain = engine.grain;
+    engine.autoPlayStages = true;
+    engine.soundEnabled = false;
+    engine.mouseParallax = false;
+    engine.parallaxX = 0;
+    engine.parallaxY = 0;
+    // Grain exists to stop YouTube's encoder banding the bloom; in intermediate
+    // formats (ProRes / PNG) it only bloats files, so leave it to the editor
+    if (format !== 'mp4') engine.grain = false;
+
+    let job = null;
+    let enc = null;
+    try {
+      if (format === 'mp4') enc = await createH264Encoder(w, h, fps);
+      job = await postJson('/api/render/start', { name: activeSimMeta.title, format, fps, input: enc ? 'h264' : 'png' });
+      if (!job.ok) throw new Error(job.error || 'Could not start render');
+      if (job.fallback) toast('MP4/ProRes need ffmpeg + WebCodecs here; rendering a PNG sequence instead.');
+      if (job.input !== 'h264' && enc) {
+        enc.encoder.close();
+        enc = null;
+      }
+
+      selectAndRunSimulation(activeSimMeta, { autoType: false });
+      const dt = 1 / fps;
+      const total = Math.ceil(engine.timelineDuration() * fps);
+      const label = `${(job.input === 'h264' ? 'MP4' : job.format).toUpperCase()} ${w}x${h} @ ${fps}fps`;
+      const usPerFrame = 1e6 / fps;
+      let pending = Promise.resolve();
+      let sentFrames = 0;
+      const t0 = performance.now();
+
+      // Batches go up as plain ArrayBuffers so long renders never touch
+      // Chromium's capped blob store
+      const flushChunks = () => {
+        if (!enc || !enc.chunks.length) return;
+        const blob = new Uint8Array(enc.bytes);
+        let off = 0;
+        for (const c of enc.chunks) {
+          blob.set(c, off);
+          off += c.byteLength;
+        }
+        const count = enc.frames - sentFrames;
+        sentFrames = enc.frames;
+        enc.chunks = [];
+        enc.bytes = 0;
+        pending = pending.then(() => postFrames(job.id, blob, count));
+      };
+
+      for (let f = 0; f < total; f++) {
+        if (rendering.cancel) break;
+        engine.update(dt);
+        engine.render({ bgMode });
+        if (enc) {
+          if (enc.error) throw enc.error;
+          const frame = new VideoFrame(canvas, { timestamp: Math.round(f * usPerFrame), duration: Math.round(usPerFrame) });
+          const opts = { keyFrame: f % (fps * 2) === 0 };
+          if (enc.quantizer) opts.avc = { quantizer: 16 };
+          enc.encoder.encode(frame, opts);
+          frame.close();
+          if (enc.encoder.encodeQueueSize > 4) {
+            await new Promise(r => enc.encoder.addEventListener('dequeue', r, { once: true }));
+          }
+          if (enc.bytes > 2 * 1024 * 1024) flushChunks();
+        } else {
+          const body = await pngFromCopy(w, h);
+          await pending;
+          pending = postFrames(job.id, body);
+        }
+        if (f % 3 === 0) {
+          const elapsed = (performance.now() - t0) / 1000;
+          const eta = elapsed / (f + 1) * (total - f - 1);
+          setRenderProgress(`● RENDERING ${label}`, (f + 1) / total, `Frame ${f + 1} / ${total} · ETA ${Math.ceil(eta)}s`);
+        }
+        if (f % 2 === 0) renderPhaseButtons();
+      }
+      if (enc) {
+        await enc.encoder.flush();
+        enc.encoder.close();
+        flushChunks();
+        enc = null;
+      }
+      await pending;
+      setRenderProgress('FINALIZING', 1, 'Encoding...');
+      const done = await postJson('/api/render/finish', { id: job.id, cancel: rendering.cancel });
+      if (rendering.cancel) toast('Render cancelled.');
+      else if (done.ok) {
+        lastRenderOutput = done.output;
+        toast(`Saved ${done.frames} frames → ${done.output}`, 6000);
+      } else {
+        toast(`Render failed: ${done.error || 'unknown error'}`, 7000);
+      }
+    } catch (err) {
+      console.error(err);
+      if (enc) {
+        try { enc.encoder.close(); } catch (_) {}
+      }
+      if (job && job.id) postJson('/api/render/finish', { id: job.id, cancel: true }).catch(() => {});
+      toast(`Render failed: ${err.message || err}`, 7000);
+    } finally {
+      engine.autoPlayStages = prevAuto;
+      engine.soundEnabled = prevSound;
+      engine.mouseParallax = prevParallax;
+      engine.grain = prevGrain;
+      document.body.classList.remove('rendering');
+      rendering = null;
+      lastTime = performance.now();
+      renderPhaseButtons();
+    }
+  }
+
+  async function saveSnapshot() {
+    engine.render();
+    const blob = await canvasToPng();
+    const name = activeSimMeta?.title || 'scene';
+    if (canRender) {
+      try {
+        const r = await fetch(`/api/render/snapshot?name=${encodeURIComponent(name)}`, { method: 'POST', body: blob });
+        const res = await r.json();
+        if (res.ok) {
+          lastRenderOutput = res.output;
+          toast(`Snapshot → ${res.output}`);
+          return;
+        }
+      } catch (_) {}
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `termfx-${Date.now()}.png`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+
+  document.getElementById('btn-render').addEventListener('click', () => renderVideo());
+  document.getElementById('btn-snapshot').addEventListener('click', () => saveSnapshot());
+  document.getElementById('btn-open-renders').addEventListener('click', () => {
+    if (canRender) postJson('/api/render/reveal', { output: lastRenderOutput }).catch(() => {});
+  });
 
   document.getElementById('btn-generate').addEventListener('click', () => handlePromptExecution({ autoType: false }));
   document.getElementById('btn-generate-autotype').addEventListener('click', () => handlePromptExecution({ autoType: true }));
@@ -549,6 +858,12 @@ if (!window.termAPI) {
     const tag = document.activeElement?.tagName?.toLowerCase();
     const isTypingInInput = (tag === 'input' || tag === 'textarea' || tag === 'select');
 
+    if (rendering) {
+      if (e.key === 'Escape') rendering.cancel = true;
+      e.preventDefault();
+      return;
+    }
+
     if (e.key === 'F2') {
       e.preventDefault();
       document.getElementById('btn-autotype').click();
@@ -558,6 +873,18 @@ if (!window.termAPI) {
     if (e.key === 'F1' || (e.key === 'Tab' && !isTypingInInput)) {
       e.preventDefault();
       toggleCleanMode();
+      return;
+    }
+
+    if (e.key === 'F8') {
+      e.preventDefault();
+      saveSnapshot();
+      return;
+    }
+
+    if (e.key === 'F9') {
+      e.preventDefault();
+      renderVideo();
       return;
     }
 
@@ -580,10 +907,16 @@ if (!window.termAPI) {
         engine.nextPhase();
         renderPhaseButtons();
       }
-    } else if (['1', '2', '3', '4'].includes(e.key)) {
+    } else if (/^[1-9]$/.test(e.key) && parseInt(e.key, 10) <= engine.phaseCount) {
       e.preventDefault();
       engine.setPhase(parseInt(e.key, 10));
       renderPhaseButtons();
+    } else if (e.key.toLowerCase() === 'p') {
+      e.preventDefault();
+      setPaused(!paused);
+    } else if (e.key === '.' && paused) {
+      e.preventDefault();
+      engine.update(1 / 60);
     } else if (e.key.toLowerCase() === 'r') {
       e.preventDefault();
       if (activeSimMeta) selectAndRunSimulation(activeSimMeta, { autoType: false });
@@ -599,6 +932,16 @@ if (!window.termAPI) {
   // Initialize
   document.getElementById('theme-select').value = settings.theme || 'cyberblue';
   applyThemeToUI(settings.theme || 'cyberblue');
+  outputSelect.value = settings.outputMode || '1080p';
+  fpsSelect.value = String(settings.renderFps || 60);
+  bgSelect.value = settings.bgMode || 'theme';
+  formatSelect.value = settings.renderFormat || 'mp4';
+  stageInput.value = settings.stageDuration || 4.6;
+  engine.outputMode = outputSelect.value;
+  engine.bgMode = bgSelect.value;
+  engine.stageDuration = Number(stageInput.value) || 4.6;
+  canvas.classList.toggle('alpha-preview', engine.bgMode === 'alpha');
+  applyFxSettings();
   engine.setFontSize(settings.fontSize || 16);
 
   rebuildSimulationList();
@@ -608,8 +951,10 @@ if (!window.termAPI) {
   function frame(now) {
     const dt = Math.min(0.05, (now - lastTime) / 1000);
     lastTime = now;
-    engine.update(dt);
-    engine.render();
+    if (!rendering) {
+      if (!paused) engine.update(dt);
+      engine.render();
+    }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
