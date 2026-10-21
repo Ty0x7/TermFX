@@ -9,6 +9,7 @@ global.window = undefined;
 const { PRESET_SCENES } = require(path.join(__dirname, '..', 'src', 'presets.js'));
 
 function captionsOf(scene) {
+  if (Array.isArray(scene.captions)) return scene.captions;
   const src = scene.update.toString();
   const block = /const captions = \[([\s\S]*?)\];/.exec(src);
   if (!block) return [];
@@ -37,7 +38,7 @@ lines.push('## How to use this with your edit');
 lines.push('');
 lines.push('1. **Each scene = one clip.** Scenes follow the script in order; every sentence of the script is assigned to exactly one stage.');
 lines.push('2. **Timing is built in.** Stage lengths are calculated from the words spoken in that stage, so a rendered scene lines up with the voice-over. The `Stage sec` box scales all of it: `4.6` = narration pace, higher = slower, lower = faster.');
-lines.push('3. **Record VO against it.** The strip under the stage shows the exact script line for the current stage and its length. It is never rendered into exports, and Clean View (`TAB`) hides it.');
+lines.push('3. **Record VO against it.** The strip under the stage shows the exact script line for the current stage and its length. It is never rendered into exports, and Clean View (`TAB`) hides it. Nothing but the visuals is drawn on screen — no titles, captions or stage tags — so add any on-screen text in your editor.');
 lines.push('4. **Render.** Pick the scene, press `F9`. MP4 for direct use; ProRes 4444 + Transparent background if you want to composite over other footage.');
 lines.push('5. **Fine-tune in the editor.** Each stage begins with a visible beat (scan sweep, shockwave or type-on), so cuts and VO nudges are easy to line up.');
 lines.push('');
@@ -62,7 +63,7 @@ for (const p of PRESET_SCENES) {
   lines.push('');
   lines.push(`**On screen:** ${p.shows}`);
   lines.push('');
-  lines.push('| Stage | Time | Narration (VO) | On-screen caption |');
+  lines.push('| Stage | Time | Narration (VO) | What the viewer sees |');
   lines.push('|---|---|---|---|');
   let t = 0;
   p.phases.forEach((name, i) => {

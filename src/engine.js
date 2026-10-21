@@ -415,7 +415,7 @@ class AsciiEngine {
     this.bgGrid = true;
     this.transitionFx = true;
     this.introFx = true;
-    this.showTimeline = true;
+    this.showTimeline = false;
     this.mouseParallax = true;
     this.bloomStrength = 1.0;
 
@@ -763,9 +763,10 @@ class AsciiEngine {
     this.targetOrbitYaw = yawAngles[(clamped - 1) % 4];
     this.targetOrbitPitch = pitchAngles[(clamped - 1) % 4];
 
+    // Stage change: a soft dissolve (old content fades faster for a moment,
+    // see fadeGrid) and a gentle camera ease — no rings, flashes or sweeps
     if (this.transitionFx) {
-      this.sweepT = 0;
-      this.camPunch.v += 0.22;
+      this.camPunch.v += 0.08;
     }
 
     if (this.currentSimulation && typeof this.currentSimulation.onPhaseChange === 'function') {
@@ -908,7 +909,9 @@ class AsciiEngine {
 
   fadeGrid(decay = 0.16) {
     // Phosphor persistence, normalised to 60fps so 30/60fps renders match
-    const smoothDecay = Math.min(0.22, Math.max(0.08, decay * 0.78));
+    let smoothDecay = Math.min(0.22, Math.max(0.08, decay * 0.78));
+    // Dissolve outgoing visuals quickly right after a stage change
+    if (this.transitionFx && this.phaseTime < 0.35) smoothDecay = Math.min(0.4, smoothDecay * 2.2);
     const keep = Math.pow(Math.max(0, Math.min(1, 1 - smoothDecay)), this._dt * 60);
     for (let i = 0; i < this.cells.length; i++) {
       const c = this.cells[i];
@@ -1400,6 +1403,24 @@ class AsciiEngine {
     }
   }
 
+  // Large hero type drawn in the vector layer (so it glows and moves with the
+  // camera). Types on character by character the first time a string appears.
+  drawBigText(x, y, str, opts = {}) {
+    const text = String(str ?? '');
+    if (!text) return;
+    const align = opts.align || 'center';
+    let shown = text.length;
+    if (opts.reveal !== false && this.textReveal) {
+      const t0 = this._revealStart('§' + text, x, y, align);
+      shown = Math.min(text.length, Math.floor((this.time - t0) * (opts.cps || 28)) + 1);
+    }
+    this.vItems.push({
+      t: 'text', x, y, str: text.slice(0, shown), size: opts.size || 3,
+      c: opts.color || this.palette.accent, a: opts.alpha !== undefined ? opts.alpha : 1,
+      align, h: this._hudMode
+    });
+  }
+
   addGlow(cx, cy, radius = 6, color = null, intensity = 1) {
     this.glowNodes.push({ cx, cy, radius, color: color || this.palette.primary, intensity, h: this._hudMode });
   }
@@ -1704,7 +1725,7 @@ class AsciiEngine {
       st.from = from;
       st.name = name;
       st.t0 = this.time;
-      if (opts.fx !== false) {
+      if (opts.fx === true) {
         const col = opts.color || this.palette.accent;
         this.spawnShockwave(cx, cy, { color: col, radius: scale * 2.6, duration: 0.9 });
         this.spawnBurst(cx, cy, { count: 14, color: col, speed: 10 });
@@ -2081,7 +2102,8 @@ class AsciiEngine {
       // Sub-pixel vector overlay (cell coordinates)
       vline: (x0, y0, x1, y1, opts = {}) => self._vline(x0, y0, x1, y1, opts.color || self.palette.primary, opts.alpha !== undefined ? opts.alpha : 0.6, opts.width || 1.4, opts.dash || null),
       vpath: (points, opts) => self._vpath(points, opts || {}),
-      vcircle: (cx, cy, r, opts = {}) => self.vItems.push({ t: 'ellipse', x: cx, y: cy, rx: r * 1.85, ry: r, c: opts.color || self.palette.primary, a: opts.alpha !== undefined ? opts.alpha : 0.5, w: opts.width || 1.2, fill: Boolean(opts.fill), h: self._hudMode }),
+      vcircle: (cx, cy, r, opts = {}) => self.vItems.push({ t: 'ellipse', x: cx, y: cy, rx: opts.rx !== undefined ? opts.rx : r * 1.85, ry: r, c: opts.color || self.palette.primary, a: opts.alpha !== undefined ? opts.alpha : 0.5, w: opts.width || 1.2, fill: Boolean(opts.fill), h: self._hudMode }),
+      big: (x, y, str, opts) => self.drawBigText(x, y, str, opts || {}),
       vdot: (x, y, r, opts = {}) => self._vdot(x, y, r, opts.color || self.palette.accent, opts.alpha !== undefined ? opts.alpha : 0.85),
       glow: (cx, cy, radius, col, intensity) => self.addGlow(cx, cy, radius, col, intensity),
       icon: (name, cx, cy, col, opts) => self.drawIcon(name, cx, cy, col, opts || {}),
@@ -2450,6 +2472,16 @@ class AsciiEngine {
             c.lineWidth = w;
             c.stroke();
           }
+          break;
+        }
+        case 'text': {
+          if (!it.str) break;
+          c.globalAlpha = it.a;
+          c.fillStyle = it.c;
+          c.font = `700 ${this.fontSize * it.size * (widthScale > 1 ? 1 : 1)}px "Cascadia Mono", "Consolas", "Courier New", monospace`;
+          c.textAlign = it.align;
+          c.textBaseline = 'middle';
+          c.fillText(it.str, X(it.x) - (it.align === 'center' ? 0 : cw * 0.5), Y(it.y));
           break;
         }
         case 'rect': {
