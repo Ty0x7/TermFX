@@ -49,8 +49,28 @@ GLOBAL VARIABLES & SANDBOX CONTEXT (Available BOTH directly as globals AND as pr
   - grid.icosahedron3D(cx, cy, scale, rotX, rotY, rotZ, { color, accent, dim, glow: true, packets: true })
   - grid.cylinder3D(cx, cy, radius, heightSpan, rotX, rotY, { rings: 3, pillars: 6, color, accent, dim, glow: true })
   - grid.pyramid3D(cx, cy, scale, rotX, rotY, rotZ, { color, accent, dim, glow: true })
+  - grid.title('01 // SCENE TITLE')                      // HUD title at row 2 with animated rule lines
+  - grid.caption('STAGE 1: What is happening now')       // HUD lower-third caption, types on per stage
+  - grid.counter(key, x, y, value, { prefix, suffix, decimals, color, duration }) // rolling number
+  - grid.morph3D(key, 'pyramid'|'cube'|'octa'|'icosa'|'dodeca'|'tetra', cx, cy, scale, rotX, rotY, rotZ, { color, accent, dim }) // changing the name morphs the shape
+  - grid.shape3D(name, cx, cy, scale, rotX, rotY, rotZ, opts)
+  - grid.vline(x0, y0, x1, y1, { color, alpha, width, dash: [3, 5] })  // smooth sub-pixel vector line
+  - grid.vpath([[x, y], ...], { color, alpha, width, glow: true, taper: true })
+  - grid.vcircle(cx, cy, r, { color, alpha, width })
+  - grid.glow(cx, cy, radius, color, intensity)
+  - All 3D primitives accept { alpha: 0..1 } in opts for fading in/out.
 - fx (or ctx.fx):
   - fx.burst(x, y, { count: 14, color, chars: ['░','▒','▓','+'] })
+  - fx.shockwave(x, y, { color, radius: 10, duration: 0.9, delay: 0 })
+  - fx.flash(color, 0.25), fx.shake(0.4), fx.punch(0.3)
+- anim (or ctx.anim) — USE THESE so nothing snaps between stages:
+  - anim.spring(key, target, { freq: 6, damp: 1 })  // smooth value; damp < 1 overshoots
+  - anim.color(key, targetColor)                    // smooth colour
+  - anim.spin(key, ratePerSecond)                   // rotation angle; use instead of time * speed
+  - anim.tween(key, target, duration, 'outCubic')
+  - anim.enter(delay, duration)                     // 0..1 since the stage started
+- camera (or ctx.camera): camera.zoom(1.05), camera.focus(x, y, 0.2)
+- ease (or ctx.ease): ease.outCubic(t), ease.outBack(t), ease.outExpo(t), ease.inOutCubic(t)
 - math (or ctx.math):
   - math.lerp(a, b, t), math.smoothstep(e0, e1, x), math.clamp(v, min, max), math.dist(x1, y1, x2, y2), math.rand(min, max), math.randInt(min, max), math.pick(array)
 
@@ -137,9 +157,29 @@ function createMockValidationContext() {
     wordStream: noop, drawWordStream: noop,
     wordRing3D: noop, drawWordRing3D: noop,
     waveField: noop, drawWaveField: noop,
-    matrixRain: noop, drawMatrixRain: noop
+    matrixRain: noop, drawMatrixRain: noop,
+    title: noop, caption: noop, counter: (k, x, y, v) => v,
+    shape3D: () => dummyVerts, morph3D: () => dummyVerts,
+    tetrahedron3D: () => dummyVerts.slice(0, 4), dodecahedron3D: () => dummyVerts,
+    vline: noop, vpath: noop, vcircle: noop, vdot: noop, glow: noop
   };
-  const fx = { burst: noop, spawnBurst: noop, explode: noop, particles: noop, ripple: noop, spawnRipple: noop };
+  const fx = {
+    burst: noop, spawnBurst: noop, explode: noop, particles: noop, ripple: noop, spawnRipple: noop,
+    shockwave: noop, flash: noop, shake: noop, punch: noop
+  };
+  const anim = {
+    spring: (k, target) => target,
+    tween: (k, target) => target,
+    color: (k, target) => target,
+    spin: () => 0.5,
+    enter: () => 1,
+    intro: () => 1,
+    stagger: () => 1,
+    pulse: () => 0.5,
+    since: () => 1
+  };
+  const ease = new Proxy({}, { get: () => (t) => Math.max(0, Math.min(1, t)) });
+  const camera = { zoom: noop, focus: noop, punch: noop, shake: noop };
   const math = {
     lerp: (a, b, t) => a + (b - a) * t,
     smoothstep: () => 0.5,
@@ -157,8 +197,8 @@ function createMockValidationContext() {
   return {
     width: 120, height: 40, cols: 120, rows: 40,
     time: 1.5, tick: 90, dt: 0.016,
-    phase: 1, smoothPhase: 1.0, stageBlend: 1.0, phaseTime: 1.0,
-    state, palette, grid, fx, math
+    phase: 1, phaseCount: 4, smoothPhase: 1.0, stageBlend: 1.0, phaseTime: 1.0, stageDuration: 4.6,
+    state, palette, grid, fx, math: { ...math, mix: (a) => a }, anim, ease, camera
   };
 }
 
