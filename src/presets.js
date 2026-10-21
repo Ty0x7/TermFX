@@ -108,11 +108,11 @@ const PRESET_SCENES = [
     title: 'The Intelligence Explosion',
     category: 'Intro',
     prompt: 'A threshold line, 1965, an AI rewriting itself, and generations that rise past the threshold.',
-    shows: 'A dashed threshold hangs over a small dim core; "1965" types in; code glyphs spiral into the core as it rewrites itself; then three generations grow left to right, each rising higher past the threshold.',
+    shows: 'A dashed threshold hangs over a small dim core; I. J. Good’s portrait scans in beside "1965"; code glyphs spiral into the core as it rewrites itself; then three generations grow left to right, each rising higher past the threshold.',
     phases: ['A Theoretical Threshold', 'I. J. Good, 1965', 'AI Improves Its Own Code', 'Each Gen Designs the Next'],
     captions: [
       'A dashed threshold line hangs above a small, dim AI core',
-      '"1965" in large type, with I. J. Good and "intelligence explosion" beneath',
+      'Portrait of I. J. Good scans in beside "1965" (add assets/ij-good.jpg; a silhouette stands in without it)',
       'Code glyphs spiral into the core as it rewrites itself and grows',
       'Three generations grow left to right, each rising higher past the threshold'
     ],
@@ -137,9 +137,9 @@ const PRESET_SCENES = [
         grid.shape3D('tetra', 64, 22, anim.spring('s0', 2.4, { from: 0.4, freq: 3 }), anim.spin('a', 0.3), anim.spin('b', 0.4), 0, { color: palette.dim, accent: palette.accent, dim: palette.dim });
       }
       if (phase === 2) {
-        grid.big(64, 15, '1965', { size: 4.2, color: palette.accent });
-        grid.text(64, 21, 'I. J. GOOD', palette.accent, true, 'center');
-        grid.text(64, 23, 'the intelligence explosion', palette.dim, false, 'center');
+        grid.portrait('ij-good.jpg', 44, 21, { w: 22, h: 16, mode: 'halftone', label: 'I. J. GOOD' });
+        grid.big(86, 19, '1965', { size: 4.2, color: palette.accent });
+        grid.text(86, 24, 'the intelligence explosion', palette.dim, false, 'center');
       }
       if (phase === 3) {
         const s = anim.spring('s3', 3.6, { from: 2.4, freq: 1.5 });
@@ -373,7 +373,7 @@ const PRESET_SCENES = [
     shows: 'A report icon opens into a circular gauge: it starts nearly empty (low single digits, before Claude Code) then sweeps to 80%+ with the number counting up in large type.',
     phases: ['"When AI Builds Itself"', 'Before Feb 2025: ~3%', 'Today: 80%+'],
     captions: [
-      'Anthropic report icon; title "When AI Builds Itself" in large type',
+      'The report "When AI Builds Itself" lands as a tilted page; a line of its findings highlights',
       'Circular gauge sits almost empty: ~3% (before Claude Code, Feb 2025)',
       'Gauge sweeps around to 80%+ as the number counts up'
     ],
@@ -390,9 +390,7 @@ const PRESET_SCENES = [
       const G = '#00ff88';
 
       if (phase === 1) {
-        grid.icon('file', 64, 12, palette.accent, { key: 'rep', glow: true });
-        grid.big(64, 20, 'WHEN AI BUILDS ITSELF', { size: 1.8, color: palette.accent });
-        grid.text(64, 24, 'internal engineering metrics', palette.dim, false, 'center');
+        grid.paper(64, 17, { title: 'When AI Builds Itself', authors: 'Anthropic', venue: 'Report · internal engineering metrics', w: 32, h: 24, highlight: 3, key: 'wabi' });
         return;
       }
       const v = anim.spring('v', phase === 3 ? 80 : 3, { from: 0, freq: phase === 3 ? 1.1 : 2.5 });
@@ -745,7 +743,7 @@ const PRESET_SCENES = [
     shows: 'Four framework names drift in from the corners and condense into a single model; harness parts (code, prompts, memory, checks, tools) snap into an orbit around it; then a fast inner loop and slow outer loop wrap the whole system.',
     phases: ['The Demo\'s Sources', 'The Foundation Model', 'The Orchestration Harness', 'Inner Loop + Outer Loop'],
     captions: [
-      'AutoHarness, AIDE2, Dream-RSI and MASS drift in and condense to a point',
+      'Four source papers (AutoHarness, AIDE2, Dream-RSI, MASS) appear in the corners and fold into a point',
       'The point becomes the foundation model',
       'Harness parts — code, prompts, memory, checks, tools — snap into orbit',
       'A fast inner loop and a slow outer loop wrap the system'
@@ -772,7 +770,9 @@ const PRESET_SCENES = [
           if (appear <= 0) return;
           const pull = math.clamp((phaseTime / stageDuration - 0.6) / 0.35, 0, 1);
           const e = pull * pull * (3 - 2 * pull);
-          grid.big(n[1] + (cx - n[1]) * e, n[2] + (cy - n[2]) * e, n[0], { size: 1.6 - e * 0.8, color: i >= 2 ? G : palette.accent, alpha: appear * (1 - e * 0.8) });
+          const venue = ['Framework', 'Weco', 'Google · Oct', 'Paper · Oct'][i];
+          const py = n[2] < cy ? 9 : 25;
+          grid.paper(n[1] + (cx - n[1]) * e, py + (cy - py) * e, { key: 'src' + i, title: n[0], venue, w: 20 - e * 8, h: 12 - e * 5, lines: 3, yaw: (n[1] < cx ? 0.3 : -0.3) * (1 - e), titleScale: 1.15, alpha: appear * (1 - e * 0.85), color: i >= 2 ? G : palette.accent });
         });
         return;
       }
@@ -1571,7 +1571,7 @@ const PRESET_SCENES = [
     shows: 'A model streams its reasoning words outward; masked harvesters siphon them off; two bars show copies trained on full traces (80.4%) beating summaries (71.8%); then the stream turns into redacted blocks with only a short summary escaping.',
     phases: ['Oct 12: Distillation Report', 'Harvesting Reasoning Traces', 'Full Traces: 80.4% vs 71.8%', 'Raw Thinking Omitted'],
     captions: [
-      'A model with "OCT 12" in large type beside it',
+      'A model beside the Oct 12 distillation report, stamped with its date',
       'Reasoning words stream out; three masked harvesters siphon them',
       'Bars: copy trained on full Opus 4.8 traces 80.4% vs summaries 71.8% (SWE-bench Verified)',
       'The stream becomes redacted blocks; only a short summary gets through'
@@ -1593,8 +1593,7 @@ const PRESET_SCENES = [
 
       grid.icosahedron3D(18, 17, 3, anim.spin('a', 0.4), anim.spin('b', 0.5), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
       if (phase === 1) {
-        grid.big(70, 15, 'OCT 12', { size: 3.2, color: palette.warn });
-        grid.text(70, 21, 'distillation defenses', palette.dim, false, 'center');
+        grid.paper(72, 17, { title: 'Illicit Distillation Defenses', authors: 'Anthropic', venue: 'Technical breakdown · Oct 12', w: 30, h: 22, key: 'distill', stamp: 'OCT 12', stampColor: palette.warn });
       }
       if (phase === 2 || phase === 4) {
         const words = ['step 1', 'parse', 'consider', 'edge case', 'therefore', 'verify', 'step 2'];
@@ -2205,7 +2204,7 @@ const PRESET_SCENES = [
     shows: 'Small loops light up across a field of repositories; two walls (cost · latency) topple; a team repo runs inner and outer loops through the night while a clock runs and checkmarks tick off refactors, queries, kernels and its own harness.',
     phases: ['Democratized RSI Loops', 'Cost & Latency Barriers Collapse', 'Overnight Inner + Outer Loops', 'While the Team Sleeps'],
     captions: [
-      'Small loops light up one by one across a field of repositories',
+      'Cities light up one by one across a rotating globe as teams start their own loops',
       'Two walls — cost and latency — topple over',
       'A team repo runs an inner and outer loop; the clock runs through the night',
       'Checkmarks tick: refactor · queries · kernels · its own harness — team asleep'
@@ -2225,13 +2224,9 @@ const PRESET_SCENES = [
 
       if (phase === 1) {
         const spread = math.clamp(phaseTime / (stageDuration * 0.8), 0, 1);
-        for (let i = 0; i < 24; i++) {
-          const x = 12 + (i % 8) * 15;
-          const y = 7 + Math.floor(i / 8) * 9;
-          const on = hash01(i * 1.7) < spread;
-          grid.vdot(x, y, 1.6, { color: on ? G : palette.dim, alpha: on ? 1 : 0.4 });
-          if (on) grid.vcircle(x, y, 1.8 + Math.sin(ctx.time * 3 + i) * 0.2, { color: G, alpha: 0.6, width: 1.2 });
-        }
+        const cities = [[37.8, -122.4], [40.7, -74], [51.5, -0.1], [48.9, 2.4], [52.5, 13.4], [19.1, 72.9], [12.97, 77.6], [1.35, 103.8], [35.7, 139.7], [37.6, 127], [-33.9, 151.2], [-23.6, -46.6], [43.7, -79.4], [59.3, 18.1], [31.2, 121.5], [25.2, 55.3], [6.5, 3.4], [-1.3, 36.8]];
+        const markers = cities.filter((c, i) => hash01(i * 1.7) < spread).map(c => ({ lat: c[0], lon: c[1], color: G }));
+        grid.globe(64, 18, 14, { spin: anim.spin('earth', 0.22) + 0.4, markers });
         return;
       }
       if (phase === 2) {
@@ -2408,7 +2403,7 @@ const PRESET_SCENES = [
     phases: ['The Tension', 'Paced by Compute, Not People', 'Humans Become Overseers'],
     captions: [
       'A shield and a fast-spinning core face each other across a pulsing gap',
-      'A needle swings from a human figure to a growing stack of GPUs',
+      'A needle swings from a human figure to a datacenter rising into place',
       'The human slides out of the spinning loop to watch from outside'
     ],
     narration: [
@@ -2443,8 +2438,7 @@ const PRESET_SCENES = [
         grid.vline(64, 26, 64 + Math.cos(a - Math.PI / 2) * 22, 26 + Math.sin(a - Math.PI / 2) * 12, { color: '#ffffff', alpha: 0.95, width: 2.4 });
         grid.vdot(64, 26, 3, { color: '#ffffff' });
         grid.icon('human', 36, 18, palette.accent, { key: 'h', base: false, alpha: 1 - p * 0.6 });
-        const chips = Math.floor(p * 8);
-        for (let i = 0; i < chips; i++) grid.icon('chip', 92 + (i % 2) * 8, 22 - Math.floor(i / 2) * 5, R, { key: 'c' + i, base: false });
+        grid.building('datacenter', 100, 17, 9, anim.spin('dc', 0.2) + 0.5, { progress: p, tilt: 0.45, color: R });
         if (p > 0.7) grid.big(64, 32, 'COMPUTE', { size: 1.6, color: R });
         return;
       }

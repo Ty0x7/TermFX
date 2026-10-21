@@ -671,6 +671,10 @@ if (!window.termAPI) {
   document.getElementById('btn-open-renders').addEventListener('click', () => {
     if (canRender) postJson('/api/render/reveal', { output: lastRenderOutput }).catch(() => {});
   });
+  document.getElementById('btn-open-assets').addEventListener('click', () => {
+    if (canRender) postJson('/api/open-assets', {}).catch(() => {});
+    else toast('Assets folder: termfx_data/assets (start TermFX with its server to open it)');
+  });
 
   document.getElementById('btn-generate').addEventListener('click', () => handlePromptExecution({ autoType: false }));
   document.getElementById('btn-generate-autotype').addEventListener('click', () => handlePromptExecution({ autoType: true }));

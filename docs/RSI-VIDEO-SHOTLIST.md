@@ -60,12 +60,12 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 **Section:** Intro · **Length:** 27.2s
 
-**On screen:** A dashed threshold hangs over a small dim core; "1965" types in; code glyphs spiral into the core as it rewrites itself; then three generations grow left to right, each rising higher past the threshold.
+**On screen:** A dashed threshold hangs over a small dim core; I. J. Good’s portrait scans in beside "1965"; code glyphs spiral into the core as it rewrites itself; then three generations grow left to right, each rising higher past the threshold.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
 | 1. A Theoretical Threshold | 0.0–6.8s | For decades, the concept of Recursive Self-Improvement—or RSI—was treated as a theoretical threshold in computer science. | A dashed threshold line hangs above a small, dim AI core |
-| 2. I. J. Good, 1965 | 6.8–13.9s | First formalized in the 1960s by mathematician I. J. Good in his thesis on the intelligence explosion, | "1965" in large type, with I. J. Good and "intelligence explosion" beneath |
+| 2. I. J. Good, 1965 | 6.8–13.9s | First formalized in the 1960s by mathematician I. J. Good in his thesis on the intelligence explosion, | Portrait of I. J. Good scans in beside "1965" (add assets/ij-good.jpg; a silhouette stands in without it) |
 | 3. AI Improves Its Own Code | 13.9–21.8s | the premise was straightforward: once an artificial intelligence becomes capable enough to improve its own underlying code and architecture, | Code glyphs spiral into the core as it rewrites itself and grows |
 | 4. Each Gen Designs the Next | 21.8–27.2s | each generation makes the system better at designing the next. | Three generations grow left to right, each rising higher past the threshold |
 
@@ -116,7 +116,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. "When AI Builds Itself" | 0.0–9.1s | Let's start with the empirical data. In Anthropic's landmark report, "When AI Builds Itself," the company opened up its internal engineering metrics. | Anthropic report icon; title "When AI Builds Itself" in large type |
+| 1. "When AI Builds Itself" | 0.0–9.1s | Let's start with the empirical data. In Anthropic's landmark report, "When AI Builds Itself," the company opened up its internal engineering metrics. | The report "When AI Builds Itself" lands as a tilted page; a line of its findings highlights |
 | 2. Before Feb 2025: ~3% | 9.1–19.7s | Prior to the research preview of Claude Code in February 2025, the percentage of Anthropic's internal codebase authored by Claude was in the low single digits. | Circular gauge sits almost empty: ~3% (before Claude Code, Feb 2025) |
 | 3. Today: 80%+ | 19.7–28.2s | Today, more than eighty percent of all code merged into Anthropic's production codebase is written by Claude itself. | Gauge sweeps around to 80%+ as the number counts up |
 
@@ -193,7 +193,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. The Demo's Sources | 0.0–16.4s | Let's walk through a demonstration of how this two-loop system works in practice, drawing directly from recent frameworks like AutoHarness, Weco's AIDE2, and two major papers published earlier this month in October: Google's Dream-RSI and the MASS framework—short for Multi-Agent Self-Supervision. | AutoHarness, AIDE2, Dream-RSI and MASS drift in and condense to a point |
+| 1. The Demo's Sources | 0.0–16.4s | Let's walk through a demonstration of how this two-loop system works in practice, drawing directly from recent frameworks like AutoHarness, Weco's AIDE2, and two major papers published earlier this month in October: Google's Dream-RSI and the MASS framework—short for Multi-Agent Self-Supervision. | Four source papers (AutoHarness, AIDE2, Dream-RSI, MASS) appear in the corners and fold into a point |
 | 2. The Foundation Model | 16.4–22.0s | Every modern AI system consists of two distinct layers: the foundation model itself, | The point becomes the foundation model |
 | 3. The Orchestration Harness | 22.0–32.2s | and the orchestration harness—the surrounding code, system prompts, memory retrieval pipelines, verification scripts, and tool definitions that govern how the model interacts with its environment. | Harness parts — code, prompts, memory, checks, tools — snap into orbit |
 | 4. Inner Loop + Outer Loop | 32.2–39.6s | In our demonstration, the system is split into an Inner Loop and an Outer Loop. | A fast inner loop and a slow outer loop wrap the system |
@@ -346,7 +346,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Oct 12: Distillation Report | 0.0–5.6s | Then, on October 12th, Anthropic published a technical breakdown on illicit distillation defenses. | A model with "OCT 12" in large type beside it |
+| 1. Oct 12: Distillation Report | 0.0–5.6s | Then, on October 12th, Anthropic published a technical breakdown on illicit distillation defenses. | A model beside the Oct 12 distillation report, stamped with its date |
 | 2. Harvesting Reasoning Traces | 5.6–13.9s | They revealed that external labs had been running industrial-scale campaigns to harvest Claude's step-by-step reasoning traces to train competing models— | Reasoning words stream out; three masked harvesters siphon them |
 | 3. Full Traces: 80.4% vs 71.8% | 13.9–25.3s | noting that a model trained on full Claude Opus 4.8 reasoning transcripts scored eighty-point-four percent on SWE-bench Verified, compared to seventy-one-point-eight percent when trained only on summarized reasoning. | Bars: copy trained on full Opus 4.8 traces 80.4% vs summaries 71.8% (SWE-bench Verified) |
 | 4. Raw Thinking Omitted | 25.3–41.9s | That explains why the new Haiku 5.5 API documentation omits raw thinking blocks by default unless explicitly configured to display summaries: the raw reasoning traces of frontier models have become the most valuable synthetic training fuel in the industry. | The stream becomes redacted blocks; only a short summary gets through |
@@ -471,7 +471,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Democratized RSI Loops | 0.0–7.5s | First, we are going to see the democratization of bounded, multi-agent RSI loops across enterprise and local repositories. | Small loops light up one by one across a field of repositories |
+| 1. Democratized RSI Loops | 0.0–7.5s | First, we are going to see the democratization of bounded, multi-agent RSI loops across enterprise and local repositories. | Cities light up one by one across a rotating globe as teams start their own loops |
 | 2. Cost & Latency Barriers Collapse | 7.5–22.3s | With GPT-6 Pro and Codex running parallel subagents and parallel tool lookups, and Claude 5.5 models offering one-million-token context windows with ten-to-twenty-cent cache reads, the economic and latency barriers to running continuous code-optimization loops have effectively collapsed. | Two walls — cost and latency — topple over |
 | 3. Overnight Inner + Outer Loops | 22.3–31.7s | Over the next sixty to ninety days, standard engineering teams will increasingly deploy overnight inner-and-outer agent loops—modeled on frameworks like MASS and AIDE2— | A team repo runs an inner and outer loop; the clock runs through the night |
 | 4. While the Team Sleeps | 31.7–41.8s | that continuously refactor codebases, optimize database queries and GPU kernels, and refine their own project-specific tool harnesses while the human team sleeps. | Checkmarks tick: refactor · queries · kernels · its own harness — team asleep |
@@ -511,7 +511,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
 | 1. The Tension | 0.0–7.1s | And that brings us to the profound tension sitting at the heart of artificial intelligence right now. | A shield and a fast-spinning core face each other across a pulsing gap |
-| 2. Paced by Compute, Not People | 7.1–30.8s | In its forecast on recursive self-improvement, Anthropic laid out a sobering warning about where this trajectory leads if the loop becomes fully autonomous. Once models are capable of driving their own research and architectural improvements end to end, the speed of AI progress is no longer paced by human ingenuity or engineering hours—it is paced almost entirely by available compute. | A needle swings from a human figure to a growing stack of GPUs |
+| 2. Paced by Compute, Not People | 7.1–30.8s | In its forecast on recursive self-improvement, Anthropic laid out a sobering warning about where this trajectory leads if the loop becomes fully autonomous. Once models are capable of driving their own research and architectural improvements end to end, the speed of AI progress is no longer paced by human ingenuity or engineering hours—it is paced almost entirely by available compute. | A needle swings from a human figure to a datacenter rising into place |
 | 3. Humans Become Overseers | 30.8–43.2s | Humans are pushed out of the loop of creation and into the role of passive overseers, trying to audit systems whose complexity and speed far outstrip our own. | The human slides out of the spinning loop to watch from outside |
 
 ## 37 — Compounding Silently

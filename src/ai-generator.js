@@ -52,6 +52,17 @@ GLOBAL VARIABLES & SANDBOX CONTEXT (Available BOTH directly as globals AND as pr
   - grid.title('01 // SCENE TITLE')                      // HUD title at row 2 with animated rule lines
   - grid.caption('STAGE 1: What is happening now')       // HUD lower-third caption, types on per stage
   - grid.counter(key, x, y, value, { prefix, suffix, decimals, color, duration }) // rolling number
+  - VISUAL LIBRARY — show what things ARE, not abstract shapes:
+    grid.portrait('name.jpg', cx, cy, { w, h, mode: 'halftone'|'scan'|'ascii', label }) // a named person (photo from assets, silhouette fallback)
+    grid.quote(text, author, cx, cy, { width, size })
+    grid.paper(cx, cy, { title, authors, venue, w, h, highlight, stamp, yaw }) // a paper / report / doc as a tilted page
+    grid.lineChart(x, y, w, h, [{ values, label, color }], { yMax, xLabels })
+    grid.barChart(x, y, w, h, [{ value, label, color }], { format })
+    grid.donut(cx, cy, r, [{ value, label, color }], { center })
+    grid.network([{ x, y, label }], [[a, b]])
+    grid.building('tower'|'datacenter'|'lab'|'house', cx, cy, scale, rotY, { progress, tilt, color }) // places & companies as 3D buildings
+    grid.model('file.obj', cx, cy, scale, rotX, rotY, rotZ, { color })
+    grid.globe(cx, cy, r, { spin, markers: [{ lat, lon, label }], arcs: [[i, j]] }) // countries, cities, global spread
   - grid.morph3D(key, 'pyramid'|'cube'|'octa'|'icosa'|'dodeca'|'tetra', cx, cy, scale, rotX, rotY, rotZ, { color, accent, dim }) // changing the name morphs the shape
   - grid.shape3D(name, cx, cy, scale, rotX, rotY, rotZ, opts)
   - grid.vline(x0, y0, x1, y1, { color, alpha, width, dash: [3, 5] })  // smooth sub-pixel vector line
@@ -166,7 +177,9 @@ function createMockValidationContext() {
     title: noop, caption: noop, counter: (k, x, y, v) => v,
     shape3D: () => dummyVerts, morph3D: () => dummyVerts,
     tetrahedron3D: () => dummyVerts.slice(0, 4), dodecahedron3D: () => dummyVerts,
-    vline: noop, vpath: noop, vcircle: noop, vdot: noop, glow: noop, icon: noop, codeCard: noop
+    vline: noop, vpath: noop, vcircle: noop, vdot: noop, glow: noop, icon: noop, codeCard: noop,
+    portrait: noop, quote: noop, paper: noop, lineChart: noop, barChart: noop, donut: noop, network: noop,
+    building: noop, model: noop, globe: noop
   };
   const fx = {
     burst: noop, spawnBurst: noop, explode: noop, particles: noop, ripple: noop, spawnRipple: noop,

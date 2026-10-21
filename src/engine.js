@@ -1671,7 +1671,7 @@ class AsciiEngine {
         }
       }
       const edgeCol = isFront ? color : dim;
-      this.drawLine(edge.a.x, edge.a.y, edge.b.x, edge.b.y, edgeChar, edgeCol, false, alpha * (isFront ? 1 : 0.8));
+      if (opts.ascii !== false) this.drawLine(edge.a.x, edge.a.y, edge.b.x, edge.b.y, edgeChar, edgeCol, false, alpha * (isFront ? 1 : 0.8));
 
       if (isFront && (opts.packets !== false) && (eIdx % 2 === 0)) {
         const t = ((this.time * (opts.packetSpeed || 0.55)) + eIdx * 0.17) % 1;
@@ -1687,7 +1687,8 @@ class AsciiEngine {
       if (vFront.length) this.vItems.push({ t: 'segs', p: vFront, c: color, a: 0.55 * alpha, w: 1.35, h: this._hudMode });
     }
 
-    for (const p of proj) {
+    // opts.vertices === false: clean vector-only look for dense models (buildings, OBJ)
+    if (opts.vertices !== false) for (const p of proj) {
       const isFront = p.z >= 0;
       const vChar = isFront ? (opts.vertexChar || '◈') : '·';
       this.setCell(p.x, p.y, vChar, isFront ? accent : dim, isFront, null, (isFront ? 1.0 : 0.5) * alpha);
@@ -2472,6 +2473,14 @@ class AsciiEngine {
             c.lineWidth = w;
             c.stroke();
           }
+          break;
+        }
+        case 'draw': {
+          // Custom vector drawing (papers, portraits, charts) in logical px
+          c.save();
+          it.fn(c, X, Y, cw, chh, widthScale);
+          c.restore();
+          c.globalCompositeOperation = 'lighter';
           break;
         }
         case 'text': {

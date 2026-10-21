@@ -98,6 +98,7 @@ function sendJson(res, status, obj) {
 // or they are written out as a PNG sequence.
 // ----------------------------------------------------------------------------
 const RENDER_DIR = path.join(DATA_DIR, 'renders');
+const ASSETS_DIR = path.join(DATA_DIR, 'assets');
 let ffmpegBin;
 
 function findFfmpeg() {
@@ -262,6 +263,25 @@ const server = http.createServer(async (req, res) => {
       const { id } = await readJsonBody(req);
       const items = loadLibrary().filter(x => x.id !== id);
       return sendJson(res, 200, saveLibrary(items));
+    }
+    // Visual-library assets (portrait photos, .obj models): termfx_data/assets first, then src/assets
+    if (url.pathname.startsWith('/assets/') && req.method === 'GET') {
+      const name = path.basename(decodeURIComponent(url.pathname.slice('/assets/'.length)));
+      const candidates = [path.join(ASSETS_DIR, name), path.join(SRC_DIR, 'assets', name)];
+      const found = candidates.find(f => fs.existsSync(f) && fs.statSync(f).isFile());
+      if (!found) {
+        res.writeHead(404);
+        return res.end('Not Found');
+      }
+      const ext = path.extname(found).toLowerCase();
+      const types = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.obj': 'text/plain; charset=utf-8' };
+      res.writeHead(200, { 'Content-Type': types[ext] || 'application/octet-stream', 'Cache-Control': 'no-store' });
+      return fs.createReadStream(found).pipe(res);
+    }
+    if (url.pathname === '/api/open-assets' && req.method === 'POST') {
+      fs.mkdirSync(ASSETS_DIR, { recursive: true });
+      exec(`explorer.exe "${ASSETS_DIR}"`);
+      return sendJson(res, 200, { ok: true, dir: ASSETS_DIR });
     }
     if (url.pathname === '/api/open-data-dir' && req.method === 'POST') {
       exec(`explorer.exe "${DATA_DIR}"`);
