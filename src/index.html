@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TermFX Studio</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico?v=20261020" />
+  <link rel="stylesheet" href="styles.css?v=20261020" />
+</head>
+<body>
+  <div id="app-container">
+    <!-- Minimal Top Header Bar -->
+    <header id="titlebar">
+      <div class="title-left">
+        <span class="brand-badge">TERMFX</span>
+        <div id="phase-buttons" title="Press SPACE or keys 1-4 to advance stage"></div>
+        <span id="ai-status-pill" class="status-pill">READY</span>
+      </div>
+      <div class="title-controls">
+        <button id="btn-clean-view" class="warn-btn" title="Hide sidebar & top bar for recording (Hotkey: TAB or F1)">[TAB] Clean View</button>
+        <button id="btn-720p" title="1280x720 (16:9)">720p</button>
+        <button id="btn-1080p" title="1920x1080 (16:9)">1080p</button>
+        <button id="btn-min" title="Minimize">─</button>
+        <button id="btn-max" title="Maximize">□</button>
+        <button id="btn-close" class="danger-btn" title="Close">✕</button>
+      </div>
+    </header>
+
+    <!-- Main Workspace: Left Sidebar + 3D ASCII Terminal Viewport -->
+    <div id="workspace-body">
+      <aside id="sidebar">
+        <div class="sidebar-section scenes-section">
+          <div class="sidebar-label-row">
+            <span class="sidebar-label">SCENES (10)</span>
+            <div class="scene-step-btns">
+              <button id="btn-prev-scene" title="Previous Scene (Hotkey: [)">◄</button>
+              <button id="btn-next-scene" title="Next Scene (Hotkey: ])">►</button>
+            </div>
+          </div>
+          <div id="quick-scene-buttons" class="sidebar-btn-list"></div>
+          <select id="preset-select" title="Saved & Built-in Scenes" style="margin-top:4px; width:100%"></select>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-label">PLAYBACK</div>
+          <div class="sidebar-row">
+            <button id="btn-autotype" class="primary-btn" style="flex:1" title="Auto-type prompt on screen (F2)">🎬 Type [F2]</button>
+            <button id="btn-restart" title="Reset to Stage 1 (R)">↺ [R]</button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-label">VISUAL FX</div>
+          <select id="theme-select" style="width:100%">
+            <option value="cyberblue" selected>J.A.R.V.I.S. Cyber Blue</option>
+            <option value="jarvisgold">Stark Mark-85 (Blue/Gold)</option>
+            <option value="cyberpunk">Cyberpunk Neon</option>
+            <option value="clean">Clean Modern Blue</option>
+            <option value="amber">Amber CRT</option>
+            <option value="redalert">Combat Override (Red)</option>
+            <option value="matrix">Matrix Green</option>
+          </select>
+          <div class="sidebar-row" style="margin-top:4px">
+            <button id="btn-holo-hud" class="active" style="flex:1" title="Toggle Hologram Glow Overlay">Holo</button>
+            <button id="btn-scanlines" class="active" style="flex:1" title="Toggle CRT Scanlines">Scan</button>
+            <button id="btn-glow" class="active" style="flex:1" title="Toggle Phosphor Glow">Glow</button>
+          </div>
+        </div>
+
+        <div class="sidebar-section" style="margin-top:auto">
+          <div class="sidebar-label">STUDIO</div>
+          <div class="sidebar-row">
+            <button id="btn-code" style="flex:1" title="View or edit live simulation JS">&lt;/&gt; Code</button>
+            <button id="btn-ai-settings" class="primary-btn" style="flex:1" title="Configure AI Provider">⚙ AI</button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main 60FPS 3D ASCII Viewport + Bottom Prompt Bar -->
+      <div id="terminal-column">
+        <main id="viewport">
+          <canvas id="ascii-canvas"></canvas>
+          <div id="crt-overlay" class="scanlines vignette"></div>
+        </main>
+
+        <!-- Minimal Terminal Prompt Input (Remains usable in Clean View!) -->
+        <footer id="prompt-bar">
+          <span class="prompt-prefix">&gt;</span>
+          <input
+            id="prompt-input"
+            type="text"
+            placeholder="Prompt a visualization (e.g. '3D orchestrator cloning agents' or 'worm attacking core')..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="btn-generate" class="primary-btn" title="Execute prompt (Enter)">Run</button>
+          <button id="btn-generate-autotype" title="Auto-type & execute (Shift+Enter)">🎬</button>
+        </footer>
+      </div>
+    </div>
+
+    <div id="clean-mode-badge">[TAB] Restore Sidebar | [SPACE / 1-4] Stage | [ [ / ] ] Prev/Next Scene | [F2] Auto-Type</div>
+
+    <!-- AI Settings Modal -->
+    <div id="modal-ai" class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span>⚙ AI GENERATION BACKEND</span>
+          <button id="btn-close-ai-modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <label>Active Engine</label>
+            <select id="cfg-provider">
+              <option value="lmstudio">LM Studio (http://localhost:1234/v1)</option>
+              <option value="ollama">Ollama (http://localhost:11434)</option>
+              <option value="gemini">Google Gemini API</option>
+              <option value="openai">OpenAI API</option>
+              <option value="anthropic">Anthropic Claude API</option>
+              <option value="offline">Offline 3D Procedural Synthesizer</option>
+            </select>
+          </div>
+
+          <div id="provider-box-lmstudio" class="provider-box">
+            <div class="form-row">
+              <label>LM Studio Endpoint</label>
+              <div class="form-row-inline">
+                <input id="cfg-lmstudio-url" type="text" style="flex:1" value="http://localhost:1234/v1" />
+                <button id="btn-detect-lmstudio" class="primary-btn">Detect Model</button>
+              </div>
+            </div>
+            <div class="form-row" style="margin-top:8px">
+              <label>Model ID</label>
+              <input id="cfg-lmstudio-model" type="text" placeholder="Auto-detects loaded model" />
+            </div>
+          </div>
+
+          <div id="provider-box-ollama" class="provider-box" style="display:none">
+            <div class="form-row">
+              <label>Ollama URL</label>
+              <div class="form-row-inline">
+                <input id="cfg-ollama-url" type="text" style="flex:1" value="http://localhost:11434" />
+                <button id="btn-detect-ollama" class="primary-btn">Detect Models</button>
+              </div>
+            </div>
+            <div class="form-row" style="margin-top:8px">
+              <label>Model Name</label>
+              <input id="cfg-ollama-model" type="text" value="llama3.1" />
+            </div>
+          </div>
+
+          <div id="provider-box-gemini" class="provider-box" style="display:none">
+            <div class="form-row">
+              <label>Gemini API Key</label>
+              <input id="cfg-gemini-key" type="password" placeholder="AIzaSy..." />
+            </div>
+            <div class="form-row" style="margin-top:8px">
+              <label>Gemini Model</label>
+              <input id="cfg-gemini-model" type="text" value="gemini-2.5-flash" />
+            </div>
+          </div>
+
+          <div id="provider-box-openai" class="provider-box" style="display:none">
+            <div class="form-row">
+              <label>OpenAI API Key</label>
+              <input id="cfg-openai-key" type="password" placeholder="sk-..." />
+            </div>
+            <div class="form-row" style="margin-top:8px">
+              <label>OpenAI Model</label>
+              <input id="cfg-openai-model" type="text" value="gpt-4o" />
+            </div>
+          </div>
+
+          <div id="provider-box-anthropic" class="provider-box" style="display:none">
+            <div class="form-row">
+              <label>Anthropic API Key</label>
+              <input id="cfg-anthropic-key" type="password" placeholder="sk-ant-..." />
+            </div>
+            <div class="form-row" style="margin-top:8px">
+              <label>Anthropic Model</label>
+              <input id="cfg-anthropic-model" type="text" value="claude-3-7-sonnet-latest" />
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-top:4px; border-top:1px solid var(--border-col); padding-top:10px">
+            <div class="form-row-inline">
+              <label style="flex:1">Typing Speed (ms):</label>
+              <input id="cfg-typing-speed" type="number" min="10" max="150" value="34" style="width:70px" />
+              <label style="margin-left:12px">Font (px):</label>
+              <input id="cfg-font-size" type="number" min="12" max="24" value="16" style="width:65px" />
+            </div>
+          </div>
+
+          <div id="ai-detect-status" style="font-size:11px; color:var(--text-accent); min-height:16px"></div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-open-data-folder">📂 Saved Folder</button>
+          <button id="btn-save-ai-settings" class="primary-btn">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Script Code Editor Modal -->
+    <div id="modal-code" class="modal-backdrop">
+      <div class="modal-card" style="width:820px">
+        <div class="modal-header">
+          <span>&lt;/&gt; SIMULATION CODE EDITOR</span>
+          <button id="btn-close-code-modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row-inline">
+            <div class="form-row" style="flex:1">
+              <label>Scene Title</label>
+              <input id="code-sim-title" type="text" />
+            </div>
+            <div class="form-row" style="flex:1">
+              <label>Stages (comma-separated)</label>
+              <input id="code-sim-phases" type="text" />
+            </div>
+          </div>
+          <div class="form-row">
+            <label>JavaScript (`init(ctx)`, `onPhaseChange(phase, ctx)`, `update(ctx)`)</label>
+            <textarea id="code-sim-editor" class="code-editor" spellcheck="false"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-delete-saved" class="danger-btn" style="margin-right:auto">Delete</button>
+          <button id="btn-apply-code">▶ Apply Live</button>
+          <button id="btn-save-code-preset" class="primary-btn">💾 Save Scene</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="engine.js?v=20261020f"></script>
+  <script src="presets.js?v=20261020f"></script>
+  <script src="ai-generator.js?v=20261020f"></script>
+  <script src="app.js?v=20261020f"></script>
+</body>
+</html>

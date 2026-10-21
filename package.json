@@ -1,0 +1,16 @@
+{
+  "name": "termfx-studio",
+  "version": "1.0.0",
+  "description": "AI-Powered ASCII & Cyber-Terminal Visualization Studio for YouTube Demonstrations",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package-win": "node build-exe.js"
+  },
+  "dependencies": {
+    "electron": "^35.0.0"
+  },
+  "devDependencies": {
+    "electron-packager": "^17.1.2"
+  }
+}
