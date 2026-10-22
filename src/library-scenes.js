@@ -21,11 +21,11 @@
       update(ctx) {
         const { phase, grid, palette } = ctx;
         grid.fade(0.2);
-        if (phase === 1) grid.portrait('ij-good.jpg', 64, 16, { w: 30, h: 22, mode: 'halftone', label: 'I. J. GOOD' });
-        if (phase === 2) grid.portrait('ij-good.jpg', 64, 16, { w: 30, h: 22, mode: 'scan', label: 'I. J. GOOD', color: palette.primary });
-        if (phase === 3) grid.portrait('ij-good.jpg', 64, 16, { w: 44, h: 24, mode: 'ascii', label: 'I. J. GOOD' });
+        if (phase === 1) grid.portrait(null, 64, 16, { w: 30, h: 22, mode: 'halftone', label: 'I. J. GOOD' });
+        if (phase === 2) grid.portrait(null, 64, 16, { w: 30, h: 22, mode: 'scan', label: 'I. J. GOOD', color: palette.primary });
+        if (phase === 3) grid.portrait(null, 64, 16, { w: 44, h: 24, mode: 'ascii', label: 'I. J. GOOD' });
         if (phase === 4) {
-          grid.portrait('ij-good.jpg', 30, 16, { w: 26, h: 20, mode: 'halftone', label: 'I. J. GOOD', sublabel: '1965' });
+          grid.portrait(null, 30, 16, { w: 26, h: 20, mode: 'halftone', label: 'I. J. GOOD', sublabel: '1965' });
           grid.quote('The first ultraintelligent machine is the last invention that man need ever make.', 'I. J. Good', 84, 16, { width: 28, size: 1.35 });
         }
       }
