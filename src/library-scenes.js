@@ -285,6 +285,46 @@
         if (phase === 5) grid.balance(64, 16, 10, Math.sin(ctx.time * 0.9) * 0.18, { color: palette.accent, key: 'l8bal' });
         if (phase === 6) grid.brickWall(64, 28, 9, 10, { fall: Math.max(0, Math.min(1, (ctx.phaseTime - 1.5) / 3)), label: 'BARRIER', key: 'l8wall' });
       }
+    },
+    {
+      id: 'lib-world',
+      number: 'L10',
+      title: 'Characters & 3D Sets',
+      category: 'Visual Library',
+      prompt: 'Third-person 3D shots: a faceless character at a desk (typing, phone, thinking, leaning back, watching), standing and walking, and a suburban house at night.',
+      shows: 'grid.world() — a perspective camera you can orbit and dolly, solid holographic sets, and a posed mannequin character.',
+      phases: ['Typing', 'Phone (Gaming Room)', 'Thinking', 'Leaning Back', 'Watching', 'Walk Cycle', 'House at Night'],
+      stageDurations: [6, 6, 6, 6, 6, 6, 8],
+      update(ctx) {
+        const { time, phase, phaseTime, grid, palette } = ctx;
+        grid.fade(0.2);
+        if (phase <= 5) {
+          const poses = ['typing', 'phone', 'think', 'leanback', 'watch'];
+          const w = grid.world({ fov: 42 });
+          w.orbit([0, 0.95, 0.3], 2.8, 0.35 + phaseTime * 0.12, 0.18, 42);
+          w.room({ w: 6, d: 5, h: 2.8, panels: phase === 2, led: phase === 2 ? '#ff3366' : null, posters: phase === 3 });
+          const j = w.deskSetup({ monitors: phase === 2 ? 'ultrawide' : (phase === 5 ? 2 : 1), person: { pose: poses[phase - 1], t: time, glasses: phase === 3 }, screenCol: phase === 5 ? palette.danger : '#2f6bff', scroll: 1 });
+          if (phase === 2) w.phone(j.handsMid, Math.PI, 0.9);
+          w.render();
+          return;
+        }
+        if (phase === 6) {
+          const w = grid.world({ fov: 45 });
+          w.orbit([0, 0.9, 0], 3.4, 0.3 + phaseTime * 0.25, 0.15, 45);
+          w.floor(10, 0.5, { col: palette.dim });
+          w.person({ at: [0, 0, 0], yaw: Math.PI / 2, pose: 'walk', t: time });
+          w.render();
+          return;
+        }
+        const k = Math.min(1, phaseTime / 7);
+        const w = grid.world({ fov: 38, fog: 70 });
+        w.camera([8 - k * 5, 2.4 + k, 17 - k * 7], [-0.5 + k, 3, 0], 38);
+        w.floor(44, 2, { col: '#335566' });
+        w.house({ lit: [0, 3] });
+        w.tree([7.5, 0, 1.5], 5);
+        w.tree([-11, 0, 0.5], 6);
+        w.render();
+      }
     }
   ];
 

@@ -9,7 +9,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 1. **Each scene = one clip.** Scenes follow the script in order; every sentence of the script is assigned to exactly one stage.
 2. **Timing is built in.** Stage lengths are calculated from the words spoken in that stage, so a rendered scene lines up with the voice-over. The `Stage sec` box scales all of it: `4.6` = narration pace, higher = slower, lower = faster.
 3. **Record VO against it.** The strip under the stage shows the exact script line for the current stage and its length. It is never rendered into exports, and Clean View (`TAB`) hides it. Nothing but the visuals is drawn on screen — no titles, captions or stage tags — so add any on-screen text in your editor.
-4. **Render.** Pick the scene, press `F9`. MP4 for direct use; ProRes 4444 + Transparent background if you want to composite over other footage.
+4. **Render.** Pick a scene and press `F9`, or press `F10` (**● All 39**) to render the whole video back to back into one MP4 — Shift+F10 for one file per scene. MP4 for direct use; ProRes 4444 + Transparent background if you want to composite over other footage.
 5. **Fine-tune in the editor.** Each stage begins with a visible beat (a soft dissolve, then elements building in), so cuts and VO nudges are easy to line up.
 
 ## Scene overview
@@ -90,7 +90,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Beyond Snippets | 0.0–11.0s | Over the last several months, we have crossed a critical inflection point where frontier models are no longer just assisting human engineers with isolated snippets of code. | Close on an engineer at a 3D workstation; one tiny snippet page floats over from the model as the camera pulls back |
+| 1. Beyond Snippets | 0.0–11.0s | Over the last several months, we have crossed a critical inflection point where frontier models are no longer just assisting human engineers with isolated snippets of code. | Third person: an engineer types at a 3D desk; the camera drifts from behind to the side as a single tiny snippet floats from a hologram model into their screen |
 | 2. Writes Code · Optimizes Training | 11.0–20.4s | They are writing the vast majority of the production code inside the labs building them, optimizing their own training scripts at superhuman speeds, | The model pours code into a 3D lab building, windows lighting floor by floor; then a training-time chart collapses beside a racing stopwatch |
 | 3. Parallel Subagents | 20.4–23.0s | coordinating parallel subagents, | The model fans work out to four subagents racing in parallel |
 | 4. Trains Its Successors | 23.0–29.2s | and generating the verified synthetic trajectories used to train their own successors. | Trajectories stream through a verification scanner — failures drop away red, verified ones fill a dataset that grows a larger successor |
@@ -142,7 +142,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
 | 1. The Hardest Tasks | 0.0–3.7s | Furthermore, on the hardest, most open-ended engineering tasks— | A spec page with only a title and flickering, half-missing lines; the camera pushes in: "open-ended" |
-| 2. No Clear Spec | 3.7–11.6s | problems with no clear specification where even the human engineer isn't sure what the final solution should look like— | An engineer at a workstation, unsure — question marks rise over their head |
+| 2. No Clear Spec | 3.7–11.6s | problems with no clear specification where even the human engineer isn't sure what the final solution should look like— | Third person: an engineer at a 3D desk, hand on chin, unsure; question marks rise over their head |
 | 3. +50 Points → 76% | 11.6–19.0s | Claude's success rate surged by fifty percentage points in just six months, reaching seventy-six percent. | Bar chart: success rate 26% six months ago → 76% today, "+50" between them |
 
 ## 08 — The Research-Loop Benchmark
@@ -219,7 +219,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Outer Loop Takes Over | 0.0–8.3s | In Step Two, instead of a human engineer stepping in to debug the agent's workflow, the Outer Loop takes over. | The inner loop runs; the human debugger fades out and an outer-loop model takes their seat |
+| 1. Outer Loop Takes Over | 0.0–8.3s | In Step Two, instead of a human engineer stepping in to debug the agent's workflow, the Outer Loop takes over. | Third person: the engineer who used to debug the loop stands up and walks away; the outer loop appears as a hologram over the running monitor |
 | 2. Three Roles, One Model | 8.3–18.5s | In the MASS architecture published on October 8th, the task agent, the self-evaluator, and the workflow optimizer all share the exact same underlying language model. | Agent, evaluator and optimizer all wire into one shared model (MASS, Oct 8) |
 | 3. Inspect the Traces | 18.5–27.2s | The Outer Loop inspects the execution traces of the Inner Loop, diagnoses where the inter-agent communication or tool execution broke down, | A trace strip scans left to right; two red breaks light up: tool · handoff |
 | 4. Rewrite the Inner Loop | 27.2–33.8s | and rewrites the workflow prompt and helper functions of the Inner Loop itself. | The inner loop’s workflow file: broken lines turn red, then are rewritten green |
@@ -360,7 +360,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
 | 1. Oct 15: Two Announcements | 0.0–11.0s | And just days ago, on October 15th, Anthropic made two landmark announcements that directly address the biggest bottleneck in recursive AI development: code verification and safety oversight. | The camera pushes in on October 15; a shield (verification) and an eye (oversight) beside it |
-| 2. Code Review → GA | 11.0–27.0s | First, Anthropic moved Claude Code Review into General Availability. Because human engineers can no longer manually keep pace with agents generating eight times more code, Anthropic built a multi-agent verification pipeline that it runs on its own internal pull requests. | A wall of pull requests fills up in front of one human reviewer at a workstation — 8× too many |
+| 2. Code Review → GA | 11.0–27.0s | First, Anthropic moved Claude Code Review into General Availability. Because human engineers can no longer manually keep pace with agents generating eight times more code, Anthropic built a multi-agent verification pipeline that it runs on its own internal pull requests. | Third person: a human reviewer types at a 3D desk while a stack of pull-request pages piles up beside them — 8× too many |
 | 3. Parallel Agents + Verifier | 27.0–47.1s | According to the October 15th documentation, when a pull request is opened, multiple Claude agents inspect the diff and surrounding codebase in parallel, followed by a dedicated verification agent that filters out false positives before posting findings in six to ten minutes—three times faster than the preview version. | A PR fans out to four reviewer agents (magnifiers); a verification scanner drops false positives; "6–10 MIN" |
 
 ## 25 — Separation of Powers
@@ -436,7 +436,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 |---|---|---|---|
 | 1. Codex Release Notes | 0.0–7.5s | Simultaneously, OpenAI's latest Codex release notes and GPT-6 migration documentation reveal how they are re-architecting autonomous software engineering: | The Codex release notes roll in beside a 3D laptop running Codex |
 | 2. Parallel Read-Only Tools | 7.5–16.2s | Codex can now execute independent read-only tools in parallel—simultaneously querying skill libraries, memory stores, and conversation histories to assemble context faster. | Three lookups fire at once — skills, memory, history — and return together |
-| 3. Live Steering · Hard Interrupts | 16.2–27.6s | Engineers can now inject live steering instructions while Codex is actively responding, and interrupting a turn immediately halts all active Code Mode cells and their nested tool calls. | An engineer steers from their phone mid-run ("use the v2 API"); then an interrupt halts every running cell |
+| 3. Live Steering · Hard Interrupts | 16.2–27.6s | Engineers can now inject live steering instructions while Codex is actively responding, and interrupting a turn immediately halts all active Code Mode cells and their nested tool calls. | Third person in a gaming room: the engineer steers Codex from their phone mid-run ("use the v2 API"); then an interrupt halts it and the screen turns red |
 | 4. Daybreak: Hunt · Validate · Patch | 27.6–39.2s | OpenAI enabled Daybreak by default for eligible accounts and integrated codex exec with GPT-Daybreak and Codex Security to autonomously hunt down, validate, and patch code vulnerabilities. | Bugs are found, validated, and flip into shields: patched (Daybreak + Codex Security) |
 
 ## 31 — The Linux Sandbox: bubblewrap + seccomp
@@ -473,7 +473,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 |---|---|---|---|
 | 1. Democratized RSI Loops | 0.0–7.5s | First, we are going to see the democratization of bounded, multi-agent RSI loops across enterprise and local repositories. | Cities light up one by one across a rotating globe as teams start their own loops |
 | 2. Cost & Latency Barriers Collapse | 7.5–22.3s | With GPT-6 Pro and Codex running parallel subagents and parallel tool lookups, and Claude 5.5 models offering one-million-token context windows with ten-to-twenty-cent cache reads, the economic and latency barriers to running continuous code-optimization loops have effectively collapsed. | Two brick walls — COST and LATENCY — crumble: parallel subagents · 1M-token context · ~10¢ cache reads |
-| 3. Overnight Inner + Outer Loops | 22.3–31.7s | Over the next sixty to ninety days, standard engineering teams will increasingly deploy overnight inner-and-outer agent loops—modeled on frameworks like MASS and AIDE2— | Night: an office tower goes dark except one glowing floor; an inner and an outer loop keep running past midnight |
+| 3. Overnight Inner + Outer Loops | 22.3–31.7s | Over the next sixty to ninety days, standard engineering teams will increasingly deploy overnight inner-and-outer agent loops—modeled on frameworks like MASS and AIDE2— | Night: the camera pushes in on a dark suburban house with one lit upstairs window; inside, an empty chair — two monitors keep running the inner and outer loops past midnight |
 | 4. While the Team Sleeps | 31.7–41.8s | that continuously refactor codebases, optimize database queries and GPU kernels, and refine their own project-specific tool harnesses while the human team sleeps. | By 07:00 the overnight changelog has written itself: refactor · queries · kernels · its own harness |
 
 ## 34 — Next #2: The Verification Battleground
@@ -512,7 +512,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 |---|---|---|---|
 | 1. The Tension | 0.0–7.1s | And that brings us to the profound tension sitting at the heart of artificial intelligence right now. | A balance scale tips back and forth — SAFETY against SPEED — never settling |
 | 2. Paced by Compute, Not People | 7.1–30.8s | In its forecast on recursive self-improvement, Anthropic laid out a sobering warning about where this trajectory leads if the loop becomes fully autonomous. Once models are capable of driving their own research and architectural improvements end to end, the speed of AI progress is no longer paced by human ingenuity or engineering hours—it is paced almost entirely by available compute. | Anthropic’s forecast on recursive self-improvement (camera on the title), then a needle swings from people to a datacenter: paced by compute |
-| 3. Humans Become Overseers | 30.8–43.2s | Humans are pushed out of the loop of creation and into the role of passive overseers, trying to audit systems whose complexity and speed far outstrip our own. | Close on one person at a workstation watching; the camera pulls back to reveal a vast red datacenter racing beyond them |
+| 3. Humans Become Overseers | 30.8–43.2s | Humans are pushed out of the loop of creation and into the role of passive overseers, trying to audit systems whose complexity and speed far outstrip our own. | Third person: close over the shoulder of a person watching red screens race; the camera pulls back and up until they are small in front of a wall of systems they can’t keep up with |
 
 ## 37 — Compounding Silently
 
@@ -549,7 +549,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
 | 1. The Pen Changes Hands | 0.0–9.1s | We are standing at the exact moment in history where the pen is being handed from the human engineer to the machine. | A 3D pen travels from the human engineer to the machine; the camera follows it across |
-| 2. Humans Still Merge — For Now | 9.1–15.9s | For right now, the human still defines the objective and still holds the final merge button. | For now the human keeps the objective page — and the “Merge pull request” button, cursor hovering over it |
+| 2. Humans Still Merge — For Now | 9.1–15.9s | For right now, the human still defines the objective and still holds the final merge button. | Third person, over the shoulder: the human at their desk, the cursor hovering over “Merge pull request” on their screen — for now, only they can press it |
 | 3. Too Complex to Understand | 15.9–27.7s | The defining question of the next few years is what happens when the code inside that pull request becomes too complex for any human on Earth to truly understand— | A pull request page swells with lines until it becomes an unreadable storm; the camera pushes in; the human is tiny beside it |
 | 4. The Defining Question | 27.7–37.8s | and whether we will have built a system wise enough to keep itself aligned when we can no longer check its work. | The machine alone, a shield forming around it; the human’s magnifier fades out; a large "?" |
 

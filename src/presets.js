@@ -92,6 +92,10 @@ function drawClock(grid, x, y, angle, color) {
   grid.vdot(x, y, 1.5, { color: '#ffffff' });
 }
 
+function add3(a, b) {
+  return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+}
+
 // Stable pseudo-random 0..1 per index (no Math.random, so renders are repeatable)
 function hash01(i) {
   const v = Math.sin(i * 12.9898 + 78.233) * 43758.5453;
@@ -253,7 +257,7 @@ const PRESET_SCENES = [
     shows: 'Close on an engineer at a workstation receiving a single tiny snippet; the model pours code into the lab building as its windows light floor by floor, then training-step time collapses on a chart beside a racing stopwatch; it fans out to parallel subagents; verified trajectories pass a checkpoint, fill a dataset and grow a larger successor.',
     phases: ['Beyond Snippets', 'Writes Code · Optimizes Training', 'Parallel Subagents', 'Trains Its Successors'],
     captions: [
-      'Close on an engineer at a 3D workstation; one tiny snippet page floats over from the model as the camera pulls back',
+      'Third person: an engineer types at a 3D desk; the camera drifts from behind to the side as a single tiny snippet floats from a hologram model into their screen',
       'The model pours code into a 3D lab building, windows lighting floor by floor; then a training-time chart collapses beside a racing stopwatch',
       'The model fans work out to four subagents racing in parallel',
       'Trajectories stream through a verification scanner — failures drop away red, verified ones fill a dataset that grows a larger successor'
@@ -272,14 +276,18 @@ const PRESET_SCENES = [
       const G = '#00ff88';
 
       if (phase === 1) {
-        camera.look(60, 16, 1.32 - Math.min(0.3, phaseTime * 0.06));
-        grid.person(46, 8.5, { size: 9, key: 'eng' });
-        grid.object('workstation', 46, 21.5, 9, 0.45, { tilt: 0.3, color: palette.accent, windowColor: palette.accent, key: 'ws3' });
-        grid.text(46, 31, 'ENGINEER', palette.accent, false, 'center');
-        grid.icosahedron3D(86, 9, 2.2, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.primary, accent: '#ffffff', dim: palette.dim });
-        const t = (phaseTime / 2.6) % 1;
-        const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        grid.paper(82 - e * 38, 10 + e * 6 - Math.sin(e * Math.PI) * 4, { key: 'snip' + Math.floor(phaseTime / 2.6), venue: 'snippet', w: 7, h: 6, lines: 2, yaw: -0.2, alpha: Math.min(1, Math.sin(t * Math.PI) * 1.6), progress: 1 });
+        const w = grid.world({ fov: 40 });
+        const k = Math.min(1, phaseTime / 9);
+        w.orbit([0, 0.98, 0.05], 2.7 - k * 0.5, 0.45 + k * 0.6, 0.2, 40);
+        w.room({ w: 6, d: 5, h: 2.8, led: palette.accent });
+        const j = w.deskSetup({ person: { pose: 'typing', t: time }, screenCol: '#2f6bff', rows: 4, scroll: 0.3 });
+        w.render();
+        const m = w.toCells([0.62, 1.55, -0.3]);
+        const scr = w.toCells([0, 1.04, -0.2]);
+        grid.icosahedron3D(m.x, m.y, 1.7, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.primary, accent: '#ffffff', dim: palette.dim });
+        const t = (phaseTime / 3) % 1;
+        const e = t * t * (3 - 2 * t);
+        grid.paper(m.x + (scr.x - m.x) * e, m.y + (scr.y - m.y) * e - Math.sin(e * Math.PI) * 3, { key: 'snip' + Math.floor(phaseTime / 3), venue: 'snippet', w: 6, h: 5, lines: 2, alpha: Math.min(1, Math.sin(t * Math.PI) * 1.8) });
         return;
       }
       if (phase === 2) {
@@ -526,7 +534,7 @@ const PRESET_SCENES = [
     phases: ['The Hardest Tasks', 'No Clear Spec', '+50 Points → 76%'],
     captions: [
       'A spec page with only a title and flickering, half-missing lines; the camera pushes in: "open-ended"',
-      'An engineer at a workstation, unsure — question marks rise over their head',
+      'Third person: an engineer at a 3D desk, hand on chin, unsure; question marks rise over their head',
       'Bar chart: success rate 26% six months ago → 76% today, "+50" between them'
     ],
     narration: [
@@ -549,11 +557,15 @@ const PRESET_SCENES = [
         return;
       }
       if (phase === 2) {
-        grid.person(64, 9, { size: 10, key: 'unsure' });
-        grid.object('workstation', 64, 22, 9, 0.45, { tilt: 0.3, color: palette.accent, windowColor: palette.dim, key: 'ws7' });
-        for (let i = 0; i < 4; i++) {
-          const t = (time * 0.35 + i / 4) % 1;
-          grid.big(56 + hash01(i) * 16, 4 - t * 3 + 2, '?', { size: 1.3 + hash01(i + 3) * 0.6, color: palette.warn, alpha: Math.sin(t * Math.PI), reveal: false });
+        const w = grid.world({ fov: 40 });
+        w.orbit([0, 1.0, 0.25], 2.4, 1.25 + Math.sin(phaseTime * 0.2) * 0.12, 0.16, 40);
+        w.room({ w: 6, d: 5, h: 2.8, posters: true });
+        const j = w.deskSetup({ person: { pose: 'think', t: time, glasses: true, hairCol: '#b07a45' }, screenCol: '#555a66', rows: 2, scroll: 0 });
+        w.render();
+        const h = w.toCells(add3(j.head, [0, 0.25, 0]));
+        for (let i = 0; i < 3; i++) {
+          const t = (time * 0.35 + i / 3) % 1;
+          grid.big(h.x - 4 + i * 4, h.y - t * 4, '?', { size: 1.4 + i * 0.2, color: palette.warn, alpha: Math.sin(t * Math.PI), reveal: false });
         }
         return;
       }
@@ -962,7 +974,7 @@ const PRESET_SCENES = [
     shows: 'The inner loop runs while the engineer who used to debug it steps away and an outer-loop model takes their place; three roles wire into one shared model; a trace strip lights two red breaks; then the workflow file is rewritten line by line.',
     phases: ['Outer Loop Takes Over', 'Three Roles, One Model', 'Inspect the Traces', 'Rewrite the Inner Loop'],
     captions: [
-      'The inner loop runs; the human debugger fades out and an outer-loop model takes their seat',
+      'Third person: the engineer who used to debug the loop stands up and walks away; the outer loop appears as a hologram over the running monitor',
       'Agent, evaluator and optimizer all wire into one shared model (MASS, Oct 8)',
       'A trace strip scans left to right; two red breaks light up: tool · handoff',
       'The inner loop’s workflow file: broken lines turn red, then are rewritten green'
@@ -976,21 +988,30 @@ const PRESET_SCENES = [
     init(ctx) {},
     onPhaseChange(phase, ctx) {},
     update(ctx) {
-      const { phase, phaseTime, stageDuration, grid, palette, anim, math, camera } = ctx;
+      const { time, phase, phaseTime, stageDuration, grid, palette, anim, math, camera } = ctx;
       grid.fade(0.15);
       const G = '#00ff88';
       const R = palette.danger;
       if (phase === 4) camera.look(64, phaseTime < 2.5 ? 8.5 : 17, phaseTime < 2.5 ? 1.7 : 1.15);
 
       if (phase === 1) {
-        grid.pipeline(16, 70, 22, ['propose', 'run', 'time', 'log'], { loop: true, loopDepth: 3, color: palette.warn, speed: 0.9, key: 'in13' });
-        const k = math.clamp(phaseTime / (stageDuration * 0.7), 0, 1);
-        grid.person(100, 15, { size: 11, label: 'ENGINEER', key: 'dbg', alpha: 1 - k });
-        if (k > 0.4) {
-          const s = anim.spring('outer', 2.8, { from: 0.2, freq: 1.8 });
-          grid.dodecahedron3D(100, 15, s, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: G, accent: '#ffffff', dim: palette.dim, alpha: (k - 0.4) / 0.6 });
-          grid.text(100, 24, 'outer loop', G, true, 'center');
-          grid.vpath([[92, 17], [78, 21]], { color: G, alpha: 0.4, width: 1.2, dash: [2, 3] });
+        const s = math.clamp(phaseTime / stageDuration, 0, 1);
+        const w = grid.world({ fov: 42 });
+        w.orbit([0.6, 0.95, 0.3], 3.4, 0.75, 0.2, 42);
+        w.room({ w: 7, d: 5, h: 2.8, led: palette.warn });
+        const seated = s < 0.42;
+        const j = w.deskSetup({ person: seated ? { pose: 'typing', t: time } : null, screenCol: '#2f6bff', scroll: 1.4 });
+        if (!seated) {
+          const k = math.clamp((s - 0.42) / 0.5, 0, 1);
+          w.person({ at: [0.35 - k * 4.8, 0, 0.95 + k * 0.6], yaw: Math.atan2(-4.8, 0.6), pose: k > 0.02 && k < 0.98 ? 'walk' : 'stand', t: time * 0.8 });
+        }
+        w.render();
+        if (s > 0.6) {
+          const m = w.toCells([0, 1.5, -0.2]);
+          const a = math.clamp((s - 0.6) / 0.2, 0, 1);
+          grid.dodecahedron3D(m.x, m.y, 2.2 * a, anim.spin('oa', 0.5), anim.spin('ob', 0.6), 0, { color: G, accent: '#ffffff', dim: palette.dim, alpha: a });
+          grid.glow(m.x, m.y, 5, G, a);
+          grid.big(m.x, m.y - 5, 'OUTER LOOP', { size: 1.1, color: G, alpha: a });
         }
         return;
       }
@@ -1758,7 +1779,7 @@ const PRESET_SCENES = [
     phases: ['Oct 15: Two Announcements', 'Code Review → GA', 'Parallel Agents + Verifier'],
     captions: [
       'The camera pushes in on October 15; a shield (verification) and an eye (oversight) beside it',
-      'A wall of pull requests fills up in front of one human reviewer at a workstation — 8× too many',
+      'Third person: a human reviewer types at a 3D desk while a stack of pull-request pages piles up beside them — 8× too many',
       'A PR fans out to four reviewer agents (magnifiers); a verification scanner drops false positives; "6–10 MIN"'
     ],
     narration: [
@@ -1784,11 +1805,19 @@ const PRESET_SCENES = [
       }
       if (phase === 2) {
         const f = math.clamp(phaseTime / (stageDuration * 0.8), 0, 1);
-        grid.fileGrid(46, 15, 12, 6, { filled: f, fillColor: palette.primary, key: 'prs', cell: [4, 3] });
-        grid.text(46, 26, 'open pull requests', palette.dim, false, 'center');
-        grid.person(90, 8.5, { size: 8, key: 'reviewer', color: palette.warn });
-        grid.object('workstation', 90, 21, 8, -0.4, { tilt: 0.3, color: palette.warn, windowColor: palette.warn, key: 'ws24' });
-        grid.big(90, 30, '8× THE CODE', { size: 1.1, color: palette.warn });
+        const w = grid.world({ fov: 40 });
+        w.orbit([-0.2, 1.0, 0.1], 2.9 - f * 0.4, 0.95, 0.24, 40);
+        w.room({ w: 6, d: 5, h: 2.8 });
+        w.deskSetup({ person: { pose: 'typing', t: time, shirt: palette.warn }, screenCol: '#2f6bff', scroll: 1.2, tower: false });
+        const n = Math.floor(f * 34);
+        for (let i = 0; i < n; i++) {
+          const x = -0.55 + (i % 2) * 0.05;
+          const y = 0.745 + Math.floor(i / 2) * 0.03 + (i % 2) * 0.012;
+          w.box([x - 0.15, y, -0.12], [x + 0.15, y + 0.012, 0.1], { col: '#e8eef5', k: 0.55, edge: 0.4 }, (hash01(i) - 0.5) * 0.4);
+        }
+        w.render();
+        const st = w.toCells([-0.55, 0.8 + (n / 2) * 0.03 + 0.2, 0]);
+        grid.big(st.x - 3, st.y, '8×', { size: 2.4, color: palette.warn, align: 'right' });
         return;
       }
       const p = math.clamp(phaseTime / (stageDuration * 0.8), 0, 1);
@@ -2188,7 +2217,7 @@ const PRESET_SCENES = [
     captions: [
       'The Codex release notes roll in beside a 3D laptop running Codex',
       'Three lookups fire at once — skills, memory, history — and return together',
-      'An engineer steers from their phone mid-run ("use the v2 API"); then an interrupt halts every running cell',
+      'Third person in a gaming room: the engineer steers Codex from their phone mid-run ("use the v2 API"); then an interrupt halts it and the screen turns red',
       'Bugs are found, validated, and flip into shields: patched (Daybreak + Codex Security)'
     ],
     narration: [
@@ -2205,8 +2234,10 @@ const PRESET_SCENES = [
       const G = '#00ff88';
       const R = palette.danger;
       const lx = phase === 1 ? 26 : 22;
-      grid.object('laptop', lx, 17, phase === 1 ? 7 : 6, 0.5 + Math.sin(time * 0.4) * 0.12, { tilt: 0.35, color: palette.accent, windowColor: palette.accent, key: 'codex' });
-      grid.text(lx, 25, 'Codex', palette.accent, true, 'center');
+      if (phase !== 3) {
+        grid.object('laptop', lx, 17, phase === 1 ? 7 : 6, 0.5 + Math.sin(time * 0.4) * 0.12, { tilt: 0.35, color: palette.accent, windowColor: palette.accent, key: 'codex' });
+        grid.text(lx, 25, 'Codex', palette.accent, true, 'center');
+      }
 
       if (phase === 1) {
         grid.releaseNotes(82, 17, { product: 'OpenAI Codex', version: 'Release notes', date: 'October', key: 'cx30', color: palette.primary, width: 56,
@@ -2225,20 +2256,21 @@ const PRESET_SCENES = [
         return;
       }
       if (phase === 3) {
-        const halted = phaseTime > stageDuration * 0.6;
-        for (let i = 0; i < 6; i++) {
-          const x = 50 + (i % 3) * 13;
-          const y = 13 + Math.floor(i / 3) * 8;
-          const run = !halted && Math.floor(time * 5 + i) % 3 === 0;
-          grid.vline(x - 4, y, x + 4, y, { color: halted ? palette.dim : (run ? '#ffffff' : palette.primary), alpha: halted ? 0.4 : 0.9, width: 5 });
-        }
-        grid.object('phone', 106, 16, 6.5, -0.25 + Math.sin(time * 0.5) * 0.08, { tilt: 0.1, color: palette.warn, windowColor: palette.warn, key: 'ph30' });
+        const halted = phaseTime > stageDuration * 0.62;
+        const w = grid.world({ fov: 42 });
+        w.orbit([0, 1.0, 0.45], 2.7, -1.3 + Math.sin(phaseTime * 0.15) * 0.12, 0.14, 42);
+        w.room({ w: 6, d: 5, h: 2.8, panels: true, led: '#ff3366' });
+        const j = w.deskSetup({ monitors: 'ultrawide', person: { pose: 'phone', t: time, shirt: '#ff6655', hairCol: '#5a3a25', sleeves: 'short' },
+          screenCol: halted ? '#ff3355' : '#1f8fff', scroll: halted ? 0 : 2.2, screenA: halted ? 0.32 : 0.42 });
+        w.phone(j.handsMid, Math.PI, 0.9);
+        w.render();
+        const ph = w.toCells(j.handsMid);
+        const sc = w.toCells(j.screen);
         if (!halted) {
-          const t = math.clamp((phaseTime % 3.2) / 2.4, 0, 1);
-          grid.chatBubble(100 - t * 52, 5, 'use the v2 API', { color: palette.warn, align: 'right', alpha: Math.min(1, (1 - t) * 3) });
+          const t = math.clamp((phaseTime % 3.2) / 2.6, 0, 1);
+          grid.chatBubble(ph.x + (sc.x - ph.x) * t, ph.y + (sc.y - 4 - ph.y) * t, 'use the v2 API', { color: palette.warn, alpha: Math.min(1, (1 - t) * 3), size: 0.9 });
         } else {
-          grid.big(63, 30, 'HALT', { size: 2.2, color: R });
-          camera.look(64, 18, 1.1);
+          grid.big(sc.x, sc.y - 5, 'HALT', { size: 2.2, color: R });
         }
         return;
       }
@@ -2383,7 +2415,7 @@ const PRESET_SCENES = [
     captions: [
       'Cities light up one by one across a rotating globe as teams start their own loops',
       'Two brick walls — COST and LATENCY — crumble: parallel subagents · 1M-token context · ~10¢ cache reads',
-      'Night: an office tower goes dark except one glowing floor; an inner and an outer loop keep running past midnight',
+      'Night: the camera pushes in on a dark suburban house with one lit upstairs window; inside, an empty chair — two monitors keep running the inner and outer loops past midnight',
       'By 07:00 the overnight changelog has written itself: refactor · queries · kernels · its own harness'
     ],
     narration: [
@@ -2420,15 +2452,32 @@ const PRESET_SCENES = [
         return;
       }
       if (phase === 3) {
-        const night = math.clamp(phaseTime / stageDuration, 0, 1);
-        const mins = 22 * 60 + night * 5 * 60;
-        grid.big(38, 3, `${String(Math.floor(mins / 60) % 24).padStart(2, '0')}:${String(Math.floor(mins % 60)).padStart(2, '0')}`, { size: 1.8, color: palette.accent, reveal: false });
-        grid.object('office', 38, 18, 9, 0.5 + Math.sin(time * 0.15) * 0.08, { tilt: 0.3, color: palette.primary, windowColor: G, key: 'office33',
-          litFn: (i) => (Math.floor(i / 12) === 2 ? Math.sin(time * 3 + i) > -0.6 : hash01(i * 7) > 0.8 + night * 0.2) });
-        grid.big(76, 9, 'INNER', { size: 0.95, color: palette.warn, align: 'left' });
-        grid.pipeline(80, 118, 14, ['propose', 'run', 'score'], { loop: true, loopDepth: 3, color: palette.warn, speed: 1.1, key: 'in33', radius: 2.3 });
-        grid.big(76, 22, 'OUTER', { size: 0.95, color: G, align: 'left' });
-        grid.pipeline(80, 118, 27, ['inspect', 'rewrite', 'verify'], { loop: true, loopDepth: 3, color: G, speed: 0.3, key: 'out33', radius: 2.3 });
+        const s = math.clamp(phaseTime / stageDuration, 0, 1);
+        const mins = 22 * 60 + s * 5 * 60;
+        if (s < 0.55) {
+          const k = s / 0.55;
+          const e = k * k * (3 - 2 * k);
+          const w = grid.world({ fov: 38, fog: 70 });
+          w.camera([7 - e * 5.5, 2.2 + e * 1.4, 17 - e * 8.5], [-0.4 + e * 1.4, 3 + e * 0.6, 0], 38);
+          w.floor(44, 2, { col: '#335566' });
+          w.house({ lit: [0], screenGlow: 0 });
+          w.tree([7.5, 0, 1.5], 5);
+          w.tree([-11, 0, 0.5], 6);
+          w.box([-22, 0, -6], [-14, 5, 0], { col: palette.dim, k: 0.08, edge: 0.25 });
+          w.box([12, 0, -7], [19, 4.5, -1], { col: palette.dim, k: 0.08, edge: 0.25 });
+          w.render();
+          for (let i = 0; i < 26; i++) grid.vdot(4 + hash01(i) * 120, 1 + hash01(i + 40) * 9, 0.8 + hash01(i + 9) * 0.8, { color: '#ffffff', alpha: 0.25 + 0.35 * Math.sin(time * 1.5 + i) * 0.5 + 0.2 });
+        } else {
+          const w = grid.world({ fov: 40 });
+          const k = (s - 0.55) / 0.45;
+          w.orbit([0, 1.0, 0], 2.6 - k * 0.5, 0.6 + k * 0.3, 0.18, 40);
+          w.room({ w: 6, d: 5, h: 2.8, wallK: 0.06 });
+          w.deskSetup({ person: null, monitors: 2, screenCol: '#00cc77', screenCol2: '#2f6bff', scroll: 2.5 });
+          w.render();
+          grid.pipeline(40, 88, 6.5, ['propose', 'run', 'score'], { loop: true, loopDepth: 2, color: palette.warn, speed: 1.1, key: 'in33w', radius: 1.8 });
+          grid.pipeline(40, 88, 12.5, ['inspect', 'rewrite', 'verify'], { loop: true, loopDepth: 2, color: G, speed: 0.3, key: 'out33w', radius: 1.8 });
+        }
+        grid.big(112, 3, `${String(Math.floor(mins / 60) % 24).padStart(2, '0')}:${String(Math.floor(mins % 60)).padStart(2, '0')}`, { size: 1.7, color: palette.accent, reveal: false });
         return;
       }
       const p = math.clamp(phaseTime / (stageDuration * 0.85), 0, 1);
@@ -2598,7 +2647,7 @@ const PRESET_SCENES = [
     captions: [
       'A balance scale tips back and forth — SAFETY against SPEED — never settling',
       'Anthropic’s forecast on recursive self-improvement (camera on the title), then a needle swings from people to a datacenter: paced by compute',
-      'Close on one person at a workstation watching; the camera pulls back to reveal a vast red datacenter racing beyond them'
+      'Third person: close over the shoulder of a person watching red screens race; the camera pulls back and up until they are small in front of a wall of systems they can’t keep up with'
     ],
     narration: [
       `And that brings us to the profound tension sitting at the heart of artificial intelligence right now.`,
@@ -2644,14 +2693,15 @@ const PRESET_SCENES = [
         if (p > 0.7) grid.big(100, 29, 'COMPUTE', { size: 1.6, color: R });
         return;
       }
-      const s = math.clamp(phaseTime / (stageDuration * 0.7), 0, 1);
-      const e = s * s * (3 - 2 * s);
-      camera.look(100 + (64 - 100) * e, 25 + (17 - 25) * e, 1.8 - e * 0.85);
-      grid.building('hall', 52, 15, 9, 0.42 + Math.sin(time * 0.2) * 0.05, { tilt: 0.42, color: R, windowColor: R, key: 'hall36b',
-        litFn: (i) => Math.sin(time * 9 + i * 1.7) > 0 });
-      grid.person(101, 23, { size: 4, key: 'over', color: palette.accent });
-      grid.object('workstation', 101, 29, 4, -0.5, { tilt: 0.3, color: palette.accent, windowColor: R, key: 'ws36' });
-      if (e > 0.85) grid.big(101, 33.5, 'OVERSEER', { size: 0.9, color: palette.accent });
+      const s3 = math.clamp(phaseTime / (stageDuration * 0.85), 0, 1);
+      const e3 = s3 * s3 * (3 - 2 * s3);
+      const w = grid.world({ fov: 40 });
+      w.orbit([0, 1.05 + e3 * 0.3, -0.1], 1.95 + e3 * 2.8, 0.45 + e3 * 0.2, 0.18 + e3 * 0.3, 40);
+      w.room({ w: 8, d: 6, h: 3 });
+      w.deskSetup({ monitors: 2, person: { pose: 'watch', t: time }, screenCol: R, screenCol2: R, scroll: 6, textCol: '#ffd0d0', tower: false });
+      for (let i = 0; i < 3; i++) w.monitor({ at: [-1.3 + i * 1.3, 1.6, -0.6], w: 1.1, h: 0.55, screenCol: R, scroll: 7 + i, textCol: '#ffd0d0', rows: 9 });
+      w.render();
+      if (e3 > 0.8) grid.big(64, 32.5, 'OVERSEER', { size: 1.2, color: palette.accent, alpha: (e3 - 0.8) * 5 });
     }
   },
 
@@ -2830,7 +2880,7 @@ const PRESET_SCENES = [
     phases: ['The Pen Changes Hands', 'Humans Still Merge — For Now', 'Too Complex to Understand', 'The Defining Question'],
     captions: [
       'A 3D pen travels from the human engineer to the machine; the camera follows it across',
-      'For now the human keeps the objective page — and the “Merge pull request” button, cursor hovering over it',
+      'Third person, over the shoulder: the human at their desk, the cursor hovering over “Merge pull request” on their screen — for now, only they can press it',
       'A pull request page swells with lines until it becomes an unreadable storm; the camera pushes in; the human is tiny beside it',
       'The machine alone, a shield forming around it; the human’s magnifier fades out; a large "?"'
     ],
@@ -2862,9 +2912,14 @@ const PRESET_SCENES = [
         return;
       }
       if (phase === 2) {
-        grid.person(24, 14, { size: 10, key: 'h2', label: 'HUMAN' });
-        grid.paper(48, 13, { key: 'obj', title: 'Objective', venue: 'defined by people', w: 16, h: 12, lines: 3, yaw: -0.15 });
-        grid.mergeButton(90, 17, { cursor: 0.85 + Math.sin(time * 1.2) * 0.1, press: 0, sub: 'only a human can press it — for now', key: 'mb39' });
+        const w = grid.world({ fov: 38 });
+        const k = Math.min(1, phaseTime / 8);
+        w.orbit([0, 1.02, -0.1], 1.9 - k * 0.5, 0.42, 0.2, 38);
+        w.room({ w: 6, d: 5, h: 2.8, led: G });
+        w.deskSetup({ person: { pose: 'typing', t: time * 0.3 }, screenCol: '#0d3b2a', rows: 0, monW: 0.8, monH: 0.46 });
+        w.render();
+        const sc = w.toCells([0, 1.09, -0.2]);
+        grid.mergeButton(sc.x, sc.y, { cursor: 0.85 + Math.sin(time * 1.2) * 0.1, press: 0, key: 'mb39w', scale: 0.55 + k * 0.25 });
         return;
       }
       if (phase === 3) {
@@ -2933,6 +2988,7 @@ function compileSimulationFromCode(simMeta) {
       var reveal = ${reveal.toString()};
       var drawClock = ${drawClock.toString()};
       var hash01 = ${hash01.toString()};
+      var add3 = ${add3.toString()};
       ${codeStr}
       return {
         init: typeof init === 'function' ? init : () => {},

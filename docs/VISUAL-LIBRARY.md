@@ -106,3 +106,31 @@ Most primitives take `progress` (0–1) to drive the reveal yourself, for exampl
 - **Maps:** zoom from the globe into a flat dotted country or city map.
 - **Timelines:** a horizontal track of dated events with the papers or portraits attached.
 - **Screens:** a laptop or phone wireframe with a UI sketch playing on it.
+
+## 3D world: third-person shots with characters
+
+`grid.world()` is a small real 3D renderer in the house style: a perspective camera you can orbit and dolly, solid dark-tinted surfaces with glowing edges, emissive screens and windows, and depth fog. Use it for the human moments in the story (someone at a desk, someone on their phone, a house at night) — preview everything in **L10 Characters & 3D Sets**.
+
+```js
+const w = grid.world({ fov: 42 });
+w.orbit([0, 0.95, 0.3], 2.8, yaw, 0.18, 42);     // target, distance, yaw, pitch, fov — animate these for camera moves
+// or: w.camera([x, y, z], [tx, ty, tz], fov);    // explicit dolly from → to
+w.room({ w: 6, d: 5, h: 2.8, panels: true, led: '#ff3366', posters: true });
+const j = w.deskSetup({ monitors: 1 | 2 | 'ultrawide', screenCol, scroll, person: { pose: 'typing', t: time, shirt, hairCol, glasses } });
+w.phone(j.handsMid, Math.PI, 0.9);               // a phone in the character's hands
+w.person({ at: [x, 0, z], yaw, pose: 'walk', t: time });
+w.house({ lit: [0], screenGlow: 0 });            // suburban house; lit window indices
+w.tree([x, 0, z], 5);
+w.render();
+const p = w.toCells(j.screen);                   // stage cells for 2D overlays (bubbles, holograms, labels)
+```
+
+Poses: `typing`, `phone`, `think`, `leanback`, `watch` (seated, at a desk) and `stand`, `walk`. All of them breathe and move a little, so nobody is ever frozen. A world shot runs its own camera, so the stage's auto-framing and push-ins stay out of its way.
+
+## Camera
+
+Outside of world shots the camera now moves on its own: odd stages slowly push in and even stages pull back out, so the zoom flows continuously across stage cuts, with a gentle drift, while auto-framing keeps everything centred. `camera.look(x, y, zoom)` at 1.3× and above is a deliberate close-up; below that it's a lean that stays centred.
+
+## Rendering the whole video
+
+**● All 39 [F10]** renders every video scene back to back into one continuous MP4 (stages auto-advance at narration pace). **Shift+click / Shift+F10** renders one file per scene instead.

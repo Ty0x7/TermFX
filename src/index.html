@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TermFX Studio</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico?v=20261020" />
-  <link rel="stylesheet" href="styles.css?v=20261022e" />
+  <link rel="stylesheet" href="styles.css?v=20261022f" />
 </head>
 <body>
   <div id="app-container">
@@ -109,6 +109,7 @@
           </select>
           <div class="sidebar-row">
             <button id="btn-render" class="rec-btn" style="flex:1" title="Frame-exact render of one full stage loop (F9)">● Render [F9]</button>
+            <button id="btn-render-all" class="rec-btn" style="flex:1" title="Render all 39 video scenes back to back into one MP4 (F10). Shift+click / Shift+F10: one file per scene">● All 39 [F10]</button>
             <button id="btn-snapshot" title="Save current frame as PNG (F8)">📷</button>
             <button id="btn-open-renders" title="Open renders folder">📂</button>
             <button id="btn-open-assets" title="Open assets folder: photos (.jpg/.png) and 3D models (.obj) used by scenes">🖼</button>
@@ -290,11 +291,12 @@
     </div>
   </div>
 
-  <script src="engine.js?v=20261022e"></script>
-  <script src="visuals.js?v=20261022e"></script>
-  <script src="presets.js?v=20261022e"></script>
-  <script src="library-scenes.js?v=20261022e"></script>
-  <script src="ai-generator.js?v=20261022e"></script>
-  <script src="app.js?v=20261022e"></script>
+  <script src="engine.js?v=20261022f"></script>
+  <script src="visuals.js?v=20261022f"></script>
+  <script src="world3d.js?v=20261022f"></script>
+  <script src="presets.js?v=20261022f"></script>
+  <script src="library-scenes.js?v=20261022f"></script>
+  <script src="ai-generator.js?v=20261022f"></script>
+  <script src="app.js?v=20261022f"></script>
 </body>
 </html>

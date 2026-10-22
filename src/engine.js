@@ -2265,6 +2265,12 @@ class AsciiEngine {
     let zt = 1;
     if (this.cameraMotion) zt = 1 + ((this.smoothPhase - 1) / Math.max(1, n - 1)) * 0.05;
     if (this.camZoomReq != null) zt = this.camZoomReq;
+    // Cinematic push: odd stages slowly push in, even stages pull back out, so the zoom flows
+    // continuously across stage cuts (world shots run their own camera)
+    if (this.cinematic !== false && !this.camFocus) {
+      const k = EASE.inOutCubic(Math.min(1, this.phaseTime / Math.max(0.5, this.stageHold(this.phase))));
+      zt *= 1 + 0.065 * (this.phase % 2 ? k : 1 - k);
+    }
     // Auto-framing: ease out a touch when the content would clip the frame
     const rawB = !this.camFocus && this.autoFrame && this.frameBoxes.length ? this.contentBounds() : null;
     // Stable framing envelope: grows at once, shrinks slowly, resets on a new stage — so things
@@ -2325,8 +2331,8 @@ class AsciiEngine {
     const amp = this.shakeAmt * 7;
     this.cam = {
       zoom: this.camZoom.x + (this.cameraMotion || this.transitionFx ? this.camPunch.x * 0.12 : 0),
-      x: this.camPanX.x + drift * (Math.sin(t * 0.21) * 1.8 + Math.sin(t * 0.53) * 0.6) + amp * (Math.sin(t * 71.3) + Math.sin(t * 43.1) * 0.6),
-      y: this.camPanY.x + drift * (Math.cos(t * 0.17) * 1.2) + amp * (Math.cos(t * 61.7) + Math.sin(t * 37.9) * 0.6),
+      x: this.camPanX.x + drift * (Math.sin(t * 0.21) * 5 + Math.sin(t * 0.53) * 1.4) + amp * (Math.sin(t * 71.3) + Math.sin(t * 43.1) * 0.6),
+      y: this.camPanY.x + drift * (Math.cos(t * 0.17) * 3.2 + Math.sin(t * 0.41) * 0.8) + amp * (Math.cos(t * 61.7) + Math.sin(t * 37.9) * 0.6),
       rot: this.shakeAmt * 0.006 * Math.sin(t * 53)
     };
   }
