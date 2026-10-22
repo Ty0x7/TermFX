@@ -461,6 +461,9 @@ class AsciiEngine {
     this.camPanY = new Spring(0);
     this.camFocus = null;
     this.camZoomReq = null;
+    // Auto-framing: every frame the camera glides so the drawn content sits centred
+    this.frameBoxes = [];
+    this.autoFrame = true;
     this.shakeAmt = 0;
     this.flashAmt = 0;
     this.flashColor = '#ffffff';
@@ -1000,6 +1003,26 @@ class AsciiEngine {
     for (const [k, v] of this.textPos) if (now - v.seen > 2) this.textPos.delete(k);
   }
 
+  // Record the bounds (cells) of something drawn this frame, for auto-framing and layout checks
+  _bb(x0, y0, x1, y1, kind = 'item', alpha = 1) {
+    if (this._hudMode || !(alpha > 0.15) || !this.frameBoxes) return;
+    if (!Number.isFinite(x0 + y0 + x1 + y1)) return;
+    this.frameBoxes.push({ x0: Math.min(x0, x1), y0: Math.min(y0, y1), x1: Math.max(x0, x1), y1: Math.max(y0, y1), kind });
+  }
+
+  // Union of this frame's content, clipped to the stage
+  contentBounds(kinds) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const b of this.frameBoxes) {
+      if (kinds && !kinds.includes(b.kind)) continue;
+      const bx0 = Math.max(0, b.x0), bx1 = Math.min(this.cols, b.x1);
+      const by0 = Math.max(0, b.y0), by1 = Math.min(this.rows, b.y1);
+      if (bx1 <= bx0 || by1 <= by0) continue;
+      x0 = Math.min(x0, bx0); y0 = Math.min(y0, by0); x1 = Math.max(x1, bx1); y1 = Math.max(y1, by1);
+    }
+    return Number.isFinite(x0) ? { x0, y0, x1, y1, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0 } : null;
+  }
+
   drawText(x, y, str, color = null, glow = false, align = 'left', bg = null, alpha = 1) {
     const text = String(str ?? '');
     if (!text) return;
@@ -1007,6 +1030,7 @@ class AsciiEngine {
     let startX = x;
     if (align === 'center') startX -= Math.floor(len / 2);
     else if (align === 'right') startX -= len;
+    this._bb(startX, y - 0.5, startX + len, y + 0.5, 'text', typeof alpha === 'number' ? alpha : 1);
     if (!this.subpixel) startX = Math.round(startX);
 
     let shown = len;
@@ -1238,6 +1262,7 @@ class AsciiEngine {
 
   // --- Vector Overlay Queue (cell-space coordinates, AA strokes) ---
   _vline(x0, y0, x1, y1, color, alpha = 0.5, width = 1.2, dash = null) {
+    this._bb(x0, y0 - 0.3, x1, y1 + 0.3, 'line', alpha * 2);
     this.vItems.push({ t: 'path', p: [x0, y0, x1, y1], c: color, a: alpha, w: width, dash, h: this._hudMode });
   }
 
@@ -1251,6 +1276,11 @@ class AsciiEngine {
       for (const pt of points) flat.push(pt.x, pt.y);
     }
     if (!flat || flat.length < 4) return;
+    {
+      let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+      for (let i = 0; i < flat.length; i += 2) { bx0 = Math.min(bx0, flat[i]); bx1 = Math.max(bx1, flat[i]); by0 = Math.min(by0, flat[i + 1]); by1 = Math.max(by1, flat[i + 1]); }
+      this._bb(bx0, by0 - 0.3, bx1, by1 + 0.3, 'line', (opts.alpha !== undefined ? opts.alpha : 0.6) * 2);
+    }
     this.vItems.push({
       t: opts.taper ? 'taper' : 'path',
       p: flat,
@@ -1305,6 +1335,7 @@ class AsciiEngine {
     const rows = lines.length;
     const startY = cy - (rows - 1) / 2 + bob;
     const maxW = Math.max(...lines.map(l => l.length));
+    this._bb(cx - maxW / 2, startY, cx + maxW / 2, startY + rows + (opts.label ? 1.2 : 0), 'icon', baseAlpha);
 
     // Materialise when this icon (by key) first shows up or switches design
     const key = opts.key || (typeof name === 'string' ? name : 'icon');
@@ -1410,6 +1441,13 @@ class AsciiEngine {
     const text = String(str ?? '');
     if (!text) return;
     const align = opts.align || 'center';
+    {
+      const sz = opts.size || 3;
+      const w = text.length * sz * 0.96 * (this.fontSize / 16) * (10 / Math.max(1, this.cellW));
+      const hh = sz * 0.5;
+      const bx = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
+      this._bb(bx, y - hh, bx + w, y + hh, 'big', opts.alpha !== undefined ? opts.alpha : 1);
+    }
     let shown = text.length;
     if (opts.reveal !== false && this.textReveal) {
       const t0 = this._revealStart('§' + text, x, y, align);
@@ -1644,6 +1682,11 @@ class AsciiEngine {
     }
 
     const proj = vertices.map(v => this.project3D(v[0], v[1], v[2], cx, cy, rx, ry, rz, scale));
+    if (proj.length) {
+      let px0 = Infinity, py0 = Infinity, px1 = -Infinity, py1 = -Infinity;
+      for (const q of proj) { if (q.x < px0) px0 = q.x; if (q.x > px1) px1 = q.x; if (q.y < py0) py0 = q.y; if (q.y > py1) py1 = q.y; }
+      this._bb(px0, py0, px1, py1, opts.bbKind || '3d', alpha);
+    }
 
     const sortedEdges = edges.map(e => {
       const a = proj[e[0]];
@@ -2204,7 +2247,13 @@ class AsciiEngine {
       zoom: (z) => { self.camZoomReq = z; },
       focus: (x, y, strength = 0.35) => { self.camFocus = { x, y, s: strength }; },
       // Push the camera in on a point: centres (x, y) on screen at `zoom`
-      look: (x, y, zoom = 1.6) => { self.camZoomReq = zoom; self.camFocus = { x, y, s: zoom }; },
+      // Close-ups (zoom >= 1.3) aim at the point; gentler leans keep their zoom but stay
+      // auto-centred on the whole composition so nothing drifts to an edge
+      look: (x, y, zoom = 1.6) => {
+        self.camZoomReq = zoom;
+        if (zoom >= 1.3 || !self.autoFrame) self.camFocus = { x, y, s: zoom };
+        else self.camLean = true;
+      },
       punch: (amount) => self.punch(amount),
       shake: (amount) => self.shake(amount)
     };
@@ -2216,6 +2265,33 @@ class AsciiEngine {
     let zt = 1;
     if (this.cameraMotion) zt = 1 + ((this.smoothPhase - 1) / Math.max(1, n - 1)) * 0.05;
     if (this.camZoomReq != null) zt = this.camZoomReq;
+    // Auto-framing: ease out a touch when the content would clip the frame
+    const rawB = !this.camFocus && this.autoFrame && this.frameBoxes.length ? this.contentBounds() : null;
+    // Stable framing envelope: grows at once, shrinks slowly, resets on a new stage — so things
+    // flying across the frame don't make the camera wobble
+    let frameB = null;
+    if (rawB) {
+      const env = this._frameEnv;
+      const key = this.phase + '|' + (this.currentSimulation && this.currentSimulation.id);
+      if (!env || this._frameEnvKey !== key) {
+        this._frameEnv = { x0: rawB.x0, y0: rawB.y0, x1: rawB.x1, y1: rawB.y1 };
+        this._frameEnvKey = key;
+      } else {
+        const k = Math.min(1, dt * 0.35);
+        env.x0 = Math.min(rawB.x0, env.x0 + (rawB.x0 - env.x0) * k);
+        env.y0 = Math.min(rawB.y0, env.y0 + (rawB.y0 - env.y0) * k);
+        env.x1 = Math.max(rawB.x1, env.x1 + (rawB.x1 - env.x1) * k);
+        env.y1 = Math.max(rawB.y1, env.y1 + (rawB.y1 - env.y1) * k);
+      }
+      const e2 = this._frameEnv;
+      frameB = { x0: e2.x0, y0: e2.y0, x1: e2.x1, y1: e2.y1, cx: (e2.x0 + e2.x1) / 2, cy: (e2.y0 + e2.y1) / 2, w: e2.x1 - e2.x0, h: e2.y1 - e2.y0 };
+    }
+    if (frameB && (this.camZoomReq == null || this.camLean)) {
+      const fit = Math.min(1.3, (this.cols - 6) / Math.max(1, frameB.w), (this.rows - 3) / Math.max(1, frameB.h));
+      if (this.camZoomReq == null) { if (fit < 1) zt = Math.max(0.9, zt * fit); }
+      else zt = Math.max(0.9, Math.min(zt, fit));
+    }
+    this.camLean = false;
     this.camZoom.target = zt;
     this.camZoom.step(dt, 2.4, 1);
     this.camPunch.target = 0;
@@ -2223,14 +2299,26 @@ class AsciiEngine {
 
     let px = 0;
     let py = 0;
+    let panFreq = 2.2;
     if (this.camFocus) {
       px = (this.cols / 2 - this.camFocus.x) * this.cellW * this.camFocus.s;
       py = (this.rows / 2 - this.camFocus.y) * this.cellH * this.camFocus.s;
+    } else if (this.autoFrame && this.frameBoxes.length) {
+      // Glide so this frame's content is centred; ease out a touch if it would clip the frame
+      const b = frameB;
+      if (b) {
+        const z = this.camZoom.x || 1;
+        const dx = Math.max(-20, Math.min(20, this.cols / 2 - b.cx));
+        const dy = Math.max(-9, Math.min(9, this.rows / 2 - b.cy));
+        px = dx * this.cellW * z;
+        py = dy * this.cellH * z;
+        panFreq = 1.3;
+      }
     }
     this.camPanX.target = px;
     this.camPanY.target = py;
-    this.camPanX.step(dt, 2.2, 1);
-    this.camPanY.step(dt, 2.2, 1);
+    this.camPanX.step(dt, panFreq, 1);
+    this.camPanY.step(dt, panFreq, 1);
 
     const t = this.time;
     const drift = this.cameraMotion ? 1 : 0;
@@ -2263,8 +2351,10 @@ class AsciiEngine {
 
     this.vItems.length = 0;
     this.glowNodes.length = 0;
+    this.frameBoxes.length = 0;
     this.camFocus = null;
     this.camZoomReq = null;
+    this.camLean = false;
     this.introT += dt;
     this.sweepT += dt;
     this.flashAmt *= Math.exp(-dt * 7);

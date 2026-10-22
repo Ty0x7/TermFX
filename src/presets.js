@@ -1621,7 +1621,7 @@ const PRESET_SCENES = [
     captions: [
       'An agent appears inside a 3D glass sandbox, centred',
       'The October 7 SDK release notes roll in: computer_toolset_20260801 · browser automation · Python · TypeScript',
-      'The sandbox slides left; requests flow out to two allowed hosts — servers behind a network switch (allowed_hosts enforced)',
+      'The sandbox slides left; requests flow out to two allowed hosts — real servers (allowed_hosts enforced)',
       'A request to an unlisted host hits the sandbox wall and dies in a red spark; the camera pushes in: blocked'
     ],
     narration: [
@@ -1653,7 +1653,6 @@ const PRESET_SCENES = [
         camera.look(64, cy, 1.2);
         return;
       }
-      grid.object('switch', 92, 30, 6, 0.35, { tilt: 0.35, color: palette.dim, windowColor: G, key: 'sw22' });
       const hosts = [['docs.python.org', 7, G], ['pypi.org', 16, G], ['unlisted-host.io', 25, R]];
       hosts.forEach((h, i) => {
         if (i === 2 && phase < 4) return;

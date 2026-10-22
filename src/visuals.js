@@ -121,6 +121,7 @@
   // --------------------------------------------------------------------------
   // grid.portrait(name, cx, cy, { w, h, mode: 'halftone'|'scan'|'ascii', color, label, sublabel, frame })
   Engine.prototype.drawPortrait = function (name, cx, cy, opts = {}) {
+    { const w = opts.w || 22, h = opts.h || 14; this._bb(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2 + (opts.label ? 2.4 : 0), 'portrait', opts.alpha !== undefined ? opts.alpha : 1); }
     const pal = this.palette;
     const w = opts.w || 22;
     const h = opts.h || 14;
@@ -248,6 +249,7 @@
   // --------------------------------------------------------------------------
   // grid.paper(cx, cy, { title, authors, venue, stamp, w, h, yaw, highlight, color, lines, key })
   Engine.prototype.drawPaper = function (cx, cy, opts = {}) {
+    { const w = opts.w || 30, h = opts.h || 20; this._bb(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, 'paper', opts.alpha !== undefined ? opts.alpha : 1); }
     const pal = this.palette;
     const col = opts.color || pal.accent;
     const w = opts.w || 30;
@@ -370,6 +372,7 @@
 
   // grid.lineChart(x, y, w, h, [{ values, color, label }], { yMax, xLabels, progress, key })
   Engine.prototype.drawLineChart = function (x, y, w, h, series, opts = {}) {
+    this._bb(x - 2, y - 1, x + w + 8, y + h + 2, 'chart');
     const pal = this.palette;
     const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'line' + x, x, y, opts.duration || 2.2);
     const yMax = opts.yMax || Math.max(...series.flatMap(s => s.values));
@@ -400,6 +403,7 @@
 
   // grid.barChart(x, y, w, h, [{ value, label, color }], { yMax, format, key })
   Engine.prototype.drawBarChart = function (x, y, w, h, bars, opts = {}) {
+    this._bb(x, y - 2, x + w, y + h + 2, 'chart');
     const pal = this.palette;
     const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'bar' + x, x, y, opts.duration || 1.8);
     const yMax = opts.yMax || Math.max(...bars.map(b => b.value));
@@ -436,6 +440,7 @@
 
   // grid.donut(cx, cy, r, [{ value, color, label }], { center, key })
   Engine.prototype.drawDonut = function (cx, cy, r, segs, opts = {}) {
+    this._bb(cx - r * 1.85 - 2, cy - r - 1, cx + r * 1.85 + 2, cy + r + 1, 'chart');
     const pal = this.palette;
     const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'donut' + cx, cx, cy, opts.duration || 1.8);
     const total = segs.reduce((a, s) => a + s.value, 0) || 1;
@@ -467,6 +472,7 @@
 
   // grid.network([{ x, y, label, color, r }], [[a, b], ...], { packets, key })
   Engine.prototype.drawNetwork = function (nodes, edges, opts = {}) {
+    if (nodes.length) this._bb(Math.min(...nodes.map(n => n.x)) - 3, Math.min(...nodes.map(n => n.y)) - 2, Math.max(...nodes.map(n => n.x)) + 3, Math.max(...nodes.map(n => n.y)) + 2.5, 'chart');
     const pal = this.palette;
     const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'net', nodes[0]?.x || 0, nodes[0]?.y || 0, opts.duration || 2);
     edges.forEach((e, i) => {
@@ -1325,6 +1331,7 @@
 
   // grid.globe(cx, cy, r, { spin, tilt, markers: [{ lat, lon, label, color }], arcs: [[a, b]], color })
   Engine.prototype.drawGlobe = function (cx, cy, r, opts = {}) {
+    { const R = r * 0.8 * (this.viewportScale || 1); this._bb(cx - R * (this.cellH / this.cellW), cy - R, cx + R * (this.cellH / this.cellW), cy + R, 'globe'); }
     const pal = this.palette;
     const col = opts.color || pal.accent;
     const spin = opts.spin !== undefined ? opts.spin : this.time * 0.15;
@@ -1396,6 +1403,7 @@
   // A codebase as a wall of files; `filled` (0..1) of them light up in fillColor,
   // spreading in a stable scattered order.
   Engine.prototype.drawFileGrid = function (cx, cy, cols, rows, opts = {}) {
+    { const cw0 = opts.cell ? opts.cell[0] : 3.2, ch0 = opts.cell ? opts.cell[1] : 2.4; this._bb(cx - (cols * cw0) / 2, cy - (rows * ch0) / 2, cx + (cols * cw0) / 2, cy + (rows * ch0) / 2, 'grid', opts.alpha !== undefined ? opts.alpha : 1); }
     const pal = this.palette;
     const col = opts.color || pal.dim;
     const fillCol = opts.fillColor || '#00ff88';
@@ -1448,6 +1456,7 @@
 
   // grid.calendar(cx, cy, { month, startDay, days, marks: { 7: { color } }, focus, progress })
   Engine.prototype.drawCalendar = function (cx, cy, opts = {}) {
+    { const cx0 = opts.cellX || 6, cy0 = opts.cellY || 3, rws = Math.ceil(((opts.startDay || 0) + (opts.days || 31)) / 7); this._bb(cx - 3.5 * cx0, cy - (rws * cy0) / 2 - cy0 - 1, cx + 3.5 * cx0, cy + (rws * cy0) / 2 + 1, 'calendar'); }
     const pal = this.palette;
     const col = opts.color || pal.primary;
     const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'cal' + cx, cx, cy, 1.4);
@@ -1494,6 +1503,7 @@
   // grid.timeline(x0, x1, y, { from, to, ticks, label(v), progress, events: [{ at, label, color, above }] })
   // Returns the value → x mapping so scenes can place things on it.
   Engine.prototype.drawTimeline = function (x0, x1, y, opts = {}) {
+    this._bb(x0 - 2, y - 3.2, x1 + 2, y + 4, 'timeline');
     const pal = this.palette;
     const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'tl' + x0, x0, y, 1.2);
     const from = opts.from || 0;
@@ -1544,7 +1554,7 @@
     const V = [];
     for (const yy of [-1, 1]) for (const xz of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) V.push([xz[0] * sx * e, yy * sy * e, xz[1] * sz * e]);
     const E = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
-    this.drawWireframe3D(V, E, cx, cy, { scale: U / vs, rotX: tilt, rotY: ry, rotZ: 0, color: col, dim: col, ascii: false, vertices: false, packets: false, alpha: k * (opts.alpha !== undefined ? opts.alpha : 1) });
+    this.drawWireframe3D(V, E, cx, cy, { bbKind: 'box', scale: U / vs, rotX: tilt, rotY: ry, rotZ: 0, color: col, dim: col, ascii: false, vertices: false, packets: false, alpha: k * (opts.alpha !== undefined ? opts.alpha : 1) });
     if (opts.label) this.drawText(cx, cy - h / 2 - 2, opts.label, col, false, 'center', null, k);
   };
 
@@ -1553,6 +1563,7 @@
   // how release notes look in a product, and entries slide in one by one.
   const TAG_COLORS = { NEW: '#00ff88', FIX: '#ffcc33', FIXED: '#ffcc33', IMPROVED: '#33ccff', BREAKING: '#ff3366', SECURITY: '#ff8a3d', BETA: '#b48cff', GA: '#00ff88', DEFAULT: '#33ccff' };
   Engine.prototype.drawReleaseNotes = function (cx, cy, opts = {}) {
+    { const w = opts.width || 64, rh = opts.rowH || 4.4, th = 6.5 + (opts.items || []).length * rh; this._bb(cx - w / 2, cy - th / 2 - 1, cx + w / 2, cy + th / 2 - rh + 1, 'notes', opts.alpha !== undefined ? opts.alpha : 1); }
     const pal = this.palette;
     const col = opts.color || pal.accent;
     const items = opts.items || [];
@@ -1656,6 +1667,7 @@
   // A process: hexagonal stations joined by arrows, a glowing work packet travelling through,
   // the station it reaches lighting up, and (loop) a curved return path back to the start.
   Engine.prototype.drawPipeline = function (x0, x1, y, steps, opts = {}) {
+    { const r = opts.radius || 3.4; this._bb(x0 - r * 1.3 - (opts.loop ? 2 : 0), y - r * 1.9, x1 + r * 1.3 + (opts.loop ? 2 : 0), y + (opts.loop ? (opts.loopDepth || 6) + r * 0.6 : r), 'pipeline'); }
     const pal = this.palette;
     const col = opts.color || pal.accent;
     const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'pipe' + x0, x0, y, 1.2);
@@ -1844,6 +1856,7 @@
   // grid.brickWall(cx, baseY, cols, rows, { fall, color, label, brick: [w, h] })
   // A wall of bricks; `fall` 0..1 knocks it down brick by brick, top rows first.
   Engine.prototype.drawBrickWall = function (cx, baseY, cols, rows, opts = {}) {
+    { const bw = opts.brick ? opts.brick[0] : 4, bh = opts.brick ? opts.brick[1] : 1.6; this._bb(cx - (cols * bw) / 2 - bw / 2, baseY - rows * bh - (opts.label ? 3 : 0), cx + (cols * bw) / 2, baseY, 'wall', 1 - (opts.fall || 0) * 0.9); }
     const pal = this.palette;
     const col = opts.color || pal.warn;
     const fall = c01(opts.fall || 0);
@@ -1890,6 +1903,7 @@
   // A verification gate drawn as an instrument: corner brackets, measured side rails, a sweeping
   // scan beam with a trail, and a status readout. Returns the beam's current y.
   Engine.prototype.drawScanner = function (cx, cy, opts = {}) {
+    { const w = opts.w || 16, h = opts.h || 18; this._bb(cx - w / 2 - 1.5, cy - h / 2 - (opts.readout ? 2 : 0.5), cx + w / 2 + 1.5, cy + h / 2 + 2.6, 'scanner', opts.alpha !== undefined ? opts.alpha : 1); }
     const pal = this.palette;
     const w = opts.w || 16;
     const h = opts.h || 18;
@@ -1975,6 +1989,7 @@
   // The real thing: a "Merge pull request" button with a branch-merge glyph, a cursor that moves
   // in and clicks, and a merged state.
   Engine.prototype.drawMergeButton = function (cx, cy, opts = {}) {
+    { const sc = opts.scale || 1; const title = opts.merged ? (opts.mergedText || 'Merged') : (opts.title || 'Merge pull request'); const w = (title.length * 1.92 + 8.3) * sc * (this.fontSize / 16); this._bb(cx - w / 2, cy - 2 * sc, cx + w / 2, cy + (opts.sub ? 4 : 2) * sc, 'button'); }
     const G = '#00ff88';
     const press = c01(opts.press || 0);
     const merged = Boolean(opts.merged);
@@ -2073,6 +2088,7 @@
   // A segmented vertical gauge (an industry scale): segments fill up to `value`, labels at right,
   // a marker arrow at the current level.
   Engine.prototype.drawLevelMeter = function (cx, cy, opts = {}) {
+    { const h = opts.h || 24, w = opts.w || 7; this._bb(cx - w / 2 - (opts.marker ? 8 : 3), cy - h / 2, cx + w / 2 + 16, cy + h / 2, 'meter'); }
     const pal = this.palette;
     const levels = opts.levels || ['LEVEL 1', 'LEVEL 2', 'LEVEL 3', 'LEVEL 4'];
     const n = levels.length;
@@ -2139,6 +2155,7 @@
 
   // grid.chatBubble(x, y, text, { color, align: 'left' | 'right', alpha }) — a message bubble
   Engine.prototype.drawChatBubble = function (x, y, text, opts = {}) {
+    { const w = String(text).length * 0.96 * (opts.size || 1) + 1.6; const bx = opts.align === 'right' ? x - w : x; this._bb(bx, y - 1.1, bx + w, y + 1.1, 'bubble', opts.alpha !== undefined ? opts.alpha : 1); }
     const col = opts.color || this.palette.accent;
     const fs = this.fontSize;
     const alpha = opts.alpha !== undefined ? opts.alpha : 1;
