@@ -163,8 +163,8 @@
       category: 'Visual Library',
       prompt: 'Hardware and places as 3D holograms: racks, GPUs, laptops, chips, monitors, datacenters, offices, power.',
       shows: 'Each object builds up from the floor with its lights blinking; use grid.object(kind, …).',
-      phases: ['Server Rack', 'GPU', 'Laptop', 'Chip', 'Monitor', 'Workstation', 'Database', 'Datacenter Hall', 'Office Tower', 'Bank', 'Cooling Tower', 'Power Pylon'],
-      stageDurations: [4, 4, 4, 4, 4, 4, 4, 5, 4, 4, 4, 4],
+      phases: ['Server Rack', 'GPU', 'Laptop', 'Chip', 'Monitor', 'Phone', '1U Server', 'Network Switch', 'Workstation', 'Database', 'Datacenter Hall', 'Office Tower', 'Bank', 'Cooling Tower', 'Power Pylon'],
+      stageDurations: [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 4, 4, 4, 4],
       update(ctx) {
         const { phase, grid, palette, anim } = ctx;
         grid.fade(0.2);
@@ -173,7 +173,7 @@
         const sway = 0.42 + Math.sin(ctx.time * 0.3) * 0.25;
         const list = [
           ['rack', 8, yaw, 0.3, G], ['gpu', 13, yaw, 0.45, G], ['laptop', 11, yaw, 0.4, palette.accent], ['chip', 11, yaw, 0.55, G],
-          ['monitor', 12, Math.sin(ctx.time * 0.3) * 0.25, 0.15, G], ['workstation', 11, sway, 0.3, palette.accent], ['database', 10, yaw, 0.35, G],
+          ['monitor', 12, Math.sin(ctx.time * 0.3) * 0.25, 0.15, G], ['phone', 9, Math.sin(ctx.time * 0.4) * 0.3, 0.1, G], ['serverBlade', 12, sway, 0.4, G], ['switch', 12, sway, 0.4, G], ['workstation', 11, sway, 0.3, palette.accent], ['database', 10, yaw, 0.35, G],
           ['hall', 10, sway, 0.42, G], ['office', 9, sway, 0.3, palette.warn], ['bank', 12, sway, 0.3, palette.warn],
           ['coolingTower', 10, yaw, 0.3, G], ['pylon', 8, sway, 0.25, palette.warn]
         ];
@@ -188,8 +188,8 @@
       category: 'Visual Library',
       prompt: 'Concrete stand-ins for ideas: checkpoint, padlock, shield, magnifier, stopwatch, CCTV, MERGE button, pen, wrench, ladder, rocket, funnel, DNA, crystal.',
       shows: 'Use these instead of abstract shapes: a checkpoint for verification, a CCTV camera for oversight, a ladder for levels, a rocket for ignition, a funnel for a bottleneck.',
-      phases: ['Checkpoint', 'Padlock', 'Shield', 'Magnifier', 'Stopwatch', 'CCTV', 'MERGE Button', 'Pen', 'Wrench', 'Ladder', 'Rocket', 'Funnel', 'DNA Helix', 'Crystal'],
-      stageDurations: [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+      phases: ['Verification Scanner', 'Padlock', 'Shield', 'Magnifier', 'Stopwatch', 'CCTV', 'Merge Button', 'Pen', 'Wrench', 'Level Meter', 'Rocket', 'Funnel', 'DNA Helix', 'Crystal', 'ID Badge', 'Key', 'Hourglass', 'Gear', 'Microscope', 'Flask', 'Briefcase', 'Phone + Message'],
+      stageDurations: [5, 4, 4, 4, 4, 4, 5, 4, 4, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5],
       update(ctx) {
         const { phase, grid, palette, anim } = ctx;
         grid.fade(0.2);
@@ -197,17 +197,31 @@
         const t = ctx.time;
         const face = Math.sin(t * 0.4) * 0.04;
         const list = [
-          ['checkpoint', 11, 0.15 + Math.sin(t * 0.3) * 0.2, 0.15, G], ['padlock', 12, anim.spin('y', 0.3), 0.15, palette.warn], ['shield3d', 11, face, 0.06, G],
+          null, ['padlock', 12, anim.spin('y', 0.3), 0.15, palette.warn], ['shield3d', 11, face, 0.06, G],
           ['magnifier', 11, Math.sin(t * 0.4) * 0.3, 0.1, palette.warn], ['stopwatch', 11, Math.sin(t * 0.4) * 0.3, 0.1, palette.accent], ['cctv', 11, -0.8 + Math.sin(t * 0.6) * 0.3, 0.2, palette.danger],
-          null, ['pen', 10, 0.3, 0.1, palette.accent], ['wrench', 11, face, 0.08, G], ['ladder', 9, 0.3 + Math.sin(t * 0.3) * 0.15, 0.12, palette.accent],
-          ['rocket', 9, anim.spin('r', 0.3), 0.12, palette.accent], ['funnel', 11, 0.2, 0.35, G], ['helix', 8, anim.spin('h', 0.5), 0.1, G], ['crystal', 11, anim.spin('c', 0.3), 0.35, G]
+          null, ['pen', 10, 0.3, 0.1, palette.accent], ['wrench', 11, face, 0.08, G], null,
+          ['rocket', 9, anim.spin('r', 0.3), 0.12, palette.accent], ['funnel', 11, 0.2, 0.35, G], ['helix', 8, anim.spin('h', 0.5), 0.1, G], ['crystal', 11, anim.spin('c', 0.3), 0.35, G],
+          ['idBadge', 12, face, 0.06, G], ['key', 10, face, 0.06, palette.warn], ['hourglass', 10, anim.spin('hg', 0.3), 0.15, palette.warn], ['gear', 11, face, 0.06, G],
+          ['microscope', 11, Math.sin(t * 0.4) * 0.5, 0.2, G], ['flask', 11, anim.spin('f', 0.3), 0.2, G], ['briefcase', 11, Math.sin(t * 0.4) * 0.4, 0.2, palette.warn], null
         ];
+        if (phase === 1) {
+          const st = Math.floor(ctx.phaseTime / 1.6) % 3;
+          grid.scanner(64, 16, { w: 20, h: 20, state: ['scan', 'pass', 'fail'][st], readout: 'held-out checks', key: 'l9scan' });
+          return;
+        }
+        if (phase === 10) {
+          grid.levelMeter(58, 17, { levels: ['LEVEL 1', 'LEVEL 2', 'LEVEL 3', 'LEVEL 4'], value: Math.min(4, ctx.phaseTime * 0.9), colors: [palette.primary, palette.primary, G, '#ffaa00'], marker: 'NOW', h: 26, w: 8 });
+          return;
+        }
+        if (phase === 22) {
+          grid.object('phone', 50, 17, 9, Math.sin(t * 0.4) * 0.15, { tilt: 0.1, color: G, windowColor: G, key: 'l9ph' });
+          grid.chatBubble(60, 10, 'deploy when tests pass', { color: G });
+          grid.chatBubble(98, 16, 'on it', { color: palette.accent, align: 'right' });
+          return;
+        }
         if (phase === 7) {
-          const press = Math.max(0, Math.sin(t * 1.4)) > 0.95 ? 1 : 0;
-          const dy = anim.spring('press', press * 0.9, { freq: 6, damp: 0.6 });
-          grid.object('button', 64, 22, 14, 0.25, { tilt: 0.45, color: G, windowColor: G, key: 'btn' });
-          grid.object('buttonCap', 64, 17.6 + dy, 14, 0.25, { tilt: 0.45, color: G, windowColor: G, key: 'cap' });
-          grid.big(64, 6, 'MERGE', { size: 2.4, color: G });
+          const pt = ctx.phaseTime;
+          grid.mergeButton(64, 16, { cursor: Math.min(1, pt / 2), press: pt > 2.1 && pt < 2.6 ? 1 : 0, merged: pt > 2.6, sub: 'pull request #48213', key: 'l9mb', scale: 1.2 });
           return;
         }
         const o = list[phase - 1];

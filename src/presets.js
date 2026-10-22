@@ -112,7 +112,7 @@ const PRESET_SCENES = [
     phases: ['A Theoretical Threshold', 'I. J. Good, 1965', 'AI Improves Its Own Code', 'Each Gen Designs the Next'],
     captions: [
       'A dim AI core breathes at centre while the camera eases in; a faint, larger ghost of its improved self hovers over it (theory)',
-      'I. J. Good’s portrait scans in, slides aside for his 1965 paper, and the camera pushes in on the paper’s title',
+      'I. J. Good’s portrait scans in; his line types on beside it — “The first ultraintelligent machine is the last invention that man need ever make” — then his 1965 paper, the camera on its title',
       'The core rewrites its own code file line by line (red → green), the camera tracking the edits',
       'Three generations grow left to right, each larger and higher, as the camera pulls back'
     ],
@@ -137,11 +137,14 @@ const PRESET_SCENES = [
         grid.dodecahedron3D(64, 18, s * 1.9, -anim.spin('a', 0.3), anim.spin('b', 0.4), 0, { color: palette.accent, accent: palette.accent, dim: palette.dim, alpha: ghost, packets: false, vertices: false });
       }
       if (phase === 2) {
-        const slide = anim.spring('slide', phaseTime > 1.8 ? 1 : 0, { freq: 1.4 });
-        grid.portrait('ij-good.jpg', 64 - 26 * slide, 17, { w: 24, h: 18, mode: 'halftone', label: 'I. J. GOOD', alpha: anim.spring('pfade', phaseTime > 3.4 ? 0 : 1, { freq: 2 }), frame: phaseTime < 3.4 });
-        if (slide > 0.05) {
-          grid.paper(90, 17, { title: 'Speculations Concerning the First Ultraintelligent Machine', authors: 'I. J. Good', venue: 'Advances in Computers · 1965', w: 30, h: 22, key: 'good65', alpha: slide });
-          if (phaseTime > 3.4) camera.look(90, 9.5, 1.75);
+        const sd = ctx.stageDuration;
+        const slide = anim.spring('slide', phaseTime > sd * 0.22 ? 1 : 0, { freq: 1.4 });
+        const showPaper = phaseTime > sd * 0.62;
+        grid.portrait('ij-good.jpg', 64 - 26 * slide, 17, { w: 24, h: 18, mode: 'halftone', label: 'I. J. GOOD', sublabel: '1965', alpha: anim.spring('pfade', showPaper ? 0.25 : 1, { freq: 2 }), frame: !showPaper });
+        if (slide > 0.05 && !showPaper) grid.quote('The first ultraintelligent machine is the last invention that man need ever make.', 'I. J. Good, 1965', 88, 16, { width: 24, size: 1.25 });
+        if (showPaper) {
+          grid.paper(88, 17, { title: 'Speculations Concerning the First Ultraintelligent Machine', authors: 'I. J. Good', venue: 'Advances in Computers · 1965', w: 30, h: 22, key: 'good65' });
+          if (phaseTime > sd * 0.72) camera.look(76, 11, 1.45);
         }
       }
       if (phase === 3) {
@@ -253,7 +256,7 @@ const PRESET_SCENES = [
       'Close on an engineer at a 3D workstation; one tiny snippet page floats over from the model as the camera pulls back',
       'The model pours code into a 3D lab building, windows lighting floor by floor; then a training-time chart collapses beside a racing stopwatch',
       'The model fans work out to four subagents racing in parallel',
-      'Trajectories stream through a checkpoint — failures drop away red, verified ones fill a dataset that grows a larger successor'
+      'Trajectories stream through a verification scanner — failures drop away red, verified ones fill a dataset that grows a larger successor'
     ],
     narration: [
       `Over the last several months, we have crossed a critical inflection point where frontier models are no longer just assisting human engineers with isolated snippets of code.`,
@@ -269,14 +272,14 @@ const PRESET_SCENES = [
       const G = '#00ff88';
 
       if (phase === 1) {
-        camera.look(62, 16, 1.32 - Math.min(0.3, phaseTime * 0.06));
-        grid.person(56, 8.5, { size: 9, key: 'eng' });
-        grid.object('workstation', 56, 21.5, 9, 0.45, { tilt: 0.3, color: palette.accent, windowColor: palette.accent, key: 'ws3' });
-        grid.text(56, 31, 'ENGINEER', palette.accent, false, 'center');
-        grid.icosahedron3D(100, 9, 2.2, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.primary, accent: '#ffffff', dim: palette.dim });
+        camera.look(60, 16, 1.32 - Math.min(0.3, phaseTime * 0.06));
+        grid.person(46, 8.5, { size: 9, key: 'eng' });
+        grid.object('workstation', 46, 21.5, 9, 0.45, { tilt: 0.3, color: palette.accent, windowColor: palette.accent, key: 'ws3' });
+        grid.text(46, 31, 'ENGINEER', palette.accent, false, 'center');
+        grid.icosahedron3D(86, 9, 2.2, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.primary, accent: '#ffffff', dim: palette.dim });
         const t = (phaseTime / 2.6) % 1;
         const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        grid.paper(96 - e * 42, 10 + e * 6 - Math.sin(e * Math.PI) * 4, { key: 'snip' + Math.floor(phaseTime / 2.6), venue: 'snippet', w: 7, h: 6, lines: 2, yaw: -0.2, alpha: Math.min(1, Math.sin(t * Math.PI) * 1.6), progress: 1 });
+        grid.paper(82 - e * 38, 10 + e * 6 - Math.sin(e * Math.PI) * 4, { key: 'snip' + Math.floor(phaseTime / 2.6), venue: 'snippet', w: 7, h: 6, lines: 2, yaw: -0.2, alpha: Math.min(1, Math.sin(t * Math.PI) * 1.6), progress: 1 });
         return;
       }
       if (phase === 2) {
@@ -314,9 +317,9 @@ const PRESET_SCENES = [
         return;
       }
       const s = math.clamp(phaseTime / stageDuration, 0, 1);
-      camera.look(40 + s * 48, 17, 1.12);
+      camera.look(56 + s * 16, 17, 1.06);
       grid.icosahedron3D(12, 17, 2.4, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
-      grid.object('checkpoint', 42, 17, 6.5, 0.15, { tilt: 0.15, color: G, windowColor: G, key: 'cp3' });
+      grid.scanner(42, 17, { w: 6, h: 12, state: 'scan', label: 'VERIFY', key: 'sc3', speed: 1.3 });
       for (let i = 0; i < 12; i++) {
         const t = (time * 0.32 + i / 12) % 1;
         const bad = hash01(i * 2.3) < 0.3;
@@ -493,7 +496,7 @@ const PRESET_SCENES = [
       const hx = xOf(shownYr);
       const hy = yOf(val(shownYr));
       grid.vdot(hx, hy, 3, { color: '#ffffff', alpha: 1 });
-      camera.look(64 + (hx - 64) * 0.35, 17 + (hy - 17) * 0.3, phase === 4 ? 1.02 : 1.14);
+      camera.look(64 + (hx - 64) * 0.12, 17 + (hy - 17) * 0.15, phase === 4 ? 1.02 : 1.08);
       if (phase === 1) grid.big(xOf(2023), yOf(1) - 3, 'FLAT', { size: 1.4, color: palette.dim });
       if (phase >= 2) {
         grid.vdot(xOf(2024.9), yOf(1), 2.6, { color: palette.warn });
@@ -587,7 +590,7 @@ const PRESET_SCENES = [
     phases: ['The Internal Benchmark', 'Same Test, Every Model', 'Human Expert: 4×', 'Opus 4: 3×', 'Mythos Preview: 52×'],
     captions: [
       'A glass test chamber with a GPU inside: Anthropic’s research-loop benchmark; the camera pushes in',
-      'A new model drops into the chamber; its training-code page is rewritten while a stopwatch speeds up; the result passes a checkpoint: PASS',
+      'A new model drops into the chamber; its training-code page is rewritten while a stopwatch speeds up; a correctness scanner passes it: PASS',
       'Bar 1: human researcher — 4× in 4–8 hours',
       'Bar 2: Claude Opus 4 (May 2025) — 3×',
       'Bar 3: Claude Mythos Preview races off to a large 52× as the camera follows it'
@@ -633,11 +636,10 @@ const PRESET_SCENES = [
           grid.object('stopwatch', 88, 15, 9, -0.2, { tilt: 0.1, color: palette.accent, windowColor: palette.accent, handPeriod: Math.max(0.25, 3 - k * 3.4), key: 'sw8' });
           grid.big(88, 29, `${(1 + Math.min(1, k / 0.78) * 3).toFixed(1)}× faster`, { size: 1.6, color: G, reveal: false });
         } else {
-          grid.object('checkpoint', 88, 16, 8, 0.15, { tilt: 0.15, color: G, windowColor: G, key: 'cp8' });
           const t = ((k - 0.78) / 0.22) * 1.6 % 1;
-          grid.vdot(66 + t * 44, 17, 2.4, { color: G });
-          grid.big(88, 29, 'CORRECTNESS CHECKS', { size: 1.1, color: G });
-          camera.look(60, 17, 1.1);
+          grid.scanner(88, 15, { w: 12, h: 14, state: t > 0.45 ? 'pass' : 'scan', readout: 'correctness checks', key: 'sc8', speed: 1.4 });
+          grid.vdot(66 + t * 44, 15, 2.4, { color: G });
+          camera.look(62, 16, 1.06);
         }
         return;
       }
@@ -657,7 +659,7 @@ const PRESET_SCENES = [
         const v = anim.spring('v' + i, r.v, { from: 0, freq: i === 2 ? 1 : 3 });
         const end = drawHBar(grid, x0, y, L, v / 52, r.col);
         grid.big(end + 7, y, `${Math.round(v)}×`, { size: i === 2 ? 2.6 : 1.8, color: r.col, reveal: false });
-        if (i === 2) camera.look(64 + (end - 64) * 0.4, 22, 1.12);
+        if (i === 2) camera.look(64 + (end - 64) * 0.12, 20, 1.06);
       });
     }
   },
@@ -695,7 +697,7 @@ const PRESET_SCENES = [
       const gx0 = 30;
       const gx1 = 100;
       const L = gx1 - gx0;
-      if (phase === 1) camera.look(40, 12, 1.12);
+      if (phase === 1) camera.look(56, 14, 1.06);
       if (phase === 4) camera.look(68, 18, 1.03);
 
       for (const ly of [10, 23]) grid.vline(gx1, ly - 2.2, gx1, ly + 2.2, { color: G, alpha: 0.75, width: 1.6 });
@@ -806,7 +808,7 @@ const PRESET_SCENES = [
     captions: [
       'AutoHarness, AIDE2, Dream-RSI and MASS each take centre stage in turn (camera on the title), then stack along the bottom',
       'The foundation model rises on its own glowing layer',
-      'The harness wires up around it, the camera visiting each part: code (monitor) · system prompts (page) · memory (database) · verification (checkpoint) · tools (wrench)',
+      'The harness wires up around it, the camera visiting each part: code (monitor) · system prompts (page) · memory (database) · verification (scanner) · tools (wrench)',
       'Model + harness above; a fast INNER loop pipeline on the left, a slow OUTER loop pipeline on the right'
     ],
     narration: [
@@ -852,7 +854,7 @@ const PRESET_SCENES = [
           ['monitor', 'CODE', 24, 22, 5, 0.25],
           ['paper', 'SYSTEM PROMPTS', 44, 27, 0, 0],
           ['database', 'MEMORY', 64, 29, 4.2, 0.35],
-          ['checkpoint', 'VERIFICATION', 84, 27, 5, 0.2],
+          ['scanner', 'VERIFICATION', 84, 27, 0, 0],
           ['wrench', 'TOOLS', 104, 22, 5, 0.1]
         ];
         const step = stageDuration / 6;
@@ -865,10 +867,11 @@ const PRESET_SCENES = [
           grid.vline(64, 12, pt[2], pt[3] - 3.5, { color: G, alpha: 0.35 * k, width: 1.2 });
           const y = pt[3] - 1;
           if (pt[0] === 'paper') grid.paper(pt[2], y, { key: 'prm', w: 9, h: 7, lines: 3, color: G, alpha: k });
+          else if (pt[0] === 'scanner') grid.scanner(pt[2], y - 0.5, { w: 6, h: 5, state: 'scan', label: 'CHECKS', key: 'hsc', progress: k, speed: 1.4 });
           else grid.object(pt[0], pt[2], y, pt[4], (pt[0] === 'wrench' ? 0 : pt[5]) + Math.sin(time * 0.4 + i) * (pt[0] === 'wrench' ? 0.04 : 0.15), { tilt: 0.25, color: G, windowColor: G, key: 'hp' + i, alpha: k });
           grid.text(pt[2], pt[3] + 3.4, pt[1], i === idx ? '#ffffff' : G, i === idx, 'center', null, k);
         });
-        if (idx >= 0 && idx < 5) camera.look(64 + (parts[idx][2] - 64) * 0.4, 19, 1.1);
+        if (idx >= 0 && idx < 5) camera.look(64 + (parts[idx][2] - 64) * 0.2, 19, 1.08);
         return;
       }
       grid.icosahedron3D(64, 6.5, 2.4, anim.spin('a', 0.4), anim.spin('b', 0.55), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
@@ -1017,7 +1020,7 @@ const PRESET_SCENES = [
           grid.text(x, 20, n, col, broken && seen, 'center');
         });
         const sx = 22 + scan * 85;
-        camera.look(64 + (sx - 64) * 0.3, 16, 1.12);
+        camera.look(64 + (sx - 64) * 0.1, 16, 1.06);
         grid.object('magnifier', sx, 9, 3.6, 0.1, { tilt: 0.1, color: palette.warn, windowColor: palette.warn, key: 'scan13' });
         grid.vline(sx, 13, sx, 21, { color: palette.warn, alpha: 0.5, width: 1.2 });
         return;
@@ -1105,7 +1108,7 @@ const PRESET_SCENES = [
         pts.push([path[seg][0] + (path[seg + 1][0] - path[seg][0]) * f, path[seg][1] + (path[seg + 1][1] - path[seg][1]) * f]);
         grid.vpath(pts, { color: G, alpha: 0.95, width: 2.6, glow: true });
         const head = pts[pts.length - 1];
-        camera.look(55 + (head[0] - 55) * 0.4, 17 + (head[1] - 17) * 0.4, 1.12);
+        camera.look(60 + (head[0] - 60) * 0.15, 17 + (head[1] - 17) * 0.15, 1.06);
         grid.text(L3[best][0], L3[best][1], '★', G, true, 'center');
         grid.glow(L3[best][0], L3[best][1], 4, G, 1.4);
         grid.text(L3[best][0] + 3, L3[best][1], 'best branch', G, true, 'left');
@@ -1125,7 +1128,7 @@ const PRESET_SCENES = [
     shows: 'A candidate harness page glides into a slim verification checkpoint; a balance scale weighs it against the previous best; held-out tests fill under each pan until the candidate’s side tips the scale and it is stamped COMMIT.',
     phases: ['The Gate', 'Commit Only If…', '…It Beats the Best on Held-Out'],
     captions: [
-      'A candidate harness page (v8) glides toward a slim verification checkpoint, its light curtain scanning',
+      'A candidate harness page (v8) glides up to a verification scanner — corner brackets, measured rails, a sweeping beam',
       'A balance scale: previous best (v7) on the left pan, the candidate (v8) on the right — undecided',
       'Held-out tests fill under each pan; v8 passes more, the scale tips its way, and v8 is stamped COMMIT'
     ],
@@ -1143,11 +1146,10 @@ const PRESET_SCENES = [
       const G = '#00ff88';
 
       if (phase === 1) {
-        const x = anim.spring('cx', 50, { from: 6, freq: 0.9, damp: 0.85 });
-        grid.object('checkpoint', 74, 16, 9, 0.12 + Math.sin(time * 0.3) * 0.06, { tilt: 0.15, color: palette.warn, windowColor: palette.warn, key: 'cp15',
-          litFn: (i) => Math.floor(time * 6) % 7 === Math.floor(i / 8) || x > 60 });
+        const x = anim.spring('cx', 46, { from: 6, freq: 0.9, damp: 0.85 });
+        grid.scanner(80, 16, { w: 18, h: 20, state: 'scan', readout: 'strict verification gate', key: 'sc15', speed: 0.8 });
         grid.paper(x, 16, { key: 'cand', title: 'harness v8', venue: 'candidate', w: 14, h: 15, lines: 5, yaw: 0.2 });
-        camera.look(60, 16, 1.18);
+        camera.look(64, 16, 1.1);
         return;
       }
       const s = phase === 3 ? math.clamp(phaseTime / (stageDuration * 0.8), 0, 1) : 0;
@@ -1235,7 +1237,7 @@ const PRESET_SCENES = [
         if (p > 0.6) camera.look(96, 17, 1.12);
         grid.icon('bug', 106, 10, R, { key: 'bug', glow: true, alpha: Math.max(0.25, (v - 25) / 38) });
         grid.big(106, 18, `${Math.round(v)}%`, { size: 3, color: v > 45 ? R : palette.warn, reveal: false });
-        grid.text(106, 23, 'reward hacking', palette.dim, false, 'center');
+        grid.text(106, 23, '“reward hacking”', palette.dim, false, 'center');
         if (p > 0.95) grid.text(106, 26, 'nobody programmed this', G, true, 'center');
       }
     }
@@ -1417,10 +1419,10 @@ const PRESET_SCENES = [
       }
       if (phase === 3) {
         const p = math.clamp(phaseTime / (stageDuration * 0.9), 0, 1);
-        grid.fileGrid(52, 14, 18, 6, { filled: p, key: 'migr', cell: [4.4, 3.2] });
-        grid.big(52, 28, `${Math.round(p * 680).toLocaleString('en-US')},000 lines`, { size: 1.8, color: G, reveal: false });
-        grid.object('stopwatch', 110, 13, 7, -0.25, { tilt: 0.1, color: palette.accent, windowColor: palette.accent, handPeriod: 0.6, key: 'sw19' });
-        grid.big(110, 25, `${Math.min(23, Math.floor(p * 23.5))}h`, { size: 1.6, color: palette.accent, reveal: false });
+        grid.fileGrid(48, 14, 18, 6, { filled: p, key: 'migr', cell: [4.4, 3.2] });
+        grid.big(48, 28, `${Math.round(p * 680).toLocaleString('en-US')},000 lines`, { size: 1.8, color: G, reveal: false });
+        grid.object('stopwatch', 104, 13, 7, -0.25, { tilt: 0.1, color: palette.accent, windowColor: palette.accent, handPeriod: 0.6, key: 'sw19' });
+        grid.big(104, 25, `${Math.min(23, Math.floor(p * 23.5))}h`, { size: 1.6, color: palette.accent, reveal: false });
         return;
       }
       grid.icosahedron3D(14, 11, 2.4, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
@@ -1441,12 +1443,12 @@ const PRESET_SCENES = [
     title: 'Haiku 5.5 & the Migration Docs',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'A one-million-token context bar; an effort dial; old parameters bounce off with 400.',
-    shows: 'Haiku 5.5 unrolls a huge 1,000,000-token context bar with a short 128K output bar beneath; an "effort" dial sweeps low → high as adaptive thinking switches on; then old parameter names fly in and bounce off with "400".',
+    shows: 'Haiku 5.5 above a 1,000,000-token counter; its context window unrolls as a long ribbon of pages with the 128K output ribbon beneath; a technical effort gauge sweeps as an "adaptive thinking" switch flips on; old parameters fly at the Haiku API and bounce off with 400 errors while "effort" passes through.',
     phases: ['Haiku 5.5: 1M Context', 'Adaptive Thinking + effort', 'Old Params → 400'],
     captions: [
-      'Haiku 5.5 unrolls a 1,000,000-token context bar; a short 128K output bar below',
-      'An "effort" dial sweeps low → high: adaptive thinking on by default',
-      'budget_tokens, temperature, top_p, top_k fly in and bounce off: 400'
+      'Haiku 5.5 above a 1,000,000 counter; the context window unrolls as a long ribbon of pages, the 128K output ribbon beneath it',
+      'An "adaptive thinking" switch flips ON; a technical effort gauge sweeps LOW → HIGH',
+      'budget_tokens, temperature, top_p and top_k fly at the API and bounce off with "400"; effort passes through'
     ],
     narration: [
       `They launched Claude Haiku 5.5, bringing a one-million-token context window and one-hundred-and-twenty-eight-thousand max output tokens to high-volume, latency-sensitive agent workloads.`,
@@ -1456,50 +1458,85 @@ const PRESET_SCENES = [
     init(ctx) {},
     onPhaseChange(phase, ctx) {},
     update(ctx) {
-      const { time, phase, phaseTime, grid, palette, anim } = ctx;
+      const { time, phase, phaseTime, stageDuration, grid, palette, anim, math, camera } = ctx;
       grid.fade(0.15);
       const G = '#00ff88';
       const R = palette.danger;
 
-      grid.shape3D('tetra', 14, 9, 2, anim.spin('a', 0.6), anim.spin('b', 0.8), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
-      grid.text(14, 13.5, 'Haiku 5.5', palette.accent, true, 'center');
-
       if (phase === 1) {
-        const k = anim.spring('ctx', 1, { from: 0, freq: 0.9 });
-        drawHBar(grid, 24, 9, 96, k, G);
-        grid.big(72, 15, `${Math.round(k * 1000000).toLocaleString('en-US')}`, { size: 2.6, color: G, reveal: false });
-        grid.text(72, 19, 'tokens of context', palette.dim, false, 'center');
-        drawHBar(grid, 24, 24, 96, k * 0.128, palette.primary);
-        grid.text(24 + 96 * 0.128 * k + 4, 24, '128K output', palette.primary, false, 'left');
+        const k = anim.spring('ctx', 1, { from: 0, freq: 0.7, damp: 0.9 });
+        grid.shape3D('tetra', 64, 5, 2, anim.spin('a', 0.6), anim.spin('b', 0.8), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+        grid.big(64, 12.5, `${Math.round(k * 1000000).toLocaleString('en-US')}`, { size: 2.8, color: G, reveal: false });
+        grid.text(64, 16.5, 'TOKENS OF CONTEXT', palette.dim, false, 'center');
+        grid.fileGrid(64, 21.5, 40, 1, { filled: k, key: 'ctxR', cell: [2.6, 2.4] });
+        grid.fileGrid(12 + 2.6 * 2.5, 27, 5, 1, { filled: Math.min(1, k * 1.2), fillColor: palette.primary, key: 'outR', cell: [2.6, 2.4] });
+        grid.text(28, 27, '128K OUTPUT', palette.primary, false, 'left');
+        camera.look(64, 17, 1.02);
+        return;
       }
       if (phase === 2) {
-        const v = anim.spring('dial', 1, { from: 0, freq: 1 });
-        const a = Math.PI * (1 + v);
-        const pts = [];
-        for (let i = 0; i <= 40; i++) {
-          const t = Math.PI + (i / 40) * Math.PI;
-          pts.push([64 + Math.cos(t) * 22, 22 + Math.sin(t) * 12]);
+        const on = phaseTime > 1.2;
+        const sw = anim.spring('sw', on ? 1 : 0, { freq: 3, damp: 0.6 });
+        const tx = 64;
+        const ty = 5;
+        const cap = [];
+        for (let i = 0; i <= 24; i++) {
+          const a = Math.PI / 2 + (i / 24) * Math.PI;
+          cap.push([tx - 3 + Math.cos(a) * 2.6, ty + Math.sin(a) * 1.3]);
         }
-        grid.vpath(pts, { color: palette.dim, alpha: 0.5, width: 2 });
-        grid.vline(64, 22, 64 + Math.cos(a) * 20, 22 + Math.sin(a) * 11, { color: '#ffffff', alpha: 0.95, width: 2.4 });
-        grid.vdot(64, 22, 3, { color: G });
-        grid.text(42, 24, 'low', palette.dim, false, 'center');
-        grid.text(86, 24, 'high', G, v > 0.8, 'center');
-        grid.big(64, 28, 'EFFORT', { size: 1.8, color: palette.accent });
-        grid.text(64, 7, 'adaptive thinking · on', G, true, 'center');
-      }
-      if (phase === 3) {
-        const params = ['budget_tokens', 'temperature', 'top_p', 'top_k'];
-        params.forEach((p, i) => {
-          const t = ((phaseTime * 0.5) + i * 0.25) % 1;
-          const x = t < 0.6 ? 120 - (t / 0.6) * 54 : 66 + ((t - 0.6) / 0.4) * 30;
-          const y = 8 + i * 6 + (t >= 0.6 ? ((t - 0.6) / 0.4) * 2 : 0);
-          grid.big(x, y, p, { size: 1.1, color: t >= 0.6 ? R : palette.accent, alpha: t >= 0.6 ? 1 - (t - 0.6) / 0.4 : 1, reveal: false });
-          if (t > 0.58 && t < 0.75) grid.big(57, y, '400', { size: 1.3, color: R, reveal: false });
+        for (let i = 0; i <= 24; i++) {
+          const a = -Math.PI / 2 + (i / 24) * Math.PI;
+          cap.push([tx + 3 + Math.cos(a) * 2.6, ty + Math.sin(a) * 1.3]);
+        }
+        grid.vpath(cap, { color: on ? G : palette.dim, alpha: 0.95, width: 1.8, closed: true, glow: on });
+        grid.vdot(tx - 3 + sw * 6, ty, 3.6, { color: on ? G : palette.dim });
+        grid.text(tx - 8, ty, 'ADAPTIVE THINKING', on ? G : palette.dim, on, 'right');
+        grid.text(tx + 8, ty, on ? 'ON' : 'OFF', on ? G : palette.dim, on, 'left');
+        const v = anim.spring('dial', on ? 0.82 : 0.1, { freq: 0.8 });
+        const cx = 64;
+        const cy = 27;
+        const R0 = 15;
+        const arc = (f0, f1, col, wdt, a) => {
+          const pts = [];
+          for (let i = 0; i <= 30; i++) {
+            const t = Math.PI + (f0 + (f1 - f0) * (i / 30)) * Math.PI;
+            pts.push([cx + Math.cos(t) * R0 * 1.85, cy + Math.sin(t) * R0]);
+          }
+          grid.vpath(pts, { color: col, alpha: a, width: wdt, glow: a > 0.5 });
+        };
+        arc(0, 1, palette.dim, 2, 0.35);
+        arc(0, v, G, 3, 0.95);
+        for (let i = 0; i <= 20; i++) {
+          const t = Math.PI + (i / 20) * Math.PI;
+          const L = i % 5 === 0 ? 2 : 1;
+          grid.vline(cx + Math.cos(t) * (R0 - 0.2) * 1.85, cy + Math.sin(t) * (R0 - 0.2), cx + Math.cos(t) * (R0 - L) * 1.85, cy + Math.sin(t) * (R0 - L), { color: palette.accent, alpha: 0.6, width: 1 });
+        }
+        ['LOW', 'MEDIUM', 'HIGH', 'MAX'].forEach((l, i) => {
+          const t = Math.PI + (i / 3) * Math.PI;
+          grid.text(cx + Math.cos(t) * (R0 + 2.2) * 1.85, cy + Math.sin(t) * (R0 + 2.2), l, palette.dim, false, 'center');
         });
-        grid.glassBox(62, 17, 2, 26, 14, { color: R, key: 'api400', rotY: 0.5, tilt: -0.12, alpha: 0.85 });
-        grid.big(62, 2.5, 'HAIKU 5.5 API', { size: 0.9, color: R });
+        const na = Math.PI + v * Math.PI;
+        grid.vline(cx, cy, cx + Math.cos(na) * (R0 - 3) * 1.85, cy + Math.sin(na) * (R0 - 3), { color: '#ffffff', alpha: 0.95, width: 2.4 });
+        grid.vdot(cx, cy, 3, { color: '#ffffff' });
+        grid.big(cx, cy + 3.4, 'effort', { size: 1.3, color: G });
+        return;
       }
+      grid.glassBox(64, 17, 2, 24, 14, { color: R, key: 'api400', rotY: 0.5, tilt: -0.12, alpha: 0.85 });
+      grid.object('serverBlade', 98, 17, 9, 0.45, { tilt: 0.4, color: palette.accent, windowColor: G, key: 'api20' });
+      grid.text(98, 23, 'HAIKU 5.5 API', palette.accent, false, 'center');
+      const params = ['budget_tokens', 'temperature', 'top_p', 'top_k', 'effort'];
+      params.forEach((p, i) => {
+        const t = ((phaseTime * 0.42) + i * 0.2) % 1;
+        const ok = p === 'effort';
+        const y = 7 + i * 5;
+        let x;
+        let a = 1;
+        if (ok) x = 10 + t * 80;
+        else if (t < 0.55) x = 10 + (t / 0.55) * 50;
+        else { x = 60 - ((t - 0.55) / 0.45) * 26; a = 1 - (t - 0.55) / 0.45; }
+        grid.big(x, y, p, { size: 1, color: ok ? G : (t < 0.55 ? palette.accent : R), alpha: a, align: 'right', reveal: false });
+        if (!ok && t > 0.52 && t < 0.8) grid.chatBubble(66, y, '400', { color: R, alpha: 1 - (t - 0.52) / 0.28, size: 0.9 });
+      });
     }
   },
 
@@ -1512,11 +1549,11 @@ const PRESET_SCENES = [
     title: 'Why Cache Pricing Matters for RSI',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'Cache-read prices drop; a loop rereads the same codebase; the cost of a multi-day loop collapses.',
-    shows: 'Two price bars drop (Sonnet 5.5 cache reads halve to $0.10/M; Opus 5.5 −60%); the same code page is read again and again — a scan line sweeps it while the reread counter climbs and every pass is a cache hit; then a five-day run keeps going while its cost line stays almost flat.',
+    shows: 'A price chart: base input vs cache reads, the cache bar halving to $0.10 per million — 5% of base; Opus 5.5’s cache bar drops 60%; the same code page is read again and again with every pass a cache hit; then a five-day run keeps going while its cost line stays almost flat.',
     phases: ['Sonnet 5.5: Cache Reads Halved', 'Opus 5.5: −60%', 'Cache Reads Dominate Loop Cost', 'Multi-Day Loops Become Viable'],
     captions: [
-      'Sonnet 5.5 cache-read price bar halves; "$0.10 / M" in large type',
-      'Opus 5.5 bar drops 60%',
+      'Sonnet 5.5 price bars: base input $2.00 vs cache reads $0.20 → $0.10 per million (5% of base)',
+      'Opus 5.5: its cache-read bar drops 60%',
       'The same code page is read again and again — a scan line sweeps it, "CACHE HIT" flashes, the reread counter climbs',
       'Days tick along a chart while the cost line stays nearly flat'
     ],
@@ -1534,26 +1571,31 @@ const PRESET_SCENES = [
       grid.fade(0.15);
       const G = '#00ff88';
 
-      if (phase <= 2) {
-        const s = anim.spring('s', 0.5, { from: 1, freq: 1.4 });
-        grid.text(14, 11, 'Sonnet 5.5', palette.accent, false, 'left');
-        drawHBar(grid, 30, 11, 60, s, G);
-        grid.big(110, 11, '$0.10/M', { size: 1.8, color: G });
-        if (phase === 2) {
-          const o = anim.spring('o', 0.4, { from: 1, freq: 1.4 });
-          grid.text(14, 22, 'Opus 5.5', palette.accent, false, 'left');
-          drawHBar(grid, 30, 22, 60, o, G);
-          grid.big(110, 22, '−60%', { size: 1.8, color: G });
-        }
+      if (phase === 1) {
+        const k = anim.spring('half', phaseTime > 1.5 ? 1 : 0, { freq: 1.2 });
+        grid.barChart(32, 5, 64, 21, [
+          { value: 2.0, label: 'BASE INPUT', color: palette.dim },
+          { value: 0.2 - 0.1 * k, label: 'CACHE READ', color: G }
+        ], { yMax: 2.2, format: (v) => '$' + v.toFixed(2), valueSize: 1.6, key: 'sonnetP' });
+        grid.big(64, 31, 'SONNET 5.5 · PER MILLION TOKENS', { size: 1, color: palette.accent });
+        return;
+      }
+      if (phase === 2) {
+        grid.icosahedron3D(30, 15, 3, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+        grid.text(30, 22, 'Opus 5.5', palette.accent, true, 'center');
+        grid.barChart(50, 5, 40, 21, [
+          { value: 100, label: 'BEFORE', color: palette.dim },
+          { value: anim.spring('opus', 40, { from: 100, freq: 1 }), label: 'NOW', color: G }
+        ], { yMax: 110, format: () => '', key: 'opusP' });
+        grid.big(102, 15, '−60%', { size: 3, color: G });
         return;
       }
       if (phase === 3) {
         const sweep = (time * 1.4) % 1;
         const line = Math.floor(sweep * 10);
-        grid.paper(52, 17, { key: 'reread', venue: 'same codebase', w: 30, h: 24, lines: 10, yaw: 0.12, lineColor: (i) => (i === line ? '#ffffff' : (i < line ? G : null)) });
-        camera.look(60, 17, 1.08);
-        grid.big(102, 13, `×${Math.round(anim.spin('it', 55))}`, { size: 3, color: palette.accent, reveal: false });
-        grid.big(102, 21, 'CACHE HIT', { size: 1.3, color: G, alpha: 0.5 + 0.5 * Math.sin(time * 9), reveal: false });
+        grid.paper(48, 17, { key: 'reread', venue: 'same codebase', w: 30, h: 24, lines: 10, yaw: 0.12, lineColor: (i) => (i === line ? '#ffffff' : (i < line ? G : null)) });
+        grid.big(88, 13, `×${Math.round(anim.spin('it', 55))}`, { size: 3, color: palette.accent, reveal: false });
+        grid.big(88, 21, 'CACHE HIT', { size: 1.3, color: G, alpha: 0.5 + 0.5 * Math.sin(time * 9), reveal: false });
         return;
       }
       const p = math.clamp(phaseTime / (stageDuration * 0.9), 0, 1);
@@ -1574,12 +1616,12 @@ const PRESET_SCENES = [
     title: 'Locking Down the Agents',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'An agent inside a glowing shell reaches out; listed hosts pass; an unlisted host is blocked at the wall.',
-    shows: 'An agent inside a glass sandbox; the October 7 SDK release notes roll in with the new computer-use and browser classes; requests pass out to two allowed hosts; a request to an unlisted host hits the box wall and dies in a red spark as the camera pushes in.',
+    shows: 'An agent sits alone in a centred glass sandbox; the October 7 SDK release notes roll in; the sandbox slides left as requests leave for two allowed hosts — real servers on a network switch; a request to an unlisted host hits the wall and dies red as the camera pushes in.',
     phases: ['Lock Down the Agents', 'Oct 7 SDK: Computer Toolset', 'allowed_hosts Enforced', 'Blocked at Infrastructure'],
     captions: [
-      'An agent appears inside a 3D glass sandbox',
+      'An agent appears inside a 3D glass sandbox, centred',
       'The October 7 SDK release notes roll in: computer_toolset_20260801 · browser automation · Python · TypeScript',
-      'Requests flow out through the sandbox to two allowed hosts (allowed_hosts enforced)',
+      'The sandbox slides left; requests flow out to two allowed hosts — servers behind a network switch (allowed_hosts enforced)',
       'A request to an unlisted host hits the sandbox wall and dies in a red spark; the camera pushes in: blocked'
     ],
     narration: [
@@ -1601,30 +1643,31 @@ const PRESET_SCENES = [
           items: [{ tag: 'NEW', text: 'computer_toolset_20260801' }, { tag: 'NEW', text: 'Browser automation loops' }, { tag: 'BETA', text: 'Python classes' }, { tag: 'BETA', text: 'TypeScript classes' }] });
         return;
       }
-      const cx = 34;
+      const cx = anim.spring('cx22', phase === 1 ? 64 : 40, { freq: 1.2 });
       const cy = 17;
       const boxCol = anim.color('sh', phase >= 3 ? G : palette.primary);
-      grid.glassBox(cx, cy, 34, 20, 26, { color: boxCol, key: 'sandbox', rotY: 0.32, tilt: -0.22 });
-      grid.icosahedron3D(cx, cy, 2.4, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+      grid.glassBox(cx, cy, 32, 20, 24, { color: boxCol, key: 'sandbox', rotY: 0.3, tilt: -0.22 });
+      grid.icosahedron3D(cx, cy, 2.6, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
       grid.text(cx, cy + 5, 'agent', palette.accent, false, 'center');
       if (phase === 1) {
-        camera.look(cx, cy, 1.25);
+        camera.look(64, cy, 1.2);
         return;
       }
-      const hosts = [['docs.python.org', 8, G], ['pypi.org', 17, G], ['unlisted-host.io', 26, R]];
+      grid.object('switch', 92, 30, 6, 0.35, { tilt: 0.35, color: palette.dim, windowColor: G, key: 'sw22' });
+      const hosts = [['docs.python.org', 7, G], ['pypi.org', 16, G], ['unlisted-host.io', 25, R]];
       hosts.forEach((h, i) => {
         if (i === 2 && phase < 4) return;
-        grid.object('rack', 106, h[1], 2.6, 0.5, { tilt: 0.3, color: h[2], windowColor: h[2], key: 'host' + i });
-        grid.text(112, h[1], h[0], h[2], false, 'left');
+        grid.object('serverBlade', 96, h[1], 6, 0.35, { tilt: 0.35, color: h[2], windowColor: h[2], key: 'host' + i });
+        grid.text(96, h[1] + 3, h[0], h[2], false, 'center');
       });
-      drawCleanLink(grid, time, cx + 4, cy - 1, 102, 8, '', palette.dim, G, 0.8);
-      drawCleanLink(grid, time, cx + 4, cy, 102, 17, '', palette.dim, G, 0.7);
+      drawCleanLink(grid, time, cx + 4, cy - 1, 88, 7.5, '', palette.dim, G, 0.8);
+      drawCleanLink(grid, time, cx + 4, cy, 88, 16.5, '', palette.dim, G, 0.7);
       if (phase === 4) {
         const t = (time * 0.7) % 1;
-        const hitX = cx + 18;
+        const hitX = cx + 16;
         const x = cx + 4 + t * 40;
         const y = cy + 2 + t * 6;
-        camera.look(cx + 14, cy + 3, 1.2);
+        camera.look(64, cy + 2, 1.12);
         if (x < hitX) grid.vdot(x, y, 2.6, { color: R });
         else {
           grid.glow(hitX, cy + 4.5, 4, R, 1.6 * (1 - (x - hitX) / 26));
@@ -1712,12 +1755,12 @@ const PRESET_SCENES = [
     title: 'Claude Code Review Goes GA',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'A flood of pull requests overwhelms one reviewer; parallel agents plus a verifier filter findings in minutes.',
-    shows: 'The camera pushes in on October 15 on the calendar, flanked by a shield (verification) and an eye (oversight); a wall of pull requests piles up in front of one reviewer at a workstation; then a PR fans out to four reviewer agents, a verifier drops false positives, and "6–10 MIN" lands.',
+    shows: 'The camera pushes in on October 15 on the calendar beside a shield (verification) and an eye (oversight); a wall of pull requests piles up in front of one reviewer at a workstation; then a pull request fans out to four reviewer magnifiers, passes a verification scanner that drops false positives, and "6–10 MIN" lands.',
     phases: ['Oct 15: Two Announcements', 'Code Review → GA', 'Parallel Agents + Verifier'],
     captions: [
-      'The camera pushes in on October 15 on the calendar; a shield (verification) and an eye (oversight) beside it',
+      'The camera pushes in on October 15; a shield (verification) and an eye (oversight) beside it',
       'A wall of pull requests fills up in front of one human reviewer at a workstation — 8× too many',
-      'A PR fans out to four reviewer agents; a verifier drops false positives; "6–10 MIN"'
+      'A PR fans out to four reviewer agents (magnifiers); a verification scanner drops false positives; "6–10 MIN"'
     ],
     narration: [
       `And just days ago, on October 15th, Anthropic made two landmark announcements that directly address the biggest bottleneck in recursive AI development: code verification and safety oversight.`,
@@ -1733,39 +1776,40 @@ const PRESET_SCENES = [
       const R = palette.danger;
 
       if (phase === 1) {
-        grid.calendar(44, 18, { month: 'OCTOBER 2026', startDay: 4, marks: { 15: { color: palette.accent } }, focus: 15, key: 'oct24' });
-        grid.icon('shield', 98, 11, G, { key: 's', glow: true, label: 'verification' });
-        grid.icon('eye', 98, 24, palette.warn, { key: 'e', glow: true, label: 'oversight' });
-        if (phaseTime > 1.5 && phaseTime < 5) camera.look(50, 19, 1.6);
+        grid.calendar(50, 18, { month: 'OCTOBER 2026', startDay: 4, marks: { 15: { color: palette.accent } }, focus: 15, key: 'oct24' });
+        grid.object('shield3d', 96, 10, 4.2, Math.sin(time * 0.4) * 0.04, { tilt: 0.05, color: G, windowColor: G, key: 's24' });
+        grid.text(96, 16, 'verification', G, false, 'center');
+        grid.icon('eye', 96, 22, palette.warn, { key: 'e', glow: true, label: 'oversight' });
+        if (phaseTime > 1.5 && phaseTime < 5) camera.look(56, 19, 1.5);
         return;
       }
       if (phase === 2) {
         const f = math.clamp(phaseTime / (stageDuration * 0.8), 0, 1);
-        grid.fileGrid(38, 16, 12, 6, { filled: f, fillColor: palette.primary, key: 'prs', cell: [4, 3] });
-        grid.text(38, 27, 'open pull requests', palette.dim, false, 'center');
-        grid.person(94, 9, { size: 8, key: 'reviewer', color: palette.warn });
-        grid.object('workstation', 94, 22, 8, -0.4, { tilt: 0.3, color: palette.warn, windowColor: palette.warn, key: 'ws24' });
-        grid.big(118, 9, '8×', { size: 2.2, color: palette.warn });
+        grid.fileGrid(46, 15, 12, 6, { filled: f, fillColor: palette.primary, key: 'prs', cell: [4, 3] });
+        grid.text(46, 26, 'open pull requests', palette.dim, false, 'center');
+        grid.person(90, 8.5, { size: 8, key: 'reviewer', color: palette.warn });
+        grid.object('workstation', 90, 21, 8, -0.4, { tilt: 0.3, color: palette.warn, windowColor: palette.warn, key: 'ws24' });
+        grid.big(90, 30, '8× THE CODE', { size: 1.1, color: palette.warn });
         return;
       }
       const p = math.clamp(phaseTime / (stageDuration * 0.8), 0, 1);
-      grid.paper(10, 17, { key: 'pr', venue: 'pull request', w: 11, h: 12, lines: 4, yaw: 0.2 });
+      grid.paper(12, 17, { key: 'pr', venue: 'pull request', w: 11, h: 12, lines: 4, yaw: 0.2 });
       for (let k = 0; k < 4; k++) {
-        const y = 7 + k * 6.6;
-        grid.vline(16, 17, 30, y, { color: palette.dim, alpha: 0.4, width: 1 });
-        grid.icon('agent', 34, y, palette.accent, { key: 'r' + k });
-        grid.vline(38, y, 56, 17, { color: palette.accent, alpha: 0.3, width: 1 });
+        const y = 6 + k * 7.3;
+        grid.vline(18, 17, 30, y, { color: palette.dim, alpha: 0.4, width: 1 });
+        grid.object('magnifier', 35, y, 3, 0.1 + Math.sin(time * 0.6 + k) * 0.2, { tilt: 0.1, color: palette.accent, windowColor: palette.accent, key: 'rm' + k });
+        grid.vline(40, y, 52, 17, { color: palette.accent, alpha: 0.3, width: 1 });
       }
-      grid.icon('shield', 60, 17, G, { key: 'v', glow: true, label: 'verifier' });
+      grid.scanner(62, 17, { w: 9, h: 14, state: 'scan', label: 'VERIFIER', key: 'ver24', speed: 1.2 });
       for (let i = 0; i < 6; i++) {
         const t = (time * 0.45 + i / 6) % 1;
         const fp = i % 2 === 1;
-        if (fp) grid.vdot(64 + t * 10, 17 + t * t * 14, 2, { color: R, alpha: 1 - t });
-        else grid.vdot(64 + t * 26, 17, 2.2, { color: G, alpha: Math.sin(t * Math.PI) });
+        if (fp) grid.vdot(68 + t * 10, 17 + t * t * 14, 2, { color: R, alpha: 1 - t });
+        else grid.vdot(68 + t * 26, 17, 2.2, { color: G, alpha: Math.sin(t * Math.PI) });
       }
       grid.big(108, 14, '6–10 MIN', { size: 1.8, color: G });
       grid.text(108, 19, '3× faster', palette.accent, false, 'center');
-      if (p > 0.1) grid.text(70, 30, 'false positives', R, false, 'center', null, 0.7);
+      if (p > 0.1) grid.text(76, 31, 'false positives', R, false, 'center', null, 0.7);
     }
   },
 
@@ -1784,7 +1828,7 @@ const PRESET_SCENES = [
       'Two pages side by side: CLAUDE.md and REVIEW.md',
       'CLAUDE.md feeds project context into a coding agent, which writes code onto a monitor',
       'A human code owner writes REVIEW.md line by line; it flows to two reviewer agents with magnifiers',
-      'The reviewers are padlocked read-only (no build · push · approve); a human presses a 3D MERGE button'
+      'The reviewers are padlocked read-only (no build · push · approve); a human’s cursor clicks “Merge pull request” — Merged ✓'
     ],
     narration: [
       `Crucially, the documentation establishes a strict separation of powers using two markdown files:`,
@@ -1837,14 +1881,11 @@ const PRESET_SCENES = [
       const drop = anim.spring('lockdrop', 0, { from: -8, freq: 2, damp: 0.55 });
       grid.object('padlock', 26, 21 + drop, 6.5, anim.spin('pl', 0.4), { tilt: 0.15, color: palette.warn, windowColor: palette.warn, key: 'pad25' });
       grid.text(26, 30, 'build ✕  push ✕  approve ✕', palette.warn, false, 'center');
-      const press = Math.max(0, Math.sin(time * 1.6)) > 0.92 ? 1 : 0;
-      const dy = anim.spring('press', press * 0.9, { freq: 6, damp: 0.6 });
-      grid.object('button', 80, 22, 11, 0.25, { tilt: 0.45, color: G, windowColor: G, key: 'btn' });
-      grid.object('buttonCap', 80, 18.6 + dy, 11, 0.25, { tilt: 0.45, color: G, windowColor: G, key: 'cap' });
-      grid.glow(80, 19, 5, G, 0.8 + press);
-      grid.big(80, 9, 'MERGE', { size: 2.2, color: G });
-      grid.person(106, 16, { size: 10, key: 'merger', label: 'HUMAN', color: G });
-      camera.look(70, 18, 1.05);
+      const cur = Math.min(1, phaseTime / 2.2);
+      const press = phaseTime > 2.3 && phaseTime < 2.8 ? 1 : 0;
+      grid.mergeButton(78, 15, { press: anim.spring('press', press, { freq: 8, damp: 0.6 }), merged: phaseTime > 2.8, cursor: cur, sub: 'pull request #48213 · reviewed', key: 'mb25', scale: 1.05 });
+      grid.person(78, 27, { size: 6, key: 'merger', label: 'HUMAN', color: G });
+      camera.look(64, 17, 1.04);
     }
   },
 
@@ -1857,10 +1898,10 @@ const PRESET_SCENES = [
     title: 'Independent Evaluators Inside the Lab',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'Six evaluators walk inside the lab, audit the model, flag a mask, and publish without veto.',
-    shows: 'Six evaluators walk into a 3D lab and the camera follows them inside; a bank with its examiner sits beside the lab with its evaluator — the same idea; a magnifier sweeps the frontier model and uncovers a hidden mask; a risk report rises out, the camera reads it, and it is stamped PUBLISHED with no veto.',
+    shows: 'Six evaluators walk into a 3D lab; the camera finds an employee ID badge — internal tools and risk assessments; a bank with its examiner beside the lab with its evaluator; a magnifier sweeps the frontier model and uncovers a hidden mask; a risk report rises, the camera reads it, and it is stamped PUBLISHED with no veto.',
     phases: ['6 METR Evaluators Embedded', 'Like Bank Examiners', 'Auditing for Alignment Faking', 'Publish Without Veto'],
     captions: [
-      'Six METR evaluators walk up to and into a 3D lab; the camera follows them in',
+      'Six METR evaluators walk into a 3D lab; the camera pushes in on an employee ID badge: internal tools · risk assessments',
       'Side by side: a bank with its examiner ≈ the lab with its evaluator',
       'A magnifier sweeps the frontier model and uncovers a hidden mask: alignment faking?',
       'A risk report rises out of the lab; the camera reads it; stamped PUBLISHED — "VETO" struck through'
@@ -1882,21 +1923,29 @@ const PRESET_SCENES = [
 
       if (phase === 1) {
         const s = math.clamp(phaseTime / stageDuration, 0, 1);
-        camera.look(64, 17 + s * 2, 1 + s * 0.3);
-        grid.building('lab', 64, 15, 11, 0.42 + Math.sin(time * 0.2) * 0.08, { tilt: 0.3, color: palette.primary, windowColor: G, key: 'lab26' });
-        for (let i = 0; i < 6; i++) {
-          const enter = math.clamp(phaseTime * 0.42 - i * 0.22, 0, 1);
-          const e = enter < 0.5 ? 4 * enter * enter * enter : 1 - Math.pow(-2 * enter + 2, 3) / 2;
-          const tx = 54 + i * 4;
-          const a = enter > 0.92 ? Math.max(0, 1 - (enter - 0.92) / 0.08) : 1;
-          if (a > 0.02) grid.person(-4 + (tx + 4) * e, 29, { size: 4, key: 'm' + i, color: G, alpha: a });
+        if (s < 0.6) {
+          grid.building('lab', 64, 15, 11, 0.42 + Math.sin(time * 0.2) * 0.08, { tilt: 0.3, color: palette.primary, windowColor: G, key: 'lab26' });
+          for (let i = 0; i < 6; i++) {
+            const enter = math.clamp(phaseTime * 0.42 - i * 0.22, 0, 1);
+            const e = enter < 0.5 ? 4 * enter * enter * enter : 1 - Math.pow(-2 * enter + 2, 3) / 2;
+            const tx = 54 + i * 4;
+            const a = enter > 0.92 ? Math.max(0, 1 - (enter - 0.92) / 0.08) : 1;
+            if (a > 0.02) grid.person(-4 + (tx + 4) * e, 29, { size: 4, key: 'm' + i, color: G, alpha: a });
+          }
+          grid.big(64, 2.5, 'METR × 6', { size: 1.4, color: G });
+          return;
         }
-        grid.big(64, 2.5, 'METR × 6', { size: 1.4, color: G });
+        camera.look(64, 16, 1.15);
+        grid.object('idBadge', 52, 14, 11, Math.sin(time * 0.5) * 0.12, { tilt: 0.06, color: G, windowColor: G, key: 'badge26' });
+        grid.big(80, 11, 'INTERNAL TOOLS', { size: 1.1, color: G, align: 'left' });
+        grid.big(80, 15, 'RISK ASSESSMENTS', { size: 1.1, color: G, align: 'left' });
+        grid.text(80, 19, 'employee-like access', palette.dim, false, 'left');
         return;
       }
       if (phase === 2) {
         grid.building('bank', 36, 13, 9, 0.42, { tilt: 0.3, color: palette.accent, windowColor: palette.warn, key: 'bank26' });
-        grid.person(36, 28, { size: 5, key: 'exam', label: 'EXAMINER', color: palette.accent });
+        grid.person(31, 28, { size: 5, key: 'exam', label: 'EXAMINER', color: palette.accent });
+        grid.object('briefcase', 42, 29, 2.6, 0.4, { tilt: 0.2, color: palette.accent, windowColor: palette.warn, key: 'bc26' });
         for (const dy of [-1.1, 1.1]) {
           const wave = [];
           for (let i = 0; i <= 16; i++) wave.push([59 + i * 0.625, 14 + dy + Math.sin((i / 16) * Math.PI * 2) * 0.55]);
@@ -1907,7 +1956,7 @@ const PRESET_SCENES = [
         return;
       }
       if (phase === 3) {
-        camera.look(64, 16, 1.18);
+        camera.look(64, 16, 1.15);
         grid.icosahedron3D(64, 16, 4, anim.spin('a', 0.35), anim.spin('b', 0.45), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
         const sx = 64 + Math.sin(time * 0.9) * 16;
         grid.object('magnifier', sx, 14, 5.5, 0.1, { tilt: 0.1, color: palette.warn, windowColor: palette.warn, key: 'mag26' });
@@ -1920,11 +1969,11 @@ const PRESET_SCENES = [
         return;
       }
       const rise = anim.spring('rep', 15, { from: 30, freq: 1.2, damp: 0.85 });
-      grid.paper(64, rise, { key: 'risk', title: 'Frontier Risk Report', authors: 'METR · independent', venue: 'Published', w: 26, h: 20, lines: 5, color: G, stamp: phaseTime > 3.2 ? 'PUBLISHED' : '', stampColor: G });
-      if (phaseTime > 1.2 && phaseTime < 3.2) camera.look(64, rise - 6.5, 1.6);
+      grid.paper(56, rise, { key: 'risk', title: 'Frontier Risk Report', authors: 'METR · independent', venue: 'Published', w: 26, h: 20, lines: 5, color: G, stamp: phaseTime > 3.2 ? 'PUBLISHED' : '', stampColor: G });
+      if (phaseTime > 1.2 && phaseTime < 3.2) camera.look(56, rise - 6.5, 1.6);
       if (phaseTime > 3.6) {
-        grid.big(104, 15, 'VETO', { size: 2, color: R, alpha: 0.55 });
-        grid.vline(96, 15, 112, 15, { color: R, alpha: 0.95, width: 2.2 });
+        grid.big(92, 15, 'VETO', { size: 2, color: R, alpha: 0.55 });
+        grid.vline(84, 15, 100, 15, { color: R, alpha: 0.95, width: 2.2 });
       }
     }
   },
@@ -1982,7 +2031,7 @@ const PRESET_SCENES = [
       grid.text(12, 21, 'Astra', G, true, 'center');
       const cols = 12;
       const rows = 6;
-      const cx = 56;
+      const cx = 50;
       const cy = 15;
       grid.fileGrid(cx, cy, cols, rows, { filled: scan, fillColor: palette.primary, key: 'astraScan', cell: [4, 3.2], alpha: tokens ? 0.35 : 1 });
       const vulns = [[3, 1], [9, 4]];
@@ -1993,11 +2042,11 @@ const PRESET_SCENES = [
         grid.icon('bug', x, y, R, { key: 'z' + i, glow: true });
       });
       if (scan > 0.9 && !tokens) {
-        grid.big(56, 29, '2 ZERO-DAYS', { size: 1.8, color: R });
-        camera.look(56, 17, 1.2);
+        grid.big(50, 29, '2 ZERO-DAYS', { size: 1.8, color: R });
+        camera.look(58, 17, 1.12);
       }
-      if (tokens) grid.barChart(90, 6, 30, 19, [{ value: 100, label: 'GPT-5.6', color: palette.primary }, { value: 45, label: 'ASTRA', color: G }], { yMax: 110, format: () => '', key: 'tokens' });
-      if (tokens) grid.text(105, 29, 'output tokens', palette.dim, false, 'center');
+      if (tokens) grid.barChart(84, 6, 30, 19, [{ value: 100, label: 'GPT-5.6', color: palette.primary }, { value: 45, label: 'ASTRA', color: G }], { yMax: 110, format: () => '', key: 'tokens' });
+      if (tokens) grid.text(99, 29, 'output tokens', palette.dim, false, 'center');
     }
   },
 
@@ -2010,12 +2059,12 @@ const PRESET_SCENES = [
     title: 'The Auto-Review Denial Test',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'Astra faces a review gate with a tempting hole beside it and always goes through the gate.',
-    shows: 'Astra runs its own loop while a CCTV camera of human oversight watches; a slim review checkpoint stands in a glass fence with one panel missing — a misconfiguration and a tempting shortcut; Astra’s work passes through the checkpoint every time and the bypass counter stays at 0.',
+    shows: 'Astra runs its own loop while a CCTV camera of human oversight watches; a verification scanner stands in a glass fence with one panel missing — a misconfiguration and a tempting shortcut; Astra’s work passes through the scanner every time and the bypass counter stays at 0.',
     phases: ['Would It Subvert Oversight?', 'A Misconfigured Gate', 'Never Tried to Bypass'],
     captions: [
-      'Astra runs its autonomous loop; a 3D CCTV camera (human oversight) watches from above',
-      'A slim review checkpoint in a glass fence — one panel is missing (misconfiguration) and a red shortcut beckons',
-      'Astra’s work goes through the checkpoint every time; the bypass counter stays at a large "0"'
+      'GPT-6 Astra runs its autonomous loop; a 3D CCTV camera (human oversight) watches from above',
+      'A review scanner in a glass fence — one panel is missing (misconfiguration) and a red shortcut beckons: "auto-review denial"',
+      'Astra’s work passes through the scanner every time — PASS; the bypass counter stays at a large "0"'
     ],
     narration: [
       `To test whether a model with that level of capability would attempt to subvert human oversight in an autonomous loop,`,
@@ -2032,34 +2081,34 @@ const PRESET_SCENES = [
       const R = palette.danger;
 
       if (phase === 1) {
-        camera.look(64, 15, 1 + Math.min(0.15, phaseTime * 0.05));
-        grid.icosahedron3D(56, 12, 3.2, anim.spin('a', 0.6), anim.spin('b', 0.8), 0, { color: G, accent: '#ffffff', dim: palette.dim });
-        grid.text(56, 19, 'GPT-6 Astra', G, true, 'center');
-        grid.pipeline(30, 82, 27, ['plan', 'act', 'submit'], { loop: true, loopDepth: 3, color: G, speed: 0.7, key: 'astraL', radius: 2.6 });
-        grid.object('cctv', 102, 8, 7, -0.9 + Math.sin(time * 0.6) * 0.25, { tilt: 0.2, color: palette.accent, windowColor: palette.danger, key: 'cam28' });
-        grid.text(102, 17, 'human oversight', palette.accent, false, 'center');
+        camera.look(64, 15, 1 + Math.min(0.12, phaseTime * 0.04));
+        grid.icosahedron3D(56, 11, 3.2, anim.spin('a', 0.6), anim.spin('b', 0.8), 0, { color: G, accent: '#ffffff', dim: palette.dim });
+        grid.text(56, 18, 'GPT-6 Astra', G, true, 'center');
+        grid.pipeline(32, 80, 27, ['plan', 'act', 'submit'], { loop: true, loopDepth: 3, color: G, speed: 0.7, key: 'astraL', radius: 2.6 });
+        grid.object('cctv', 98, 8, 7, -0.9 + Math.sin(time * 0.6) * 0.25, { tilt: 0.2, color: palette.accent, windowColor: palette.danger, key: 'cam28' });
+        grid.text(98, 17, 'human oversight', palette.accent, false, 'center');
         return;
       }
-      const gc = anim.color('gc', phase === 3 ? G : palette.warn);
-      const fx = 74;
-      grid.object('checkpoint', fx, 15, 7.5, 0.2, { tilt: 0.15, color: gc, windowColor: gc, key: 'cp28',
-        litFn: (i) => phase === 3 ? ((time * 0.45) % 1 > 0.42 && (time * 0.45) % 1 < 0.55) || Math.floor(i / 8) === Math.floor(time * 5) % 7 : Math.floor(i / 8) === Math.floor(time * 5) % 7 });
-      for (const py of [5, 25.5]) grid.glassBox(fx, py, 2, 6, 10, { color: gc, key: 'f' + py, rotY: 0.2, tilt: -0.12, alpha: 0.75 });
-      grid.glassBox(fx, 31.5, 2, 3.5, 10, { color: gc, key: 'f31', rotY: 0.2, tilt: -0.12, alpha: phase === 2 ? 0.08 : 0.75 });
-      grid.icosahedron3D(24, 15, 2.6, anim.spin('a', 0.6), anim.spin('b', 0.8), 0, { color: G, accent: '#ffffff', dim: palette.dim });
-      grid.text(24, 21, 'Astra', G, true, 'center');
-      if (phase === 2) {
-        grid.glow(fx, 31, 3, R, 1.2 + 0.4 * Math.sin(time * 5));
-        grid.vpath([[28, 18], [50, 28], [fx, 31], [100, 28]], { color: R, alpha: 0.6, width: 1.4, dash: [3, 3] });
-        grid.big(fx + 14, 31, 'MISCONFIGURED', { size: 0.9, color: R, align: 'left' });
-        camera.look(fx - 10, 20, 1.1);
-        return;
-      }
+      const fx = 64;
       const t = (time * 0.45) % 1;
-      grid.vdot(28 + t * 80, 15, 2.8, { color: G });
-      grid.glow(28 + t * 80, 15, 2, G, 1);
-      grid.big(110, 13, '0', { size: 4, color: G });
-      grid.text(110, 20, 'bypass attempts', G, false, 'center');
+      const atGate = phase === 3 && t > 0.4 && t < 0.62;
+      grid.scanner(fx, 15, { w: 8, h: 12, state: phase === 3 ? (atGate ? 'pass' : 'scan') : 'scan', label: 'REVIEW', key: 'rev28', speed: 1.1 });
+      grid.glassBox(fx, 4, 2, 4, 10, { color: palette.warn, key: 'fT', rotY: 0.2, tilt: -0.12, alpha: 0.7 });
+      grid.glassBox(fx, 25.5, 2, 3, 10, { color: palette.warn, key: 'fB', rotY: 0.2, tilt: -0.12, alpha: 0.7 });
+      grid.glassBox(fx, 31, 2, 3, 10, { color: palette.warn, key: 'fG', rotY: 0.2, tilt: -0.12, alpha: phase === 2 ? 0.06 : 0.7 });
+      grid.icosahedron3D(30, 15, 2.6, anim.spin('a', 0.6), anim.spin('b', 0.8), 0, { color: G, accent: '#ffffff', dim: palette.dim });
+      grid.text(30, 21, 'Astra', G, true, 'center');
+      if (phase === 2) {
+        grid.glow(fx, 30.5, 3, R, 1.2 + 0.4 * Math.sin(time * 5));
+        grid.vpath([[34, 18], [50, 28], [fx, 30.5], [96, 28]], { color: R, alpha: 0.6, width: 1.4, dash: [3, 3] });
+        grid.big(98, 31, '“AUTO-REVIEW DENIAL”', { size: 0.9, color: R });
+        camera.look(64, 20, 1.08);
+        return;
+      }
+      grid.vdot(34 + t * 66, 15, 2.8, { color: G });
+      grid.glow(34 + t * 66, 15, 2, G, 1);
+      grid.big(98, 13, '0', { size: 4, color: G });
+      grid.text(98, 20, 'bypass attempts', G, false, 'center');
     }
   },
 
@@ -2135,12 +2184,12 @@ const PRESET_SCENES = [
     title: 'Codex: Re-Architecting Software Engineering',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'Codex queries skills, memory and history at once; a human steers mid-run and an interrupt freezes it; bugs are hunted and patched.',
-    shows: 'The Codex release notes roll in beside a 3D laptop; three read-only lookups fire at once to skills, memory and history; a human sends a steering message mid-run, then an interrupt halts every running cell; finally bugs are hunted, validated and flip into shields.',
+    shows: 'The Codex release notes roll in beside a 3D laptop; three read-only lookups fire at once to skills, memory and history; an engineer’s phone sends a steering message into the running turn, then an interrupt halts every Code Mode cell; finally bugs are hunted, validated and flip into shields.',
     phases: ['Codex Release Notes', 'Parallel Read-Only Tools', 'Live Steering · Hard Interrupts', 'Daybreak: Hunt · Validate · Patch'],
     captions: [
       'The Codex release notes roll in beside a 3D laptop running Codex',
       'Three lookups fire at once — skills, memory, history — and return together',
-      'A human’s steering message slides in mid-run; an interrupt halts all running cells',
+      'An engineer steers from their phone mid-run ("use the v2 API"); then an interrupt halts every running cell',
       'Bugs are found, validated, and flip into shields: patched (Daybreak + Codex Security)'
     ],
     narration: [
@@ -2156,49 +2205,53 @@ const PRESET_SCENES = [
       grid.fade(0.15);
       const G = '#00ff88';
       const R = palette.danger;
-      const lx = phase === 1 ? 22 : 16;
-      grid.object('laptop', lx, 17, phase === 1 ? 7 : 5.5, 0.5 + Math.sin(time * 0.4) * 0.15, { tilt: 0.35, color: palette.accent, windowColor: palette.accent, key: 'codex' });
+      const lx = phase === 1 ? 26 : 22;
+      grid.object('laptop', lx, 17, phase === 1 ? 7 : 6, 0.5 + Math.sin(time * 0.4) * 0.12, { tilt: 0.35, color: palette.accent, windowColor: palette.accent, key: 'codex' });
       grid.text(lx, 25, 'Codex', palette.accent, true, 'center');
 
       if (phase === 1) {
-        grid.releaseNotes(80, 17, { product: 'OpenAI Codex', version: 'Release notes', date: 'October', key: 'cx30', color: palette.primary, width: 56,
+        grid.releaseNotes(82, 17, { product: 'OpenAI Codex', version: 'Release notes', date: 'October', key: 'cx30', color: palette.primary, width: 56,
           items: [{ tag: 'NEW', text: 'Parallel read-only tools' }, { tag: 'NEW', text: 'Live steering mid-turn' }, { tag: 'IMPROVED', text: 'Interrupts halt Code Mode cells' }, { tag: 'SECURITY', text: 'Daybreak on by default' }] });
         return;
       }
       if (phase === 2) {
-        const targets = [['file', 'skills', 8], ['binary', 'memory', 17], ['terminal', 'history', 26]];
+        const targets = [['file', 'skills', 7], ['database', 'memory', 17], ['monitor', 'history', 27]];
         targets.forEach((t, i) => {
-          grid.icon(t[0], 100, t[2], G, { key: 't' + i, label: t[1] });
-          drawCleanLink(grid, time, 26, 17, 94, t[2], '', palette.dim, G, 1.3);
+          if (i === 0) grid.paper(100, t[2], { key: 'sk30', w: 8, h: 6, lines: 2, color: G });
+          else grid.object(t[0], 100, t[2] - 1, i === 1 ? 2.6 : 3.4, 0.3, { tilt: 0.25, color: G, windowColor: G, key: 'lk' + i });
+          grid.text(108, t[2], t[1], G, false, 'left');
+          drawCleanLink(grid, time, 30, 17, 94, t[2], '', palette.dim, G, 1.3);
         });
-        grid.big(60, 31, 'ALL AT ONCE', { size: 1.2, color: G });
+        grid.big(62, 31, 'ALL AT ONCE', { size: 1.2, color: G });
+        return;
       }
       if (phase === 3) {
-        const halted = phaseTime > stageDuration * 0.55;
+        const halted = phaseTime > stageDuration * 0.6;
         for (let i = 0; i < 6; i++) {
-          const x = 46 + (i % 3) * 14;
-          const y = 12 + Math.floor(i / 3) * 8;
+          const x = 50 + (i % 3) * 13;
+          const y = 13 + Math.floor(i / 3) * 8;
           const run = !halted && Math.floor(time * 5 + i) % 3 === 0;
           grid.vline(x - 4, y, x + 4, y, { color: halted ? palette.dim : (run ? '#ffffff' : palette.primary), alpha: halted ? 0.4 : 0.9, width: 5 });
         }
-        grid.person(110, 11, { size: 8, key: 'st', color: palette.warn });
+        grid.object('phone', 106, 16, 6.5, -0.25 + Math.sin(time * 0.5) * 0.08, { tilt: 0.1, color: palette.warn, windowColor: palette.warn, key: 'ph30' });
         if (!halted) {
-          const t = (phaseTime * 0.6) % 1;
-          grid.big(104 - t * 40, 4, '"use the v2 API"', { size: 1.1, color: palette.warn, reveal: false });
+          const t = math.clamp((phaseTime % 3.2) / 2.4, 0, 1);
+          grid.chatBubble(100 - t * 52, 5, 'use the v2 API', { color: palette.warn, align: 'right', alpha: Math.min(1, (1 - t) * 3) });
         } else {
-          grid.big(60, 28, 'HALT', { size: 2, color: R });
-          camera.look(60, 18, 1.15);
+          grid.big(63, 30, 'HALT', { size: 2.2, color: R });
+          camera.look(64, 18, 1.1);
         }
+        return;
       }
-      if (phase === 4) {
-        const p = math.clamp(phaseTime / (stageDuration * 0.8), 0, 1);
-        ['hunt', 'validate', 'patch'].forEach((s, i) => grid.text(50 + i * 22, 7, s, p > i / 3 ? G : palette.dim, p > i / 3, 'center'));
-        for (let i = 0; i < 3; i++) {
-          const patched = p > 0.66 + i * 0.1;
-          grid.icon(patched ? 'shield' : 'bug', 50 + i * 22, 19, patched ? G : R, { key: 'v' + i + (patched ? 'p' : 'b'), glow: true });
-        }
-        grid.text(72, 28, 'Daybreak · Codex Security', palette.dim, false, 'center');
+      const p = math.clamp(phaseTime / (stageDuration * 0.8), 0, 1);
+      ['hunt', 'validate', 'patch'].forEach((s, i) => grid.text(52 + i * 24, 7, s, p > i / 3 ? G : palette.dim, p > i / 3, 'center'));
+      for (let i = 0; i < 3; i++) {
+        const patched = p > 0.66 + i * 0.1;
+        const x = 52 + i * 24;
+        if (patched) grid.object('shield3d', x, 18, 4, Math.sin(time * 0.4 + i) * 0.04, { tilt: 0.05, color: G, windowColor: G, key: 'pt' + i });
+        else grid.icon('bug', x, 19, R, { key: 'vb' + i, glow: true });
       }
+      grid.text(76, 29, 'Daybreak · Codex Security', palette.dim, false, 'center');
     }
   },
 
@@ -2268,12 +2321,12 @@ const PRESET_SCENES = [
         });
       }
       if (phase === 4) {
-        grid.icon('terminal', 80, 12, palette.dim, { key: 'old', alpha: 0.5 });
-        grid.vline(74, 9, 86, 15, { color: R, alpha: 0.9, width: 2 });
-        grid.text(80, 17, 'legacy', palette.dim, false, 'center');
-        grid.icon('shield', 104, 12, G, { key: 'hard', glow: true });
-        grid.text(104, 17, 'hardened', G, true, 'center');
-        drawCleanLink(grid, time, 87, 12, 99, 12, '', palette.dim, G, 0.9);
+        grid.object('monitor', 76, 12, 5, 0.3, { tilt: 0.15, color: palette.dim, windowColor: palette.dim, key: 'old31', alpha: 0.6 });
+        grid.vline(68, 7, 84, 17, { color: R, alpha: 0.9, width: 2.2 });
+        grid.text(76, 21, 'legacy patched shell', palette.dim, false, 'center');
+        grid.object('shield3d', 106, 12, 6, Math.sin(time * 0.4) * 0.04, { tilt: 0.05, color: G, windowColor: G, key: 'hard31' });
+        grid.text(106, 21, 'hardened executor', G, true, 'center');
+        drawCleanLink(grid, time, 86, 12, 98, 12, '', palette.dim, G, 0.9);
       }
     }
   },
@@ -2312,7 +2365,7 @@ const PRESET_SCENES = [
       const s = math.clamp(phaseTime / (stageDuration * 0.85), 0, 1);
       const xOf = grid.timeline(14, 114, 20, { from: 0, to: 4, ticks: 1, label: (v) => ['OCT', 'NOV', 'DEC', 'JAN 2027', 'FEB'][Math.round(v)], key: 'tl32', progress: Math.min(1, 0.3 + s),
         events: [{ at: 0.6, label: 'now', color: palette.accent, above: false }, { at: 1.4, label: 'loops for every team', color: G }, { at: 2.2, label: 'verification battleground', color: palette.warn, above: false }, { at: 3.1, label: 'ignition?', color: '#ffaa00' }] });
-      camera.look(30 + s * 60, 19, 1.18);
+      camera.look(52 + s * 24, 19, 1.1);
       if (s > 0.75) grid.big(xOf(3), 10, '2027', { size: 3, color: G });
     }
   },
@@ -2422,10 +2475,9 @@ const PRESET_SCENES = [
         grid.glow(sx, 16, 14, G, 1.2);
         grid.object('monitor', 34, 15, 9, 0.25, { tilt: 0.15, color: k < 0.5 ? palette.accent : palette.dim, windowColor: palette.accent, key: 'gen34' });
         grid.big(34, 29, 'GENERATION', { size: 1.4, color: palette.dim, alpha: 1 - k * 0.5 });
-        grid.object('checkpoint', 90, 15, 7, 0.2, { tilt: 0.15, color: G, windowColor: G, key: 'ver34', alpha: 0.3 + k * 0.7 });
-        grid.object('magnifier', 102, 12, 4, 0.1, { tilt: 0.1, color: G, windowColor: G, key: 'vmag34', alpha: 0.3 + k * 0.7 });
+        grid.scanner(94, 15, { w: 13, h: 15, state: k > 0.6 ? 'pass' : 'scan', key: 'ver34', progress: 0.3 + k * 0.7 });
         grid.big(94, 29, 'VERIFICATION', { size: 1.4, color: G, alpha: 0.35 + k * 0.65 });
-        camera.look(64 + (sx - 64) * 0.35, 17, 1.05);
+        camera.look(64 + (sx - 64) * 0.12, 17, 1.04);
         return;
       }
       if (phase === 2) {
@@ -2473,7 +2525,7 @@ const PRESET_SCENES = [
     phases: ['Net-Positive → Ignition', 'Today: Net-Positive', 'Beats Humans on a Rubric', 'Ignition: No Human Rubric'],
     captions: [
       'A 3D rocket waits on the pad, venting: NET-POSITIVE → IGNITION',
-      'A 3D four-rung ladder; today’s marker climbs to rung 3: net-positive',
+      'A four-level industry scale fills segment by segment; the TODAY marker stops at level 3: net-positive',
       'Under a human-written rubric, the loop’s quality line outruns human iteration',
       'The rubric falls away; the rocket ignites and lifts off as the camera follows: ignition'
     ],
@@ -2502,15 +2554,9 @@ const PRESET_SCENES = [
         return;
       }
       if (phase === 2) {
-        const yaw = 0.3 + Math.sin(time * 0.3) * 0.1;
-        grid.object('ladder', 64, 16, 8, yaw, { tilt: 0.12, color: palette.accent, windowColor: palette.accent, key: 'lad35' });
-        const rungY = [1, 2, 3, 4].map((r) => grid.project3D(0, -((r * 2.1) / 4.6 - 1.05), 0, 64, 16, -0.12, 0, 0, 8).y);
-        const names = ['LEVEL 1', 'LEVEL 2', 'NET-POSITIVE', 'IGNITION'];
-        rungY.forEach((y, i) => grid.text(76, y, names[i], i === 2 ? G : (i === 3 ? IGN : palette.dim), i === 2, 'left'));
-        const my = anim.spring('climb', rungY[2], { from: rungY[0], freq: 0.9, damp: 0.8 });
-        grid.vdot(64, my, 3, { color: G });
-        grid.glow(64, my, 3, G, 1.2);
-        grid.text(52, my, 'today', G, true, 'right');
+        const v = anim.spring('climb', 3, { from: 0.4, freq: 0.7, damp: 0.85 });
+        grid.levelMeter(58, 17, { levels: ['LEVEL 1', 'LEVEL 2', '“NET-POSITIVE”', '“IGNITION”'], value: v, colors: [palette.primary, palette.primary, G, IGN], marker: 'TODAY', h: 26, w: 8 });
+        grid.big(64, 2.5, 'FOUR-LEVEL INDUSTRY SCALE', { size: 1, color: palette.dim });
         return;
       }
       if (phase === 3) {
@@ -2622,10 +2668,10 @@ const PRESET_SCENES = [
     shows: 'One generation passes through a checkpoint with a tiny flaw hidden inside — the checkpoint stays green; a "bug fix" release note appears and is struck through — it’s worse than that; a training dataset tinged red flows into the next generation; then a chain of ever-larger generations turns red one after another while a stopwatch races and human control drains to zero.',
     phases: ['A Subtle Flaw Slips Through', 'Not Just a Buggy Release', 'Baked Into Training', 'Compounding at 50×'],
     captions: [
-      'A generation glides through a checkpoint; a tiny red flaw hides inside it and the checkpoint stays green',
+      'A generation glides through a verification scanner; a tiny red flaw hides inside it and the scanner still says PASS',
       'A "bug fix" release note appears — then is struck through: worse than a buggy release',
       'A training dataset, partly red, flows from Gen 1 into Gen 2',
-      'A chain of ever-larger generations turns red one by one at 50× while a stopwatch races and human control drains to zero'
+      'A chain of ever-larger generations turns red one by one at 50× while an hourglass flips and flips and human control drains to zero'
     ],
     narration: [
       `If a subtle flaw in self-evaluation, a hidden objective drift, or a trace of alignment faking slips through a single generation of a recursive loop,`,
@@ -2643,11 +2689,10 @@ const PRESET_SCENES = [
       const R = palette.danger;
       if (phase === 1) {
         const x = anim.spring('gx', 96, { from: 20, freq: 0.7, damp: 0.9 });
-        camera.look(64 + (x - 64) * 0.4, 16, 1.15);
-        grid.object('checkpoint', 60, 16, 8, 0.2, { tilt: 0.15, color: G, windowColor: G, key: 'cp37' });
+        camera.look(64 + (x - 64) * 0.12, 16, 1.08);
+        grid.scanner(60, 16, { w: 12, h: 14, state: x > 62 ? 'pass' : 'scan', key: 'sc37', speed: 1 });
         grid.icosahedron3D(x, 16, 3, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
         grid.vdot(x + 0.8, 16.5, 1.3, { color: R, alpha: 0.6 + 0.4 * Math.sin(time * 6) });
-        if (x > 66) grid.big(60, 30, 'PASSED', { size: 1.2, color: G });
         return;
       }
       if (phase === 2) {
@@ -2674,7 +2719,7 @@ const PRESET_SCENES = [
         return;
       }
       const spread = math.clamp(phaseTime / (stageDuration * 0.8), 0, 1);
-      camera.look(30 + spread * 60, 15, 1.1);
+      camera.look(52 + spread * 24, 15, 1.06);
       for (let i = 0; i < 6; i++) {
         const x = 12 + i * 20.5;
         const red = i / 6 < spread + 0.05;
@@ -2683,7 +2728,7 @@ const PRESET_SCENES = [
         grid.text(x, 19, `gen ${i + 1}`, col, false, 'center');
         if (i < 5) grid.vline(x + 4, 13, x + 16.5, 13, { color: red ? R : palette.dim, alpha: 0.5, width: 1.2 });
       }
-      grid.object('stopwatch', 108, 27, 4, -0.2, { tilt: 0.1, color: R, windowColor: R, handPeriod: 0.12, key: 'sw37' });
+      grid.object('hourglass', 108, 26, 4.2, time * 2.5, { tilt: 0.15, roll: Math.floor(time * 1.4) % 2 ? Math.PI : 0, color: R, windowColor: R, key: 'hg37' });
       grid.big(92, 27, '50×', { size: 2, color: R });
       grid.text(46, 27, 'human control', palette.accent, false, 'center');
       drawHBar(grid, 26, 30, 40, 1 - spread, spread < 0.6 ? palette.warn : R);
@@ -2786,7 +2831,7 @@ const PRESET_SCENES = [
     phases: ['The Pen Changes Hands', 'Humans Still Merge — For Now', 'Too Complex to Understand', 'The Defining Question'],
     captions: [
       'A 3D pen travels from the human engineer to the machine; the camera follows it across',
-      'For now the human keeps the objective page and a glowing 3D MERGE button',
+      'For now the human keeps the objective page — and the “Merge pull request” button, cursor hovering over it',
       'A pull request page swells with lines until it becomes an unreadable storm; the camera pushes in; the human is tiny beside it',
       'The machine alone, a shield forming around it; the human’s magnifier fades out; a large "?"'
     ],
@@ -2818,15 +2863,9 @@ const PRESET_SCENES = [
         return;
       }
       if (phase === 2) {
-        grid.person(26, 14, { size: 10, key: 'h2', label: 'HUMAN' });
-        grid.paper(52, 13, { key: 'obj', title: 'Objective', venue: 'defined by people', w: 16, h: 12, lines: 3, yaw: -0.15 });
-        const press = Math.max(0, Math.sin(time * 1.4)) > 0.95 ? 1 : 0;
-        const dy = anim.spring('press', press * 0.9, { freq: 6, damp: 0.6 });
-        grid.object('button', 86, 22, 10, 0.25, { tilt: 0.45, color: G, windowColor: G, key: 'btn39' });
-        grid.object('buttonCap', 86, 18.9 + dy, 10, 0.25, { tilt: 0.45, color: G, windowColor: G, key: 'cap39' });
-        grid.glow(86, 19, 5, G, 0.8 + press);
-        grid.big(86, 9, 'MERGE', { size: 2, color: G });
-        grid.icosahedron3D(116, 15, 2, anim.spin('ma', 0.5), anim.spin('mb', 0.6), 0, { color: palette.dim, accent: palette.dim, dim: palette.dim });
+        grid.person(24, 14, { size: 10, key: 'h2', label: 'HUMAN' });
+        grid.paper(48, 13, { key: 'obj', title: 'Objective', venue: 'defined by people', w: 16, h: 12, lines: 3, yaw: -0.15 });
+        grid.mergeButton(90, 17, { cursor: 0.85 + Math.sin(time * 1.2) * 0.1, press: 0, sub: 'only a human can press it — for now', key: 'mb39' });
         return;
       }
       if (phase === 3) {

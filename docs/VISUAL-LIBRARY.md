@@ -21,9 +21,16 @@ All of these primitives live in `src/visuals.js`. You can preview them in the **
 | Hardware (servers, GPUs, laptops, chips, monitors) | A rotating 3D hologram with blinking lights | `grid.object('rack' \| 'gpu' \| 'laptop' \| 'chip' \| 'monitor', …)` |
 | A datacenter / "compute" / "infrastructure" | A cut-away 3D hall: raised floor, rack rows, cooling, cable trays | `grid.object('hall', …)` |
 | A bank, an office, power, storage | 3D bank, office tower (per-window lighting), cooling tower, power pylon, database | `grid.object('bank' \| 'office' \| 'coolingTower' \| 'pylon' \| 'database', …, { litFn })` |
-| Verification, locks, oversight, timing, inspection | A slim checkpoint with a light curtain, padlock, CCTV camera, stopwatch (sweeping hand), magnifier | `grid.object('checkpoint' \| 'padlock' \| 'cctv' \| 'stopwatch' \| 'magnifier', …)` |
-| People at work, merging, handing over | Workstation, a press-able MERGE button (`button` + `buttonCap`), a pen (use `roll` to angle it) | `grid.object('workstation' \| 'button' \| 'pen', …)` |
-| Safety, tools, levels, take-off, bottlenecks, science | 3D shield, wrench, ladder, rocket, funnel, DNA helix, crystal lattice | `grid.object('shield3d' \| 'wrench' \| 'ladder' \| 'rocket' \| 'funnel' \| 'helix' \| 'crystal', …)` |
+| A verification gate, a review, a check | An instrument-style scanner: corner brackets, measured rails, sweeping beam, PASS / BLOCKED readout | `grid.scanner(cx, cy, { w, h, state: 'scan' \| 'pass' \| 'fail', readout })` |
+| Merging a pull request | The real "Merge pull request" button with a branch-merge glyph, a cursor that clicks it, and a Merged state | `grid.mergeButton(cx, cy, { cursor, press, merged, sub, scale })` |
+| Levels, tiers, an industry scale | A segmented level meter that fills, with a marker | `grid.levelMeter(cx, cy, { levels, value, colors, marker })` |
+| Messages, steering, chat | A phone plus chat bubbles | `grid.object('phone', …)` + `grid.chatBubble(x, y, text, { align })` |
+| Locks, oversight, timing, inspection | Padlock, CCTV camera, stopwatch (sweeping hand), hourglass, magnifier | `grid.object('padlock' \| 'cctv' \| 'stopwatch' \| 'hourglass' \| 'magnifier', …)` |
+| Access, credentials, examiners | ID badge with lanyard, key, briefcase | `grid.object('idBadge' \| 'key' \| 'briefcase', …)` |
+| Infrastructure detail | 1U server, network switch (24 ports), gear | `grid.object('serverBlade' \| 'switch' \| 'gear', …)` |
+| Science | Microscope, flask, DNA helix, crystal lattice | `grid.object('microscope' \| 'flask' \| 'helix' \| 'crystal', …)` |
+| People at work, handing over | Workstation, a pen (use `roll` to angle it) | `grid.object('workstation' \| 'pen', …)` |
+| Safety, tools, take-off, bottlenecks | 3D shield, wrench, rocket, funnel | `grid.object('shield3d' \| 'wrench' \| 'rocket' \| 'funnel', …)` |
 | Weighing one thing against another | A balance scale whose beam tips; returns where its pans are | `grid.balance(cx, cy, scale, angle)` |
 | A barrier falling away | A brick wall that collapses brick by brick | `grid.brickWall(cx, baseY, cols, rows, { fall })` |
 | Release notes, changelogs, SDK updates | A versioned feed: version, date pill, NEW / FIX / IMPROVED / SECURITY / BETA tags | `grid.releaseNotes(…)` |
@@ -34,7 +41,7 @@ All of these primitives live in `src/visuals.js`. You can preview them in the **
 | A sandbox, boundary or "contain" | A 3D glass box around the subject | `grid.glassBox(…)` |
 | A loop or process | Stations on a line with a packet and a flat return path | `grid.pipeline(…)` |
 
-Keep it to **one subject per stage**, centred unless the stage is a comparison (left vs right) or something is moving with a purpose. Don't put spinning rings or orbiting icons around things: use a glass box for boundaries and a pipeline for loops.
+Keep it to **one subject per stage**, centred. When two things share the frame, balance them around the centre and keep camera follows gentle (move the camera at most ~15–25% of the way toward the moving thing) so nothing drifts to an edge; centred unless the stage is a comparison (left vs right) or something is moving with a purpose. Don't put spinning rings or orbiting icons around things: use a glass box for boundaries and a pipeline for loops.
 
 **Let the camera tell the story.** `camera.look(x, y, zoom)` centres a point and pushes in; call it every frame while the shot should hold, and it eases back when you stop. Push in on a paper's title (about `cy - h/2 + 3.5`), a highlighted date, the head of a growing line, or the moment something is blocked. Keep zoom between 1.05 (a lean) and 1.8 (reading a title). Moving objects need a stable `key` so they don't re-animate every frame. Flat objects (shield, wrench) read best facing the camera (yaw near 0). A portrait beside a year, or a paper on its own, reads far better than a crowded frame.
 

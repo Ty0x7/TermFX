@@ -557,49 +557,91 @@
       box(V, E, -0.25, 0.32, hz, 0.25, 0.36, hz + 0.25);
       for (let i = 0; i < 10; i++) for (let r = 0; r < 2; r++) W.push([-hx + 0.09 + i * 0.163, 0.15 + r * 0.31, hz]);
     } else if (kind === 'rack') {
+      // 42U-style rack: frame, 12 server units with bezels + handles, side vents, cable tray, feet
       const hx = 0.32, hz = 0.4, H = 1.9;
-      box(V, E, -hx, 0, -hz, hx, H, hz);
-      for (let u = 1; u < 12; u++) ring(V, E, -hx, -hz, hx, hz, (u * H) / 12);
-      for (let u = 0; u < 12; u++) for (let l = 0; l < 3; l++) W.push([-hx + 0.08 + l * 0.08, ((u + 0.5) * H) / 12, hz]);
-    } else if (kind === 'gpu') {
-      const hx = 1.1, hz = 0.45, H = 0.16;
-      box(V, E, -hx, 0, -hz, hx, H, hz);
-      for (let f = 0; f < 3; f++) {
-        const fx = -0.7 + f * 0.7;
+      box(V, E, -hx, 0.04, -hz, hx, H, hz);
+      for (const c of [[-hx, -hz], [hx, -hz], [hx, hz], [-hx, hz]]) seg(V, E, [c[0], 0, c[1]], [c[0], 0.04, c[1]]);
+      for (let u = 0; u < 12; u++) {
+        const y0 = 0.1 + (u * (H - 0.16)) / 12;
+        const y1 = y0 + (H - 0.16) / 12 - 0.03;
+        const f = hz + 0.01;
         const b = V.length;
-        const N = 16;
-        for (let k = 0; k < N; k++) {
-          const a = (k / N) * Math.PI * 2;
-          V.push([fx + Math.cos(a) * 0.3, H, Math.sin(a) * 0.3]);
+        V.push([-hx + 0.04, y0, f], [hx - 0.04, y0, f], [hx - 0.04, y1, f], [-hx + 0.04, y1, f]);
+        E.push([b, b + 1], [b + 1, b + 2], [b + 2, b + 3], [b + 3, b]);
+        seg(V, E, [hx - 0.1, y0 + 0.03, f + 0.02], [hx - 0.1, y1 - 0.03, f + 0.02]);
+        for (let l = 0; l < 3; l++) W.push([-hx + 0.09 + l * 0.06, (y0 + y1) / 2, f + 0.01]);
+      }
+      for (let v = 0; v < 10; v++) seg(V, E, [hx, 0.25 + v * 0.15, -hz + 0.08], [hx, 0.25 + v * 0.15, hz - 0.08]);
+      ring(V, E, -hx + 0.06, -0.1, hx - 0.06, 0.1, H + 0.12);
+      for (const x of [-0.16, 0, 0.16]) seg(V, E, [x, H, 0], [x, H + 0.12, 0]);
+    } else if (kind === 'gpu') {
+      // Graphics card: PCB, shroud, three fans with blades, fin stack, PCIe fingers, I/O bracket
+      const hx = 1.1, hz = 0.45;
+      box(V, E, -hx, 0, -hz, hx, 0.04, hz);
+      box(V, E, -hx + 0.06, 0.04, -hz + 0.04, hx - 0.06, 0.26, hz - 0.04);
+      for (let f = 0; f < 3; f++) {
+        const fx = -0.68 + f * 0.68;
+        const N = 18;
+        for (const r of [0.3, 0.1]) {
+          const b = V.length;
+          for (let k = 0; k < N; k++) {
+            const a = (k / N) * Math.PI * 2;
+            V.push([fx + Math.cos(a) * r, 0.27, Math.sin(a) * r]);
+          }
+          for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
         }
-        for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
-        for (let k = 0; k < 5; k++) {
-          const a = (k / 5) * Math.PI * 2;
-          seg(V, E, [fx, H, 0], [fx + Math.cos(a) * 0.28, H, Math.sin(a) * 0.28]);
+        for (let k = 0; k < 7; k++) {
+          const a = (k / 7) * Math.PI * 2;
+          seg(V, E, [fx + Math.cos(a) * 0.1, 0.27, Math.sin(a) * 0.1], [fx + Math.cos(a + 0.5) * 0.28, 0.27, Math.sin(a + 0.5) * 0.28]);
         }
       }
-      box(V, E, -hx + 0.1, -0.12, hz - 0.02, hx - 0.6, 0, hz);
-      for (let i = 0; i < 8; i++) W.push([-hx + 0.2 + i * 0.25, 0.08, hz]);
+      for (let i = 0; i < 22; i++) {
+        const x = -hx + 0.1 + i * 0.095;
+        seg(V, E, [x, 0.04, hz - 0.04], [x, 0.24, hz - 0.04]);
+      }
+      for (let i = 0; i < 16; i++) {
+        const x = -0.55 + i * 0.05;
+        seg(V, E, [x, 0, -hz], [x, -0.07, -hz]);
+      }
+      box(V, E, hx, -0.1, -hz, hx + 0.03, 0.3, hz);
+      for (let i = 0; i < 3; i++) ring(V, E, hx + 0.03, -0.3 + i * 0.22, hx + 0.03, -0.18 + i * 0.22, 0.12);
+      for (let i = 0; i < 10; i++) W.push([-hx + 0.15 + i * 0.2, 0.15, hz - 0.03]);
     } else if (kind === 'laptop') {
+      // Laptop: base with key grid + trackpad, hinged screen with bezel and webcam
       const hx = 0.8, hz = 0.55;
       box(V, E, -hx, 0, -hz, hx, 0.05, hz);
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 12; c++) {
+        const x = -0.66 + c * 0.11;
+        const z = -0.38 + r * 0.09;
+        ring(V, E, x, z, x + 0.085, z + 0.07, 0.052);
+      }
+      ring(V, E, -0.25, 0.14, 0.25, 0.44, 0.052);
       const b = V.length;
       V.push([-hx, 0.05, -hz], [hx, 0.05, -hz], [hx, 1.05, -hz - 0.18], [-hx, 1.05, -hz - 0.18]);
       E.push([b, b + 1], [b + 1, b + 2], [b + 2, b + 3], [b + 3, b]);
-      ring(V, E, -0.6, -0.2, 0.6, 0.35, 0.05);
-      for (let r = 0; r < 5; r++) for (let i = 0; i < 6; i++) W.push([-0.6 + i * 0.22 + 0.1, 0.25 + r * 0.17, -hz - 0.06 - r * 0.03]);
+      const ib = V.length;
+      V.push([-hx + 0.06, 0.1, -hz - 0.01], [hx - 0.06, 0.1, -hz - 0.01], [hx - 0.06, 0.98, -hz - 0.17], [-hx + 0.06, 0.98, -hz - 0.17]);
+      E.push([ib, ib + 1], [ib + 1, ib + 2], [ib + 2, ib + 3], [ib + 3, ib]);
+      W.push([0, 1.015, -hz - 0.18]);
+      for (let r = 0; r < 6; r++) for (let i = 0; i < 9; i++) if (hashN(r * 9 + i + 2) > 0.3) W.push([-0.64 + i * 0.15, 0.2 + r * 0.13, -hz - 0.03 - r * 0.023]);
     } else if (kind === 'chip') {
+      // Processor package: substrate, heat spreader, die with circuitry, pins on four sides
       const h = 0.7;
-      box(V, E, -h, 0, -h, h, 0.12, h);
-      box(V, E, -0.35, 0.12, -0.35, 0.35, 0.18, 0.35);
-      for (let i = 0; i < 7; i++) {
-        const o = -h + 0.15 + i * 0.2;
-        seg(V, E, [o, 0.06, h], [o, 0.06, h + 0.22]);
-        seg(V, E, [o, 0.06, -h], [o, 0.06, -h - 0.22]);
-        seg(V, E, [h, 0.06, o], [h + 0.22, 0.06, o]);
-        seg(V, E, [-h, 0.06, o], [-h - 0.22, 0.06, o]);
+      box(V, E, -h, 0, -h, h, 0.08, h);
+      box(V, E, -0.5, 0.08, -0.5, 0.5, 0.16, 0.5);
+      ring(V, E, -0.3, -0.3, 0.3, 0.3, 0.17);
+      for (let i = 1; i < 6; i++) {
+        seg(V, E, [-0.3 + i * 0.1, 0.17, -0.3], [-0.3 + i * 0.1, 0.17, 0.3]);
+        seg(V, E, [-0.3, 0.17, -0.3 + i * 0.1], [0.3, 0.17, -0.3 + i * 0.1]);
       }
-      for (let i = 0; i < 9; i++) W.push([-0.24 + (i % 3) * 0.24, 0.19, -0.24 + Math.floor(i / 3) * 0.24]);
+      for (let i = 0; i < 9; i++) {
+        const o = -h + 0.12 + i * 0.16;
+        seg(V, E, [o, 0.04, h], [o, -0.02, h + 0.2]);
+        seg(V, E, [o, 0.04, -h], [o, -0.02, -h - 0.2]);
+        seg(V, E, [h, 0.04, o], [h + 0.2, -0.02, o]);
+        seg(V, E, [-h, 0.04, o], [-h - 0.2, -0.02, o]);
+      }
+      for (let i = 0; i < 16; i++) W.push([-0.24 + (i % 4) * 0.16, 0.18, -0.24 + Math.floor(i / 4) * 0.16]);
     } else if (kind === 'hall') {
       // Datacenter hall, roof cut away: raised floor, three rack rows, cable trays, cooling units
       const hx = 1.35, hz = 0.85, H = 0.8;
@@ -714,10 +756,16 @@
       seg(V, E, [0, 0, 0.78], [0, 0.36, 0.78]);
       for (let r = 0; r < 5; r++) for (let i = 0; i < 7; i++) if (hashN(r * 7 + i) > 0.25) W.push([-0.4 + i * 0.12, 1.12 - r * 0.1, -0.24]);
     } else if (kind === 'monitor') {
-      box(V, E, -0.9, 0.3, -0.05, 0.9, 1.3, 0.05);
-      seg(V, E, [0, 0.05, -0.02], [0, 0.3, -0.02]);
-      ring(V, E, -0.3, -0.2, 0.3, 0.15, 0.05);
-      for (let r = 0; r < 7; r++) for (let i = 0; i < 12; i++) if (hashN(r * 12 + i + 3) > 0.3) W.push([-0.75 + i * 0.125, 1.18 - r * 0.12, 0.06]);
+      // Display: bezel + inset screen, neck, foot, side ports
+      box(V, E, -0.95, 0.32, -0.05, 0.95, 1.38, 0.05);
+      const b = V.length;
+      V.push([-0.88, 0.38, 0.055], [0.88, 0.38, 0.055], [0.88, 1.32, 0.055], [-0.88, 1.32, 0.055]);
+      E.push([b, b + 1], [b + 1, b + 2], [b + 2, b + 3], [b + 3, b]);
+      box(V, E, -0.06, 0.06, -0.12, 0.06, 0.34, -0.05);
+      ring(V, E, -0.38, -0.25, 0.38, 0.15, 0.04);
+      ring(V, E, -0.38, -0.25, 0.38, 0.15, 0.0);
+      for (let i = 0; i < 4; i++) seg(V, E, [0.95, 0.5 + i * 0.08, -0.03], [0.95, 0.5 + i * 0.08, 0.03]);
+      for (let r = 0; r < 8; r++) for (let i = 0; i < 14; i++) if (hashN(r * 14 + i + 3) > 0.3) W.push([-0.8 + i * 0.123, 1.24 - r * 0.11, 0.06]);
     } else if (kind === 'checkpoint') {
       // Slim verification checkpoint: two posts, a light curtain between them (subtle)
       for (const x of [-0.42, 0.42]) {
@@ -965,6 +1013,168 @@
         const y = ((f + 0.5) * H) / floors;
         W.push([-hw + 0.1 + k * 0.18, y, hd], [hw, y, -hd + 0.1 + (k % 4) * 0.2]);
       }
+    } else if (kind === 'phone') {
+      // Smartphone: rounded slab, inset screen, notch, side buttons, camera module on the back
+      const w = 0.42, h = 0.88, d = 0.045;
+      const outline = [];
+      const r = 0.08;
+      const corners = [[w - r, h - r, 0], [-w + r, h - r, Math.PI / 2], [-w + r, -h + r, Math.PI], [w - r, -h + r, Math.PI * 1.5]];
+      corners.forEach((cn) => { for (let k = 0; k <= 4; k++) { const a = cn[2] + (k / 4) * (Math.PI / 2); outline.push([cn[0] + Math.cos(a) * r, cn[1] + Math.sin(a) * r]); } });
+      const n = outline.length;
+      const b = V.length;
+      for (const z of [-d, d]) for (const p of outline) V.push([p[0], p[1] + h, z]);
+      for (let k = 0; k < n; k++) {
+        E.push([b + k, b + ((k + 1) % n)]);
+        E.push([b + n + k, b + n + ((k + 1) % n)]);
+        if (k % 5 === 0) E.push([b + k, b + n + k]);
+      }
+      const sb = V.length;
+      V.push([-w + 0.04, 0.06 + 0.04, d + 0.005], [w - 0.04, 0.1, d + 0.005], [w - 0.04, 2 * h - 0.1, d + 0.005], [-w + 0.04, 2 * h - 0.1, d + 0.005]);
+      E.push([sb, sb + 1], [sb + 1, sb + 2], [sb + 2, sb + 3], [sb + 3, sb]);
+      seg(V, E, [-0.08, 2 * h - 0.06, d + 0.006], [0.08, 2 * h - 0.06, d + 0.006]);
+      seg(V, E, [w, 1.25, 0], [w, 1.45, 0]);
+      seg(V, E, [-w, 1.3, 0], [-w, 1.4, 0]);
+      ring(V, E, -0.3, -d - 0.02, -0.08, -d, 1.5);
+      for (let r2 = 0; r2 < 9; r2++) for (let i = 0; i < 5; i++) if (hashN(r2 * 5 + i + 11) > 0.35) W.push([-0.3 + i * 0.15, 1.55 - r2 * 0.16, d + 0.01]);
+    } else if (kind === 'serverBlade') {
+      // 1U server: long thin chassis, front drive bays, vent slots, status LEDs
+      const hx = 1.2, hz = 0.6, H = 0.14;
+      box(V, E, -hx, 0, -hz, hx, H, hz);
+      for (let i = 0; i < 8; i++) {
+        const x = -hx + 0.1 + i * 0.2;
+        ring(V, E, x, hz, x + 0.16, hz, 0.03);
+        seg(V, E, [x, 0.03, hz], [x, 0.11, hz]);
+        seg(V, E, [x + 0.16, 0.03, hz], [x + 0.16, 0.11, hz]);
+        seg(V, E, [x, 0.11, hz], [x + 0.16, 0.11, hz]);
+      }
+      for (let i = 0; i < 12; i++) seg(V, E, [0.5 + i * 0.05, 0.03, hz], [0.5 + i * 0.05, 0.11, hz]);
+      for (let i = 0; i < 8; i++) W.push([-hx + 0.18 + i * 0.2, 0.07, hz + 0.01]);
+      W.push([1.15, 0.07, hz + 0.01]);
+    } else if (kind === 'switch') {
+      // Network switch: 24 ports in two rows, link LEDs, uplink cages
+      const hx = 1.2, hz = 0.5, H = 0.16;
+      box(V, E, -hx, 0, -hz, hx, H, hz);
+      for (let r = 0; r < 2; r++) for (let i = 0; i < 12; i++) {
+        const x = -1.05 + i * 0.15;
+        const y = 0.03 + r * 0.065;
+        const bb = V.length;
+        V.push([x, y, hz], [x + 0.11, y, hz], [x + 0.11, y + 0.05, hz], [x, y + 0.05, hz]);
+        E.push([bb, bb + 1], [bb + 1, bb + 2], [bb + 2, bb + 3], [bb + 3, bb]);
+        W.push([x + 0.055, y + 0.025, hz + 0.01]);
+      }
+      for (let i = 0; i < 4; i++) ring(V, E, 0.85 + i * 0.08, hz, 0.91 + i * 0.08, hz, 0.08);
+    } else if (kind === 'idBadge') {
+      // Employee ID badge: card, photo window, name lines, barcode, clip and lanyard
+      const w = 0.5, h = 0.75, d = 0.02;
+      box(V, E, -w, 0, -d, w, h, d);
+      ring(V, E, -0.38, d + 0.001, -0.08, d + 0.001, 0.42);
+      const pb = V.length;
+      V.push([-0.38, 0.42, d], [-0.08, 0.42, d], [-0.08, 0.66, d], [-0.38, 0.66, d]);
+      E.push([pb, pb + 1], [pb + 1, pb + 2], [pb + 2, pb + 3], [pb + 3, pb]);
+      for (let i = 0; i < 3; i++) seg(V, E, [0.0, 0.62 - i * 0.08, d], [0.38 - i * 0.08, 0.62 - i * 0.08, d]);
+      for (let i = 0; i < 16; i++) { const x = -0.38 + i * 0.045 + (i % 3 === 0 ? 0.01 : 0); seg(V, E, [x, 0.08, d], [x, 0.24, d]); }
+      box(V, E, -0.08, h, -0.03, 0.08, h + 0.08, 0.03);
+      seg(V, E, [-0.05, h + 0.08, 0], [-0.25, h + 0.5, 0]);
+      seg(V, E, [0.05, h + 0.08, 0], [0.25, h + 0.5, 0]);
+      W.push([-0.23, 0.54, d + 0.01], [0.3, 0.3, d + 0.01]);
+    } else if (kind === 'key') {
+      // Key: bow with hole, shaft, bit with teeth
+      const N = 20;
+      for (const z of [-0.03, 0.03]) {
+        for (const r of [0.3, 0.1]) {
+          const b = V.length;
+          for (let k = 0; k < N; k++) {
+            const a = (k / N) * Math.PI * 2;
+            V.push([Math.cos(a) * r, 1.2 + Math.sin(a) * r, z]);
+          }
+          for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
+        }
+      }
+      box(V, E, -0.045, 0, -0.03, 0.045, 0.9, 0.03);
+      const teeth = [[0.05, 0.05], [0.16, 0.05], [0.16, 0.14], [0.11, 0.14], [0.11, 0.24], [0.18, 0.24], [0.18, 0.34], [0.05, 0.34]];
+      const tb = V.length;
+      for (const t of teeth) V.push([t[0], t[1], 0.03]);
+      for (let k = 0; k < teeth.length - 1; k++) E.push([tb + k, tb + k + 1]);
+      W.push([0, 1.2, 0.04]);
+    } else if (kind === 'hourglass') {
+      // Hourglass: two glass bulbs meeting at a waist, top/bottom plates, three posts
+      ring(V, E, -0.5, -0.5, 0.5, 0.5, 0);
+      ring(V, E, -0.5, -0.5, 0.5, 0.5, 1.6);
+      ring(V, E, -0.5, -0.5, 0.5, 0.5, 0.06);
+      ring(V, E, -0.5, -0.5, 0.5, 0.5, 1.54);
+      for (const p of [[-0.42, -0.42], [0.42, -0.42], [0.42, 0.42], [-0.42, 0.42]]) seg(V, E, [p[0], 0.06, p[1]], [p[0], 1.54, p[1]]);
+      const N = 16;
+      const base = V.length;
+      const prof = [[0.08, 0.36], [0.35, 0.33], [0.62, 0.18], [0.8, 0.04], [0.98, 0.18], [1.25, 0.33], [1.52, 0.36]];
+      prof.forEach((pp) => {
+        const b = V.length;
+        for (let k = 0; k < N; k++) {
+          const a = (k / N) * Math.PI * 2;
+          V.push([Math.cos(a) * pp[1], pp[0], Math.sin(a) * pp[1]]);
+        }
+        for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
+      });
+      for (let l = 0; l < prof.length - 1; l++) for (let k = 0; k < N; k += 4) E.push([base + l * N + k, base + (l + 1) * N + k]);
+    } else if (kind === 'gear') {
+      // Toothed gear: 14 teeth, hub, spokes
+      const teeth = 14;
+      const ro = 0.75, ri = 0.62;
+      const pts = [];
+      for (let t = 0; t < teeth; t++) {
+        const a0 = (t / teeth) * Math.PI * 2;
+        const da = (Math.PI * 2) / teeth;
+        pts.push([Math.cos(a0) * ri, Math.sin(a0) * ri], [Math.cos(a0 + da * 0.15) * ro, Math.sin(a0 + da * 0.15) * ro], [Math.cos(a0 + da * 0.5) * ro, Math.sin(a0 + da * 0.5) * ro], [Math.cos(a0 + da * 0.65) * ri, Math.sin(a0 + da * 0.65) * ri]);
+      }
+      const n = pts.length;
+      const b = V.length;
+      for (const z of [-0.08, 0.08]) for (const p of pts) V.push([p[0], p[1] + 0.8, z]);
+      for (let k = 0; k < n; k++) {
+        E.push([b + k, b + ((k + 1) % n)]);
+        E.push([b + n + k, b + n + ((k + 1) % n)]);
+        if (k % 4 === 1) E.push([b + k, b + n + k]);
+      }
+      const hb = V.length;
+      for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2; V.push([Math.cos(a) * 0.16, 0.8 + Math.sin(a) * 0.16, 0.09]); }
+      for (let k = 0; k < 14; k++) E.push([hb + k, hb + ((k + 1) % 14)]);
+      for (let k = 0; k < 5; k++) { const a = (k / 5) * Math.PI * 2; seg(V, E, [Math.cos(a) * 0.16, 0.8 + Math.sin(a) * 0.16, 0.09], [Math.cos(a) * 0.55, 0.8 + Math.sin(a) * 0.55, 0.09]); }
+      W.push([0, 0.8, 0.1]);
+    } else if (kind === 'microscope') {
+      // Microscope: base, arm, stage, objective, tube and eyepiece
+      box(V, E, -0.5, 0, -0.35, 0.5, 0.08, 0.35);
+      box(V, E, 0.12, 0.08, -0.1, 0.24, 1.1, 0.1);
+      box(V, E, -0.35, 0.42, -0.25, 0.16, 0.47, 0.25);
+      const tube = (y0, y1, r, x0, x1) => {
+        const N = 10;
+        const b = V.length;
+        for (const [y, x] of [[y0, x0], [y1, x1]]) for (let k = 0; k < N; k++) { const a = (k / N) * Math.PI * 2; V.push([x + Math.cos(a) * r, y, Math.sin(a) * r]); }
+        for (let k = 0; k < N; k++) { E.push([b + k, b + ((k + 1) % N)]); E.push([b + N + k, b + N + ((k + 1) % N)]); if (k % 3 === 0) E.push([b + k, b + N + k]); }
+      };
+      tube(0.55, 0.75, 0.05, -0.12, -0.12);
+      tube(0.75, 1.3, 0.1, -0.12, -0.02);
+      tube(1.3, 1.5, 0.07, -0.02, 0.04);
+      seg(V, E, [0.12, 1.0, 0], [-0.02, 1.05, 0]);
+      W.push([-0.12, 0.5, 0], [0.04, 1.5, 0]);
+    } else if (kind === 'flask') {
+      // Erlenmeyer flask with liquid line and graduation marks
+      const N = 18;
+      const prof = [[0, 0.55], [0.35, 0.46], [0.7, 0.22], [0.82, 0.13], [1.25, 0.13], [1.3, 0.16]];
+      prof.forEach((pp) => {
+        const b = V.length;
+        for (let k = 0; k < N; k++) { const a = (k / N) * Math.PI * 2; V.push([Math.cos(a) * pp[1], pp[0], Math.sin(a) * pp[1]]); }
+        for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
+      });
+      for (let l = 0; l < prof.length - 1; l++) for (let k = 0; k < N; k += 3) E.push([l * N + k, (l + 1) * N + k]);
+      for (let i = 0; i < 4; i++) seg(V, E, [0.3, 0.12 + i * 0.12, 0.42 - i * 0.04], [0.42 - i * 0.05, 0.12 + i * 0.12, 0.3]);
+      for (let i = 0; i < 6; i++) W.push([(hashN(i) - 0.5) * 0.5, 0.08 + hashN(i + 3) * 0.25, 0.3]);
+    } else if (kind === 'briefcase') {
+      box(V, E, -0.7, 0, -0.18, 0.7, 0.95, 0.18);
+      seg(V, E, [-0.7, 0.62, 0.18], [0.7, 0.62, 0.18]);
+      const N = 10;
+      const b = V.length;
+      for (let k = 0; k <= N; k++) { const a = Math.PI * (k / N); V.push([Math.cos(a) * 0.22, 0.95 + Math.sin(a) * 0.2, 0]); }
+      for (let k = 0; k < N; k++) E.push([b + k, b + k + 1]);
+      for (const x of [-0.45, 0.45]) box(V, E, x - 0.06, 0.55, 0.18, x + 0.06, 0.68, 0.21);
+      W.push([-0.45, 0.62, 0.22], [0.45, 0.62, 0.22]);
     } else {
       const hx = 0.5, hz = 0.38, H = 0.45;
       box(V, E, -hx, 0, -hz, hx, H, hz);
@@ -1676,6 +1886,293 @@
     if (opts.label) this.drawBigText(cx, baseY - rows * bh - 2, opts.label, { size: opts.labelSize || 1.2, color: col, alpha: 1 - fall });
   };
 
+  // grid.scanner(cx, cy, { w, h, state: 'scan' | 'pass' | 'fail', label, readout, color })
+  // A verification gate drawn as an instrument: corner brackets, measured side rails, a sweeping
+  // scan beam with a trail, and a status readout. Returns the beam's current y.
+  Engine.prototype.drawScanner = function (cx, cy, opts = {}) {
+    const pal = this.palette;
+    const w = opts.w || 16;
+    const h = opts.h || 18;
+    const state = opts.state || 'scan';
+    const col = state === 'pass' ? '#00ff88' : state === 'fail' ? pal.danger : (opts.color || pal.warn);
+    const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'scan' + cx, opts.key ? 0 : cx, opts.key ? 0 : cy, 0.9);
+    const k = smooth(p);
+    const time = this.time;
+    const speed = opts.speed || 0.6;
+    const beamT = state === 'scan' ? (time * speed) % 1 : 0.5;
+    const x0 = cx - w / 2, x1 = cx + w / 2, y0 = cy - h / 2, y1 = cy + h / 2;
+    const fs = this.fontSize;
+    this.vItems.push({
+      t: 'draw', h: this._hudMode,
+      fn(c, X, Y, cw, chh, ws) {
+        const L = Math.min(w * cw, h * chh) * 0.18 * k;
+        c.strokeStyle = col;
+        c.lineWidth = 2 * ws;
+        c.globalAlpha = 0.95 * k;
+        const corners = [[X(x0), Y(y0), 1, 1], [X(x1), Y(y0), -1, 1], [X(x0), Y(y1), 1, -1], [X(x1), Y(y1), -1, -1]];
+        c.beginPath();
+        for (const q of corners) { c.moveTo(q[0] + q[2] * L, q[1]); c.lineTo(q[0], q[1]); c.lineTo(q[0], q[1] + q[3] * L); }
+        c.stroke();
+        c.lineWidth = 1 * ws;
+        c.globalAlpha = 0.45 * k;
+        for (const x of [X(x0) - cw * 0.8, X(x1) + cw * 0.8]) {
+          c.beginPath();
+          c.moveTo(x, Y(y0) + L);
+          c.lineTo(x, Y(y1) - L);
+          c.stroke();
+          for (let i = 0; i <= 12; i++) {
+            const yy = Y(y0) + L + ((Y(y1) - Y(y0) - 2 * L) * i) / 12;
+            const tl = i % 4 === 0 ? cw * 0.7 : cw * 0.35;
+            c.beginPath();
+            c.moveTo(x, yy);
+            c.lineTo(x + (x < X(cx) ? tl : -tl), yy);
+            c.stroke();
+          }
+        }
+        const by = Y(y0) + (Y(y1) - Y(y0)) * beamT;
+        if (state === 'scan') {
+          const g = c.createLinearGradient(0, by - chh * 3, 0, by);
+          g.addColorStop(0, 'rgba(0,0,0,0)');
+          g.addColorStop(1, col);
+          c.globalAlpha = 0.18 * k;
+          c.fillStyle = g;
+          c.fillRect(X(x0), by - chh * 3, X(x1) - X(x0), chh * 3);
+          c.globalAlpha = 0.95 * k;
+          c.fillStyle = '#ffffff';
+          c.fillRect(X(x0) - cw * 0.5, by - 0.8, X(x1) - X(x0) + cw, 1.6);
+        } else {
+          c.globalAlpha = (0.1 + 0.06 * Math.sin(time * 6)) * k;
+          c.fillStyle = col;
+          c.fillRect(X(x0), Y(y0), X(x1) - X(x0), Y(y1) - Y(y0));
+        }
+        const status = state === 'pass' ? (opts.passText || 'PASS  ✓') : state === 'fail' ? (opts.failText || 'BLOCKED  ✕') : (opts.label || 'VERIFYING');
+        c.font = `800 ${fs * 0.95}px "Cascadia Mono", Consolas, monospace`;
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        const tw = c.measureText(status).width + fs * 1.4;
+        const sy = Y(y1) + chh * 1.6;
+        c.globalAlpha = 0.2 * k;
+        c.fillStyle = col;
+        c.fillRect(X(cx) - tw / 2, sy - fs * 0.7, tw, fs * 1.4);
+        c.globalAlpha = 0.95 * k;
+        c.strokeStyle = col;
+        c.lineWidth = 1.2 * ws;
+        c.strokeRect(X(cx) - tw / 2, sy - fs * 0.7, tw, fs * 1.4);
+        c.fillStyle = col;
+        c.fillText(status, X(cx), sy);
+        if (opts.readout) {
+          c.font = `600 ${fs * 0.75}px "Cascadia Mono", Consolas, monospace`;
+          c.globalAlpha = 0.75 * k;
+          c.fillText(opts.readout, X(cx), Y(y0) - chh * 1.1);
+        }
+      }
+    });
+    return Y0toCells(y0, h, beamT);
+    function Y0toCells(yy0, hh, t) { return yy0 + hh * t; }
+  };
+
+  // grid.mergeButton(cx, cy, { press (0..1), merged, title, sub, cursor (0..1) })
+  // The real thing: a "Merge pull request" button with a branch-merge glyph, a cursor that moves
+  // in and clicks, and a merged state.
+  Engine.prototype.drawMergeButton = function (cx, cy, opts = {}) {
+    const G = '#00ff88';
+    const press = c01(opts.press || 0);
+    const merged = Boolean(opts.merged);
+    const col = merged ? '#b48cff' : G;
+    const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'merge' + cx, opts.key ? 0 : cx, opts.key ? 0 : cy, 0.8);
+    const k = smooth(p);
+    const fs = this.fontSize * (opts.scale || 1);
+    const time = this.time;
+    const title = merged ? (opts.mergedText || 'Merged') : (opts.title || 'Merge pull request');
+    this.vItems.push({
+      t: 'draw', h: this._hudMode,
+      fn(c, X, Y, cw, chh, ws) {
+        c.font = `800 ${fs * 2}px "Cascadia Mono", Consolas, monospace`;
+        const tw = c.measureText(title).width;
+        const bw = tw + fs * 5.2;
+        const bh = fs * 3.8;
+        const s = 1 - press * 0.05;
+        const x = X(cx);
+        const y = Y(cy);
+        c.save();
+        c.translate(x, y);
+        c.scale(s * (0.9 + 0.1 * k), s * (0.9 + 0.1 * k));
+        const r = bh * 0.22;
+        const rr = (x0, y0, w0, h0) => {
+          c.beginPath();
+          c.moveTo(x0 + r, y0); c.lineTo(x0 + w0 - r, y0); c.quadraticCurveTo(x0 + w0, y0, x0 + w0, y0 + r);
+          c.lineTo(x0 + w0, y0 + h0 - r); c.quadraticCurveTo(x0 + w0, y0 + h0, x0 + w0 - r, y0 + h0);
+          c.lineTo(x0 + r, y0 + h0); c.quadraticCurveTo(x0, y0 + h0, x0, y0 + h0 - r);
+          c.lineTo(x0, y0 + r); c.quadraticCurveTo(x0, y0, x0 + r, y0); c.closePath();
+        };
+        rr(-bw / 2, -bh / 2, bw, bh);
+        c.globalAlpha = (0.22 + press * 0.35) * k;
+        c.fillStyle = col;
+        c.fill();
+        c.globalAlpha = 0.95 * k;
+        c.strokeStyle = col;
+        c.lineWidth = 2 * ws;
+        c.stroke();
+        // branch-merge glyph: main line, a branch curving back in, three commit dots
+        const gx = -bw / 2 + fs * 2.1;
+        const gs = fs * 1.2;
+        c.lineWidth = 2.2 * ws;
+        c.strokeStyle = '#ffffff';
+        c.beginPath();
+        c.moveTo(gx - gs * 0.45, -gs);
+        c.lineTo(gx - gs * 0.45, gs);
+        c.moveTo(gx + gs * 0.5, -gs * 0.35);
+        c.quadraticCurveTo(gx + gs * 0.5, gs * 0.45, gx - gs * 0.45, gs * 0.55);
+        c.stroke();
+        c.fillStyle = '#ffffff';
+        for (const d of [[gx - gs * 0.45, -gs], [gx - gs * 0.45, gs], [gx + gs * 0.5, -gs * 0.45]]) { c.beginPath(); c.arc(d[0], d[1], 2.6 * ws, 0, Math.PI * 2); c.fill(); }
+        c.font = `800 ${fs * 2}px "Cascadia Mono", Consolas, monospace`;
+        c.textAlign = 'left';
+        c.textBaseline = 'middle';
+        c.fillStyle = '#ffffff';
+        c.fillText(title + (merged ? '  ✓' : ''), gx + gs * 1.4, 1);
+        c.restore();
+        if (opts.sub) {
+          c.font = `600 ${fs * 1.05}px "Cascadia Mono", Consolas, monospace`;
+          c.textAlign = 'center';
+          c.globalAlpha = 0.7 * k;
+          c.fillStyle = col;
+          c.fillText(opts.sub, x, y + bh * 0.95);
+        }
+        if (press > 0.05) {
+          c.globalAlpha = 0.35 * press;
+          c.fillStyle = col;
+          c.fillRect(x - bw * 0.55, y - bh * 0.7, bw * 1.1, bh * 1.4);
+        }
+        if (opts.cursor !== undefined) {
+          const t = c01(opts.cursor);
+          const e = t * t * (3 - 2 * t);
+          const cx0 = x + bw * 0.9;
+          const cy0 = y + bh * 2.2;
+          const tx = x + bw * 0.18;
+          const ty = y + bh * 0.1;
+          const px = cx0 + (tx - cx0) * e;
+          const py = cy0 + (ty - cy0) * e;
+          const sc = fs * 1.3 * (1 - press * 0.15);
+          c.globalAlpha = 0.95;
+          c.fillStyle = '#ffffff';
+          c.strokeStyle = '#000000';
+          c.lineWidth = 1.2;
+          c.beginPath();
+          c.moveTo(px, py); c.lineTo(px, py + sc); c.lineTo(px + sc * 0.28, py + sc * 0.74); c.lineTo(px + sc * 0.48, py + sc * 1.12);
+          c.lineTo(px + sc * 0.62, py + sc * 1.05); c.lineTo(px + sc * 0.42, py + sc * 0.68); c.lineTo(px + sc * 0.75, py + sc * 0.68); c.closePath();
+          c.fill();
+          c.stroke();
+        }
+        void time;
+      }
+    });
+  };
+
+  // grid.levelMeter(cx, cy, { levels: ['L1', ...], value (0..n), colors, h, w })
+  // A segmented vertical gauge (an industry scale): segments fill up to `value`, labels at right,
+  // a marker arrow at the current level.
+  Engine.prototype.drawLevelMeter = function (cx, cy, opts = {}) {
+    const pal = this.palette;
+    const levels = opts.levels || ['LEVEL 1', 'LEVEL 2', 'LEVEL 3', 'LEVEL 4'];
+    const n = levels.length;
+    const v = Math.max(0, Math.min(n, opts.value || 0));
+    const h = opts.h || 24;
+    const w = opts.w || 7;
+    const colors = opts.colors || [];
+    const gap = 0.8;
+    const segH = (h - gap * (n - 1)) / n;
+    const y1 = cy + h / 2;
+    const time = this.time;
+    const fs = this.fontSize;
+    this.vItems.push({
+      t: 'draw', h: this._hudMode,
+      fn(c, X, Y, cw, chh, ws) {
+        for (let i = 0; i < n; i++) {
+          const yb = y1 - i * (segH + gap);
+          const yt = yb - segH;
+          const fill = Math.max(0, Math.min(1, v - i));
+          const col = colors[i] || pal.accent;
+          const active = v > i && v <= i + 1.001;
+          c.globalAlpha = 0.85;
+          c.strokeStyle = fill > 0 ? col : pal.dim;
+          c.lineWidth = (active ? 2 : 1.2) * ws;
+          c.strokeRect(X(cx - w / 2), Y(yt), w * cw, segH * chh);
+          if (fill > 0) {
+            const top = yb - segH * fill;
+            c.globalAlpha = active ? 0.35 + 0.1 * Math.sin(time * 4) : 0.28;
+            c.fillStyle = col;
+            c.fillRect(X(cx - w / 2), Y(top), w * cw, (yb - top) * chh);
+          }
+          for (let t = 1; t < 4; t++) {
+            c.globalAlpha = 0.35;
+            c.beginPath();
+            c.moveTo(X(cx + w / 2), Y(yt + (segH * t) / 4));
+            c.lineTo(X(cx + w / 2) + cw * 0.6, Y(yt + (segH * t) / 4));
+            c.stroke();
+          }
+          c.font = `${active ? 800 : 600} ${fs * (active ? 1.05 : 0.85)}px "Cascadia Mono", Consolas, monospace`;
+          c.textAlign = 'left';
+          c.textBaseline = 'middle';
+          c.globalAlpha = fill > 0 ? 1 : 0.45;
+          c.fillStyle = fill > 0 ? (active ? '#ffffff' : col) : pal.dim;
+          c.fillText(levels[i], X(cx + w / 2) + cw * 2, Y(yt + segH / 2));
+        }
+        const my = y1 - Math.max(0, v - 0.5) * (segH + gap) - segH / 2 + (v < 0.5 ? 0 : 0);
+        const ax = X(cx - w / 2) - cw * 1.2;
+        c.globalAlpha = 1;
+        c.fillStyle = '#ffffff';
+        c.beginPath();
+        c.moveTo(ax, Y(my));
+        c.lineTo(ax - cw * 1.6, Y(my) - chh * 0.5);
+        c.lineTo(ax - cw * 1.6, Y(my) + chh * 0.5);
+        c.closePath();
+        c.fill();
+        if (opts.marker) {
+          c.font = `700 ${fs * 0.85}px "Cascadia Mono", Consolas, monospace`;
+          c.textAlign = 'right';
+          c.fillText(opts.marker, ax - cw * 2.4, Y(my));
+        }
+      }
+    });
+  };
+
+  // grid.chatBubble(x, y, text, { color, align: 'left' | 'right', alpha }) — a message bubble
+  Engine.prototype.drawChatBubble = function (x, y, text, opts = {}) {
+    const col = opts.color || this.palette.accent;
+    const fs = this.fontSize;
+    const alpha = opts.alpha !== undefined ? opts.alpha : 1;
+    const right = opts.align === 'right';
+    this.vItems.push({
+      t: 'draw', h: this._hudMode,
+      fn(c, X, Y, cw, chh, ws) {
+        c.font = `600 ${fs * (opts.size || 1)}px "Cascadia Mono", Consolas, monospace`;
+        const tw = c.measureText(text).width;
+        const bw = tw + fs * 1.6;
+        const bh = fs * 2;
+        const x0 = right ? X(x) - bw : X(x);
+        const y0 = Y(y) - bh / 2;
+        const r = bh * 0.45;
+        c.beginPath();
+        c.moveTo(x0 + r, y0); c.lineTo(x0 + bw - r, y0); c.quadraticCurveTo(x0 + bw, y0, x0 + bw, y0 + r);
+        c.lineTo(x0 + bw, y0 + bh - r); c.quadraticCurveTo(x0 + bw, y0 + bh, x0 + bw - r, y0 + bh);
+        c.lineTo(x0 + r, y0 + bh); c.quadraticCurveTo(x0, y0 + bh, x0, y0 + bh - r);
+        c.lineTo(x0, y0 + r); c.quadraticCurveTo(x0, y0, x0 + r, y0); c.closePath();
+        c.globalAlpha = 0.22 * alpha;
+        c.fillStyle = col;
+        c.fill();
+        c.globalAlpha = 0.95 * alpha;
+        c.strokeStyle = col;
+        c.lineWidth = 1.4 * ws;
+        c.stroke();
+        c.fillStyle = '#ffffff';
+        c.textAlign = 'left';
+        c.textBaseline = 'middle';
+        c.fillText(text, x0 + fs * 0.8, Y(y) + 1);
+      }
+    });
+  };
+
   // --------------------------------------------------------------------------
   // Register in the scene sandbox
   // --------------------------------------------------------------------------
@@ -1703,7 +2200,11 @@
       pipeline: (x0, x1, y, steps, opts) => self.drawPipeline(x0, x1, y, steps, opts || {}),
       releaseNotes: (cx, cy, opts) => self.drawReleaseNotes(cx, cy, opts || {}),
       balance: (cx, cy, scale, angle, opts) => self.drawBalance(cx, cy, scale, angle, opts || {}),
-      brickWall: (cx, baseY, cols, rows, opts) => self.drawBrickWall(cx, baseY, cols, rows, opts || {})
+      brickWall: (cx, baseY, cols, rows, opts) => self.drawBrickWall(cx, baseY, cols, rows, opts || {}),
+      scanner: (cx, cy, opts) => self.drawScanner(cx, cy, opts || {}),
+      mergeButton: (cx, cy, opts) => self.drawMergeButton(cx, cy, opts || {}),
+      levelMeter: (cx, cy, opts) => self.drawLevelMeter(cx, cy, opts || {}),
+      chatBubble: (x, y, text, opts) => self.drawChatBubble(x, y, text, opts || {})
     });
     return sb;
   };
