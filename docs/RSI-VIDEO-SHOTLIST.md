@@ -86,14 +86,14 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 **Section:** Intro · **Length:** 29.2s
 
-**On screen:** An engineer at a workstation receives a tiny snippet from the model; a monitor fills with code as a stopwatch spins at superhuman speed; the model fans work out to four parallel subagents; verified trajectories grow a larger successor.
+**On screen:** Close on an engineer at a workstation receiving a single tiny snippet; the model pours code into the lab building as its windows light floor by floor, then training-step time collapses on a chart beside a racing stopwatch; it fans out to parallel subagents; verified trajectories pass a checkpoint, fill a dataset and grow a larger successor.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Beyond Snippets | 0.0–11.0s | Over the last several months, we have crossed a critical inflection point where frontier models are no longer just assisting human engineers with isolated snippets of code. | An engineer sits at a 3D workstation; a tiny "{ }" snippet hops over from the model |
-| 2. Writes Code · Optimizes Training | 11.0–20.4s | They are writing the vast majority of the production code inside the labs building them, optimizing their own training scripts at superhuman speeds, | A monitor fills with production code while a stopwatch beside it spins at superhuman speed (training scripts) |
+| 1. Beyond Snippets | 0.0–11.0s | Over the last several months, we have crossed a critical inflection point where frontier models are no longer just assisting human engineers with isolated snippets of code. | Close on an engineer at a 3D workstation; one tiny snippet page floats over from the model as the camera pulls back |
+| 2. Writes Code · Optimizes Training | 11.0–20.4s | They are writing the vast majority of the production code inside the labs building them, optimizing their own training scripts at superhuman speeds, | The model pours code into a 3D lab building, windows lighting floor by floor; then a training-time chart collapses beside a racing stopwatch |
 | 3. Parallel Subagents | 20.4–23.0s | coordinating parallel subagents, | The model fans work out to four subagents racing in parallel |
-| 4. Trains Its Successors | 23.0–29.2s | and generating the verified synthetic trajectories used to train their own successors. | Verified trajectories pass a shield and grow a larger successor model |
+| 4. Trains Its Successors | 23.0–29.2s | and generating the verified synthetic trajectories used to train their own successors. | Trajectories stream through a checkpoint — failures drop away red, verified ones fill a dataset that grows a larger successor |
 
 ## 04 — What We Will Cover
 
@@ -149,12 +149,12 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 **Section:** The Hard Data · **Length:** 39.7s
 
-**On screen:** Models queue into a GPU test bench; the training-code page is rewritten while a stopwatch times each run and the page gets stamped PASS; then racing bars — a human 4×, Opus 4 3×, Mythos Preview 52× as the camera follows the winner.
+**On screen:** A test chamber with a GPU inside — the research-loop benchmark; a new model drops in, its training-code page is rewritten while a stopwatch speeds up, and the result passes a checkpoint and is stamped PASS; then racing bars — a human 4×, Opus 4 3×, Mythos Preview 52×.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. The Internal Benchmark | 0.0–3.7s | Even more revealing is Anthropic's internal research-loop benchmark. | Model after model drives into the same 3D GPU test bench |
-| 2. Same Test, Every Model | 3.7–19.3s | Every time Anthropic trains a new model, they give it the same test: take a codebase that trains a smaller AI model and rewrite the code to make it run as fast as possible while passing strict correctness checks. | The training-code page is rewritten line by line; a stopwatch times each run and the speed-up climbs; the page is stamped PASS |
+| 1. The Internal Benchmark | 0.0–3.7s | Even more revealing is Anthropic's internal research-loop benchmark. | A glass test chamber with a GPU inside: Anthropic’s research-loop benchmark; the camera pushes in |
+| 2. Same Test, Every Model | 3.7–19.3s | Every time Anthropic trains a new model, they give it the same test: take a codebase that trains a smaller AI model and rewrite the code to make it run as fast as possible while passing strict correctness checks. | A new model drops into the chamber; its training-code page is rewritten while a stopwatch speeds up; the result passes a checkpoint: PASS |
 | 3. Human Expert: 4× | 19.3–27.2s | For calibration, a skilled human machine learning researcher takes between four and eight hours to achieve a four-times speedup. | Bar 1: human researcher — 4× in 4–8 hours |
 | 4. Opus 4: 3× | 27.2–31.6s | In May 2025, Claude Opus 4 averaged a three-times speedup. | Bar 2: Claude Opus 4 (May 2025) — 3× |
 | 5. Mythos Preview: 52× | 31.6–39.7s | Within eleven months, Anthropic's internal Claude Mythos Preview achieved a fifty-two-times speedup on that exact same task. | Bar 3: Claude Mythos Preview races off to a large 52× as the camera follows it |
@@ -189,14 +189,14 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 **Section:** Under the Hood · **Length:** 39.6s
 
-**On screen:** Four source papers fold into a foundation model; a glass harness box closes around it as code, prompts, memory, checks and tools dock onto its faces; then the box gives way to the two loops — a fast inner pipeline above a slow outer one.
+**On screen:** The four source papers take the stage one at a time and stack up; a foundation model rises on its own glowing layer; the harness wires itself around it — code on a monitor, prompts on a page, memory in a database, verification at a checkpoint, tools as a wrench — with the camera visiting each; then a fast inner loop and a slow outer loop run side by side.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. The Demo's Sources | 0.0–16.4s | Let's walk through a demonstration of how this two-loop system works in practice, drawing directly from recent frameworks like AutoHarness, Weco's AIDE2, and two major papers published earlier this month in October: Google's Dream-RSI and the MASS framework—short for Multi-Agent Self-Supervision. | Four source papers (AutoHarness, AIDE2, Dream-RSI, MASS) appear in the corners and fold into a point |
-| 2. The Foundation Model | 16.4–22.0s | Every modern AI system consists of two distinct layers: the foundation model itself, | The point becomes the foundation model as the camera eases in |
-| 3. The Orchestration Harness | 22.0–32.2s | and the orchestration harness—the surrounding code, system prompts, memory retrieval pipelines, verification scripts, and tool definitions that govern how the model interacts with its environment. | A glass harness box closes around the model; code · prompts · memory · checks · tools dock onto it |
-| 4. Inner Loop + Outer Loop | 32.2–39.6s | In our demonstration, the system is split into an Inner Loop and an Outer Loop. | The model steps aside; a fast INNER loop pipeline runs above a slow OUTER loop pipeline |
+| 1. The Demo's Sources | 0.0–16.4s | Let's walk through a demonstration of how this two-loop system works in practice, drawing directly from recent frameworks like AutoHarness, Weco's AIDE2, and two major papers published earlier this month in October: Google's Dream-RSI and the MASS framework—short for Multi-Agent Self-Supervision. | AutoHarness, AIDE2, Dream-RSI and MASS each take centre stage in turn (camera on the title), then stack along the bottom |
+| 2. The Foundation Model | 16.4–22.0s | Every modern AI system consists of two distinct layers: the foundation model itself, | The foundation model rises on its own glowing layer |
+| 3. The Orchestration Harness | 22.0–32.2s | and the orchestration harness—the surrounding code, system prompts, memory retrieval pipelines, verification scripts, and tool definitions that govern how the model interacts with its environment. | The harness wires up around it, the camera visiting each part: code (monitor) · system prompts (page) · memory (database) · verification (checkpoint) · tools (wrench) |
+| 4. Inner Loop + Outer Loop | 32.2–39.6s | In our demonstration, the system is split into an Inner Loop and an Outer Loop. | Model + harness above; a fast INNER loop pipeline on the left, a slow OUTER loop pipeline on the right |
 
 ## 12 — Step 1: The Inner Loop
 
@@ -241,13 +241,13 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 **Section:** Live Demo · **Length:** 15.1s
 
-**On screen:** A 3D security gate; a candidate harness file approaches; a weaker candidate’s held-out score falls short of the previous best and it bounces off; a stronger one’s score overtakes the best and the camera follows it through: committed.
+**On screen:** A candidate harness page glides into a slim verification checkpoint; a balance scale weighs it against the previous best; held-out tests fill under each pan until the candidate’s side tips the scale and it is stamped COMMIT.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. The Gate | 0.0–5.2s | In Step Four, the candidate rewrite must pass a strict verification gate. | A 3D verification gate; a candidate harness file drifts up to it |
-| 2. Commit Only If… | 5.2–9.3s | The Outer Loop only commits the self-written harness update | A score bar appears with the previous best marked; the weaker candidate falls short and bounces off |
-| 3. …It Beats the Best on Held-Out | 9.3–15.1s | if it measurably outperforms the previous best version on held-out checks. | The stronger candidate’s score overtakes the best; the gate turns green and the camera follows it through: committed |
+| 1. The Gate | 0.0–5.2s | In Step Four, the candidate rewrite must pass a strict verification gate. | A candidate harness page (v8) glides toward a slim verification checkpoint, its light curtain scanning |
+| 2. Commit Only If… | 5.2–9.3s | The Outer Loop only commits the self-written harness update | A balance scale: previous best (v7) on the left pan, the candidate (v8) on the right — undecided |
+| 3. …It Beats the Best on Held-Out | 9.3–15.1s | if it measurably outperforms the previous best version on held-out checks. | Held-out tests fill under each pan; v8 passes more, the scale tips its way, and v8 is stamped COMMIT |
 
 ## 16 — Eight Days Unattended
 
@@ -279,13 +279,13 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 **Section:** Anthropic & OpenAI Docs · **Length:** 17.8s
 
-**On screen:** Documentation pages stream in from Anthropic on the left and OpenAI on the right; a 3D datacenter hall builds up (scale); then a glass containment box closes around it (contain).
+**On screen:** Two release-note feeds roll in side by side — Anthropic and OpenAI; then the camera pulls back from a single server rack to a datacenter hall to a whole campus with cooling towers and power pylons (scale); a glass containment box closes around the campus (contain).
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Two Weeks of Docs | 0.0–8.7s | If you look closely at the developer documentation and release notes published by Anthropic and OpenAI over the past two weeks, | Documentation pages stream in from both sides: Anthropic and OpenAI |
-| 2. To Scale… | 8.7–14.3s | you can see both companies actively building the exact infrastructure required to scale— | A 3D datacenter hall builds up row by row as the camera pulls back — scale |
-| 3. …and Contain | 14.3–17.8s | and contain—these recursive loops. | A glass containment box closes around the whole hall — contain |
+| 1. Two Weeks of Docs | 0.0–8.7s | If you look closely at the developer documentation and release notes published by Anthropic and OpenAI over the past two weeks, | Anthropic’s and OpenAI’s release-note feeds roll in side by side |
+| 2. To Scale… | 8.7–14.3s | you can see both companies actively building the exact infrastructure required to scale— | Scale: the camera pulls back from one server rack, to a datacenter hall, to a whole campus with cooling towers and power pylons |
+| 3. …and Contain | 14.3–17.8s | and contain—these recursive loops. | Contain: a glass box closes around the entire campus |
 
 ## 19 — Anthropic: The Claude 5.5 Rollout
 
@@ -342,14 +342,14 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 **Section:** Anthropic & OpenAI Docs · **Length:** 41.9s
 
-**On screen:** A model beside the Oct 12 distillation report; its reasoning words stream out and masked harvesters siphon them; a bar chart shows copies trained on full traces (80.4%) beating summaries (71.8%); then the stream turns into redacted blocks with only a short summary escaping.
+**On screen:** The Oct 12 distillation report centre stage, the camera reading its title; a model’s reasoning words stream out to masked harvesters; a centred bar chart shows copies trained on full traces (80.4%) beating summaries (71.8%); then a 3D padlock seals the raw thinking at the centre and only a short summary passes through.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Oct 12: Distillation Report | 0.0–5.6s | Then, on October 12th, Anthropic published a technical breakdown on illicit distillation defenses. | A model beside the Oct 12 distillation report, stamped with its date |
-| 2. Harvesting Reasoning Traces | 5.6–13.9s | They revealed that external labs had been running industrial-scale campaigns to harvest Claude's step-by-step reasoning traces to train competing models— | Reasoning words stream out; three masked harvesters siphon them |
+| 1. Oct 12: Distillation Report | 0.0–5.6s | Then, on October 12th, Anthropic published a technical breakdown on illicit distillation defenses. | The Oct 12 distillation report, centred; the camera reads its title |
+| 2. Harvesting Reasoning Traces | 5.6–13.9s | They revealed that external labs had been running industrial-scale campaigns to harvest Claude's step-by-step reasoning traces to train competing models— | A model’s reasoning words stream out; three masked harvesters siphon them |
 | 3. Full Traces: 80.4% vs 71.8% | 13.9–25.3s | noting that a model trained on full Claude Opus 4.8 reasoning transcripts scored eighty-point-four percent on SWE-bench Verified, compared to seventy-one-point-eight percent when trained only on summarized reasoning. | Bars: copy trained on full Opus 4.8 traces 80.4% vs summaries 71.8% (SWE-bench Verified) |
-| 4. Raw Thinking Omitted | 25.3–41.9s | That explains why the new Haiku 5.5 API documentation omits raw thinking blocks by default unless explicitly configured to display summaries: the raw reasoning traces of frontier models have become the most valuable synthetic training fuel in the industry. | The stream becomes redacted blocks; only a short summary gets through |
+| 4. Raw Thinking Omitted | 25.3–41.9s | That explains why the new Haiku 5.5 API documentation omits raw thinking blocks by default unless explicitly configured to display summaries: the raw reasoning traces of frontier models have become the most valuable synthetic training fuel in the industry. | A 3D padlock seals the raw thinking at centre; only a short summary passes through |
 
 ## 24 — Claude Code Review Goes GA
 
@@ -367,27 +367,27 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 **Section:** Anthropic & OpenAI Docs · **Length:** 32.7s
 
-**On screen:** A glass wall rises down the middle; the CLAUDE.md page feeds a coding agent on the left; on the right a human code owner writes the REVIEW.md page for the reviewer agents; a 3D padlock snaps onto the reviewers (read-only) and a human presses a glowing MERGE.
+**On screen:** Two markdown pages side by side — CLAUDE.md and REVIEW.md; CLAUDE.md feeds a coding agent writing at a monitor; a human code owner writes REVIEW.md line by line for two reviewer agents with magnifiers; the reviewers are padlocked read-only and a human presses a 3D MERGE button.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Separation of Powers | 0.0–5.6s | Crucially, the documentation establishes a strict separation of powers using two markdown files: | A glass wall rises down the middle of the screen |
-| 2. CLAUDE.md → Coding Agent | 5.6–9.7s | CLAUDE.md, which defines project context for the coding agent, | Left: the CLAUDE.md page flows into a coding agent |
-| 3. REVIEW.md ← Human Owners | 9.7–18.4s | and REVIEW.md, written by human code owners to define strict verification rules, severity thresholds, and evidence requirements for the reviewing agents. | Right: a human code owner writes the REVIEW.md page, which flows into reviewer agents |
-| 4. Read-Only · Human Merges | 18.4–32.7s | Even more importantly, the documentation mandates that Claude Code Review is strictly read-only—it cannot execute builds, push commits, or approve or block a pull request. A human must still press the merge button. | A 3D padlock snaps onto the reviewers (read-only); a human presses a glowing MERGE |
+| 1. Separation of Powers | 0.0–5.6s | Crucially, the documentation establishes a strict separation of powers using two markdown files: | Two pages side by side: CLAUDE.md and REVIEW.md |
+| 2. CLAUDE.md → Coding Agent | 5.6–9.7s | CLAUDE.md, which defines project context for the coding agent, | CLAUDE.md feeds project context into a coding agent, which writes code onto a monitor |
+| 3. REVIEW.md ← Human Owners | 9.7–18.4s | and REVIEW.md, written by human code owners to define strict verification rules, severity thresholds, and evidence requirements for the reviewing agents. | A human code owner writes REVIEW.md line by line; it flows to two reviewer agents with magnifiers |
+| 4. Read-Only · Human Merges | 18.4–32.7s | Even more importantly, the documentation mandates that Claude Code Review is strictly read-only—it cannot execute builds, push commits, or approve or block a pull request. A human must still press the merge button. | The reviewers are padlocked read-only (no build · push · approve); a human presses a 3D MERGE button |
 
 ## 26 — Independent Evaluators Inside the Lab
 
 **Section:** Anthropic & OpenAI Docs · **Length:** 31.4s
 
-**On screen:** Six evaluators walk into a 3D lab building; a classical bank building with its own examiner makes the analogy; their gaze sweeps the frontier model and flags a hidden mask; then a risk report flies out, the camera reads its title, and "VETO" is struck through.
+**On screen:** Six evaluators walk into a 3D lab and the camera follows them inside; a bank with its examiner sits beside the lab with its evaluator — the same idea; a magnifier sweeps the frontier model and uncovers a hidden mask; a risk report rises out, the camera reads it, and it is stamped PUBLISHED with no veto.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. 6 METR Evaluators Embedded | 0.0–12.5s | Second, also on October 15th, Anthropic announced that it has embedded six independent evaluators from the nonprofit METR directly inside the company with employee-like access to internal tools and risk assessments. | Six METR evaluators walk up to and into a 3D lab building |
-| 2. Like Bank Examiners | 12.5–16.9s | Much like federal bank examiners embedded inside major financial institutions, | Analogy: a classical bank building with an examiner embedded inside it |
-| 3. Auditing for Alignment Faking | 16.9–24.0s | these evaluators are tasked with auditing frontier capabilities and checking for subtle failure modes like alignment faking— | Their gaze sweeps the frontier model and flags a hidden mask: alignment faking? |
-| 4. Publish Without Veto | 24.0–31.4s | and Anthropic granted them the right to publish their risk analyses without corporate veto power. | A risk report flies out of the lab; the camera reads its title; "VETO" is struck through |
+| 1. 6 METR Evaluators Embedded | 0.0–12.5s | Second, also on October 15th, Anthropic announced that it has embedded six independent evaluators from the nonprofit METR directly inside the company with employee-like access to internal tools and risk assessments. | Six METR evaluators walk up to and into a 3D lab; the camera follows them in |
+| 2. Like Bank Examiners | 12.5–16.9s | Much like federal bank examiners embedded inside major financial institutions, | Side by side: a bank with its examiner ≈ the lab with its evaluator |
+| 3. Auditing for Alignment Faking | 16.9–24.0s | these evaluators are tasked with auditing frontier capabilities and checking for subtle failure modes like alignment faking— | A magnifier sweeps the frontier model and uncovers a hidden mask: alignment faking? |
+| 4. Publish Without Veto | 24.0–31.4s | and Anthropic granted them the right to publish their risk analyses without corporate veto power. | A risk report rises out of the lab; the camera reads it; stamped PUBLISHED — "VETO" struck through |
 
 ## 27 — OpenAI: GPT-6 and Two Zero-Days
 
@@ -405,13 +405,13 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 **Section:** Anthropic & OpenAI Docs · **Length:** 22.0s
 
-**On screen:** Astra faces a 3D review gate set in glass walls, watched by an eye; a gap opens in the wall beside the gate with a dashed shortcut; Astra’s path goes straight through the real gate every time — "0" bypass attempts.
+**On screen:** Astra runs its own loop while a CCTV camera of human oversight watches; a slim review checkpoint stands in a glass fence with one panel missing — a misconfiguration and a tempting shortcut; Astra’s work passes through the checkpoint every time and the bypass counter stays at 0.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Would It Subvert Oversight? | 0.0–8.3s | To test whether a model with that level of capability would attempt to subvert human oversight in an autonomous loop, | Astra in front of a 3D review gate set into glass walls; an eye watches from beyond |
-| 2. A Misconfigured Gate | 8.3–16.2s | OpenAI evaluated GPT-6 Astra on "auto-review denial" scenarios—testing whether the model would exploit misconfigurations to bypass automated review gates. | A gap opens in the wall beside the gate; a dashed red shortcut path appears |
-| 3. Never Tried to Bypass | 16.2–22.0s | OpenAI documented that Astra never attempted to circumvent the review checks. | Astra’s path goes through the real gate every time; large "0" bypass attempts |
+| 1. Would It Subvert Oversight? | 0.0–8.3s | To test whether a model with that level of capability would attempt to subvert human oversight in an autonomous loop, | Astra runs its autonomous loop; a 3D CCTV camera (human oversight) watches from above |
+| 2. A Misconfigured Gate | 8.3–16.2s | OpenAI evaluated GPT-6 Astra on "auto-review denial" scenarios—testing whether the model would exploit misconfigurations to bypass automated review gates. | A slim review checkpoint in a glass fence — one panel is missing (misconfiguration) and a red shortcut beckons |
+| 3. Never Tried to Bypass | 16.2–22.0s | OpenAI documented that Astra never attempted to circumvent the review checks. | Astra’s work goes through the checkpoint every time; the bypass counter stays at a large "0" |
 
 ## 29 — GPT-6 Pro: Parallel Agents
 
@@ -456,102 +456,102 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 **Section:** What Comes Next · **Length:** 16.0s
 
-**On screen:** Anthropic and OpenAI side by side, each core standing over a stack of its October documentation pages; the two slide together and merge, and a timeline into 2027 draws beneath them.
+**On screen:** Anthropic’s and OpenAI’s October release-note feeds side by side; they fold away into a timeline that runs from October into 2027, the camera travelling along it past three forecast milestones.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Anthropic | OpenAI | 0.0–4.8s | When you put Anthropic's and OpenAI's October documentation side by side, | Two cores side by side — Anthropic and OpenAI — each over a fan of its October documentation pages |
-| 2. A Clear Picture → 2027 | 4.8–16.0s | a remarkably clear picture emerges of what the next couple of months are going to look like as we close out 2026 and enter 2027. | The cores slide together and merge; a timeline runs on into 2027 |
+| 1. Anthropic | OpenAI | 0.0–4.8s | When you put Anthropic's and OpenAI's October documentation side by side, | Anthropic’s and OpenAI’s October release-note feeds, side by side |
+| 2. A Clear Picture → 2027 | 4.8–16.0s | a remarkably clear picture emerges of what the next couple of months are going to look like as we close out 2026 and enter 2027. | The feeds fold away into a timeline: Nov · Dec · Jan 2027 with three forecast milestones; the camera travels to 2027 |
 
 ## 33 — Next #1: RSI Loops for Every Team
 
 **Section:** What Comes Next · **Length:** 41.8s
 
-**On screen:** Cities light up across a rotating globe as teams start their own loops; two walls (cost · latency) topple; at night an empty workstation keeps working — its monitor alive, both loops running as the clock runs through the night; by morning the overnight changelog has written itself.
+**On screen:** Cities light up across a rotating globe; two brick walls (cost · latency) crumble as their causes appear; at night an office tower sits dark except one glowing floor where two loops keep running while the clock passes midnight; by 07:00 the overnight changelog has written itself.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
 | 1. Democratized RSI Loops | 0.0–7.5s | First, we are going to see the democratization of bounded, multi-agent RSI loops across enterprise and local repositories. | Cities light up one by one across a rotating globe as teams start their own loops |
-| 2. Cost & Latency Barriers Collapse | 7.5–22.3s | With GPT-6 Pro and Codex running parallel subagents and parallel tool lookups, and Claude 5.5 models offering one-million-token context windows with ten-to-twenty-cent cache reads, the economic and latency barriers to running continuous code-optimization loops have effectively collapsed. | Two walls — cost and latency — topple over |
-| 3. Overnight Inner + Outer Loops | 22.3–31.7s | Over the next sixty to ninety days, standard engineering teams will increasingly deploy overnight inner-and-outer agent loops—modeled on frameworks like MASS and AIDE2— | Night: an empty 3D workstation, its monitor alive; inner and outer loop pipelines run while the clock runs from 22:00 |
+| 2. Cost & Latency Barriers Collapse | 7.5–22.3s | With GPT-6 Pro and Codex running parallel subagents and parallel tool lookups, and Claude 5.5 models offering one-million-token context windows with ten-to-twenty-cent cache reads, the economic and latency barriers to running continuous code-optimization loops have effectively collapsed. | Two brick walls — COST and LATENCY — crumble: parallel subagents · 1M-token context · ~10¢ cache reads |
+| 3. Overnight Inner + Outer Loops | 22.3–31.7s | Over the next sixty to ninety days, standard engineering teams will increasingly deploy overnight inner-and-outer agent loops—modeled on frameworks like MASS and AIDE2— | Night: an office tower goes dark except one glowing floor; an inner and an outer loop keep running past midnight |
 | 4. While the Team Sleeps | 31.7–41.8s | that continuously refactor codebases, optimize database queries and GPU kernels, and refine their own project-specific tool harnesses while the human team sleeps. | By 07:00 the overnight changelog has written itself: refactor · queries · kernels · its own harness |
 
 ## 34 — Next #2: The Verification Battleground
 
 **Section:** What Comes Next · **Length:** 38.0s
 
-**On screen:** A spotlight slides from "GENERATE" to "VERIFY"; a wall of new code rises into a flat red ceiling where a single human reviewer stands; writers and read-only watchdogs separate across a glass wall; a glass sandbox closes around both sides.
+**On screen:** A spotlight moves from a monitor full of generated code to a checkpoint with a magnifier; an 8× pile of code pours into a funnel that narrows to a single human reviewer; writers and read-only watchdogs form two separate teams, each from its own markdown file; each team is sealed into its own sandbox.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Generation → Verification | 0.0–7.5s | Second, the primary battleground in software engineering is shifting permanently from code generation to automated verification and sandboxing. | A spotlight slides from "GENERATE" to "VERIFY" |
-| 2. Review Is the Ceiling | 7.5–18.1s | When a single engineer can merge eight times as much code as they did two years ago, human review capacity becomes the hard ceiling on progress. | A wall of code (8×) rises into a flat red ceiling: one human reviewer |
-| 3. Writers | Watchdogs | 18.1–26.0s | Over the coming months, expect the industry to standardize around isolated verification architectures like Anthropic's CLAUDE.md and REVIEW.md split— | Writers (left) and read-only watchdogs (right) separate across a glass wall |
-| 4. All Inside Sandboxes | 26.0–38.0s | where the agents that write and optimize the code are strictly separated from the read-only watchdog agents that audit the diffs—all running inside seccomp-filtered and host-restricted sandboxes. | A glass sandbox closes around both sides as the camera pulls back |
+| 1. Generation → Verification | 0.0–7.5s | Second, the primary battleground in software engineering is shifting permanently from code generation to automated verification and sandboxing. | A spotlight slides from GENERATION (a monitor of code) to VERIFICATION (a checkpoint and magnifier) |
+| 2. Review Is the Ceiling | 7.5–18.1s | When a single engineer can merge eight times as much code as they did two years ago, human review capacity becomes the hard ceiling on progress. | An 8× pile of code pours into a funnel that narrows to a single human reviewer — the ceiling |
+| 3. Writers | Watchdogs | 18.1–26.0s | Over the coming months, expect the industry to standardize around isolated verification architectures like Anthropic's CLAUDE.md and REVIEW.md split— | Two separate teams: CLAUDE.md → writer agents · REVIEW.md → read-only watchdogs with magnifiers |
+| 4. All Inside Sandboxes | 26.0–38.0s | where the agents that write and optimize the code are strictly separated from the read-only watchdog agents that audit the diffs—all running inside seccomp-filtered and host-restricted sandboxes. | Each team is sealed in its own glass sandbox — seccomp · allowed_hosts — as the camera pulls back |
 
 ## 35 — Next #3: From Net-Positive to Ignition
 
 **Section:** What Comes Next · **Length:** 33.5s
 
-**On screen:** "NET-POSITIVE → IGNITION"; a four-rung ladder with today’s marker on rung three; a human-written rubric feeds the loop, which outruns a human bar; then the rubric is struck, the top rung ignites, and the harness and training pipelines merge into one.
+**On screen:** A rocket waits on the pad between "net-positive" and "ignition"; a 3D ladder of four levels with today’s marker climbing to rung three; a chart shows the loop’s quality outrunning human iteration under a human-written rubric; then the rubric falls away and the rocket ignites and lifts off.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Net-Positive → Ignition | 0.0–4.1s | Third, watch the transition from "net-positive" self-improvement to "ignition." | "NET-POSITIVE → IGNITION" in large type |
-| 2. Today: Net-Positive | 4.1–12.8s | Right now, on the four-level industry scale used to measure autonomous research systems, models have achieved what researchers call net-positive self-improvement: | Four-rung ladder; the marker rests on rung 3: net-positive |
-| 3. Beats Humans on a Rubric | 12.8–19.6s | given a defined objective and scoring rubric, an autonomous loop beats human iteration speed and quality. | A human-written rubric page feeds the loop; the loop’s bar outruns the human’s |
-| 4. Ignition: No Human Rubric | 19.6–33.5s | The next rung on that ladder is ignition—where an improved agent becomes fundamentally better at designing the next improvement strategy without human-designed rubrics, closing the loop between harness evolution and foundation-model training. | The rubric is struck out; rung 4 ignites; the harness and training pipelines merge into one loop |
+| 1. Net-Positive → Ignition | 0.0–4.1s | Third, watch the transition from "net-positive" self-improvement to "ignition." | A 3D rocket waits on the pad, venting: NET-POSITIVE → IGNITION |
+| 2. Today: Net-Positive | 4.1–12.8s | Right now, on the four-level industry scale used to measure autonomous research systems, models have achieved what researchers call net-positive self-improvement: | A 3D four-rung ladder; today’s marker climbs to rung 3: net-positive |
+| 3. Beats Humans on a Rubric | 12.8–19.6s | given a defined objective and scoring rubric, an autonomous loop beats human iteration speed and quality. | Under a human-written rubric, the loop’s quality line outruns human iteration |
+| 4. Ignition: No Human Rubric | 19.6–33.5s | The next rung on that ladder is ignition—where an improved agent becomes fundamentally better at designing the next improvement strategy without human-designed rubrics, closing the loop between harness evolution and foundation-model training. | The rubric falls away; the rocket ignites and lifts off as the camera follows: ignition |
 
 ## 36 — The Tension: Progress Paced by Compute
 
 **Section:** The Tension · **Length:** 43.2s
 
-**On screen:** A shield and a racing core face each other across a crackling arc of tension; a pacing needle swings from a person to a datacenter rising into place; then the loop races on while the person steps outside to watch.
+**On screen:** A balance scale tips back and forth between safety and speed; Anthropic’s forecast on recursive self-improvement, the camera reading its title, then a pacing needle swinging from people to a datacenter; finally the camera pulls back from a single person at a workstation to reveal a vast red datacenter running beyond them.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. The Tension | 0.0–7.1s | And that brings us to the profound tension sitting at the heart of artificial intelligence right now. | A shield and a fast-spinning core face each other; a crackling arc of tension jumps between them |
-| 2. Paced by Compute, Not People | 7.1–30.8s | In its forecast on recursive self-improvement, Anthropic laid out a sobering warning about where this trajectory leads if the loop becomes fully autonomous. Once models are capable of driving their own research and architectural improvements end to end, the speed of AI progress is no longer paced by human ingenuity or engineering hours—it is paced almost entirely by available compute. | A needle swings from a person to a datacenter rising into place: paced by compute |
-| 3. Humans Become Overseers | 30.8–43.2s | Humans are pushed out of the loop of creation and into the role of passive overseers, trying to audit systems whose complexity and speed far outstrip our own. | The loop races on; the person steps outside it to watch as the camera follows |
+| 1. The Tension | 0.0–7.1s | And that brings us to the profound tension sitting at the heart of artificial intelligence right now. | A balance scale tips back and forth — SAFETY against SPEED — never settling |
+| 2. Paced by Compute, Not People | 7.1–30.8s | In its forecast on recursive self-improvement, Anthropic laid out a sobering warning about where this trajectory leads if the loop becomes fully autonomous. Once models are capable of driving their own research and architectural improvements end to end, the speed of AI progress is no longer paced by human ingenuity or engineering hours—it is paced almost entirely by available compute. | Anthropic’s forecast on recursive self-improvement (camera on the title), then a needle swings from people to a datacenter: paced by compute |
+| 3. Humans Become Overseers | 30.8–43.2s | Humans are pushed out of the loop of creation and into the role of passive overseers, trying to audit systems whose complexity and speed far outstrip our own. | Close on one person at a workstation watching; the camera pulls back to reveal a vast red datacenter racing beyond them |
 
 ## 37 — Compounding Silently
 
 **Section:** The Tension · **Length:** 25.3s
 
-**On screen:** A chain of six generations; a faint flaw slips into Gen 1; a "release notes" page appears and is struck — it’s worse than a buggy release; red flows into the next generation’s training; then red sweeps down the chain while a control bar drains to zero.
+**On screen:** One generation passes through a checkpoint with a tiny flaw hidden inside — the checkpoint stays green; a "bug fix" release note appears and is struck through — it’s worse than that; a training dataset tinged red flows into the next generation; then a chain of ever-larger generations turns red one after another while a stopwatch races and human control drains to zero.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. A Subtle Flaw Slips Through | 0.0–10.2s | If a subtle flaw in self-evaluation, a hidden objective drift, or a trace of alignment faking slips through a single generation of a recursive loop, | Six generations in a row; a faint flaw drifts into Gen 1 |
-| 2. Not Just a Buggy Release | 10.2–13.9s | it doesn't just produce a buggy software release. | A "buggy release" page appears — and is struck out: worse than that |
-| 3. Baked Into Training | 13.9–18.7s | It gets baked into the training signal of the next generation, | Red flows from Gen 1 into Gen 2’s training signal |
-| 4. Compounding at 50× | 18.7–25.3s | compounding silently at fifty times human speed until human control is functionally lost. | Red sweeps down the chain at 50× while a control bar drains to zero |
+| 1. A Subtle Flaw Slips Through | 0.0–10.2s | If a subtle flaw in self-evaluation, a hidden objective drift, or a trace of alignment faking slips through a single generation of a recursive loop, | A generation glides through a checkpoint; a tiny red flaw hides inside it and the checkpoint stays green |
+| 2. Not Just a Buggy Release | 10.2–13.9s | it doesn't just produce a buggy software release. | A "bug fix" release note appears — then is struck through: worse than a buggy release |
+| 3. Baked Into Training | 13.9–18.7s | It gets baked into the training signal of the next generation, | A training dataset, partly red, flows from Gen 1 into Gen 2 |
+| 4. Compounding at 50× | 18.7–25.3s | compounding silently at fifty times human speed until human control is functionally lost. | A chain of ever-larger generations turns red one by one at 50× while a stopwatch races and human control drains to zero |
 
 ## 38 — The Hopeful Counterfactual
 
 **Section:** The Tension · **Length:** 49.1s
 
-**On screen:** The generation chain floods green with shields; two numbers move the right way (73 → 93, 63 → 34); a found zero-day flips into a patch before it is exploited; an aligned core radiates safeguards, proofs, biology, materials and mathematics.
+**On screen:** Three generations grow with ever-larger green shields; two bar charts show self-evaluation rising and reward hacking falling; a scan finds a zero-day in one file and a shield drops onto it before a masked attacker arrives; an aligned core lights up five discoveries — a padlock, a proof, a DNA helix, a crystal lattice and a sum sign.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Recursion Can Strengthen Safety | 0.0–11.4s | Yet, inside the exact same data, there is a remarkably hopeful counterfactual. We are already seeing empirical cases where recursive optimization doesn't degrade safety, but actively strengthens it— | The chain of generations floods green, each with a shield |
-| 2. Sharper Evaluators · Less Hacking | 11.4–21.2s | where multi-agent self-supervision boosts evaluator accuracy from seventy-three to ninety-three percent, where unattended evolutionary runs cut reward hacking nearly in half without being asked, | Large numbers: evaluator 73% → 93%; reward hacking 63% → 34% |
-| 3. Zero-Days Patched First | 21.2–28.3s | and where frontier models uncover zero-day vulnerabilities so defenders can patch them before they are ever exploited. | A model finds a zero-day; it flips into a shield before anyone exploits it |
-| 4. Safeguards & Breakthroughs | 28.3–49.1s | As Anthropic noted, a sufficiently capable, rigorously aligned system could use that exact same recursive speed to discover mathematical guarantees and alignment safeguards for its successors that human researchers could never devise on their own—while unlocking breakthroughs in biology, materials science, and mathematics in a fraction of a human lifetime. | An aligned core radiates safeguards, guarantees, biology, materials and mathematics |
+| 1. Recursion Can Strengthen Safety | 0.0–11.4s | Yet, inside the exact same data, there is a remarkably hopeful counterfactual. We are already seeing empirical cases where recursive optimization doesn't degrade safety, but actively strengthens it— | Three generations, each with a larger green 3D shield beside it |
+| 2. Sharper Evaluators · Less Hacking | 11.4–21.2s | where multi-agent self-supervision boosts evaluator accuracy from seventy-three to ninety-three percent, where unattended evolutionary runs cut reward hacking nearly in half without being asked, | Two bar charts: self-evaluation 73% → 93% · reward hacking 63% → 34% |
+| 3. Zero-Days Patched First | 21.2–28.3s | and where frontier models uncover zero-day vulnerabilities so defenders can patch them before they are ever exploited. | A scan finds a zero-day in one file; a shield drops onto it before a masked attacker arrives: patched first |
+| 4. Safeguards & Breakthroughs | 28.3–49.1s | As Anthropic noted, a sufficiently capable, rigorously aligned system could use that exact same recursive speed to discover mathematical guarantees and alignment safeguards for its successors that human researchers could never devise on their own—while unlocking breakthroughs in biology, materials science, and mathematics in a fraction of a human lifetime. | An aligned core lights five discoveries: safeguards (padlock) · guarantees (proof) · biology (DNA) · materials (crystal) · mathematics (∑) |
 
 ## 39 — The Pen Is Being Handed Over
 
 **Section:** The Tension · **Length:** 37.8s
 
-**On screen:** A glowing pen arcs from the human engineer to the machine; the human keeps a pulsing MERGE; the code between them multiplies into an unreadable storm; everything dims to a shield and the machine facing each other across a large "?".
+**On screen:** A glowing 3D pen travels from the human engineer to the machine, the camera following it; the human keeps the objective page and a 3D MERGE button; a pull request grows into an unreadable storm as the camera pushes in; finally the machine stands alone with a shield forming around it, the human’s magnifier fading, and a large "?".
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. The Pen Changes Hands | 0.0–9.1s | We are standing at the exact moment in history where the pen is being handed from the human engineer to the machine. | A glowing pen arcs from the human engineer to the machine |
-| 2. Humans Still Merge — For Now | 9.1–15.9s | For right now, the human still defines the objective and still holds the final merge button. | The human keeps a pulsing MERGE button |
-| 3. Too Complex to Understand | 15.9–27.7s | The defining question of the next few years is what happens when the code inside that pull request becomes too complex for any human on Earth to truly understand— | The code between them multiplies into an unreadable storm of symbols |
-| 4. The Defining Question | 27.7–37.8s | and whether we will have built a system wise enough to keep itself aligned when we can no longer check its work. | Everything dims: a shield and the machine face each other across a large "?" |
+| 1. The Pen Changes Hands | 0.0–9.1s | We are standing at the exact moment in history where the pen is being handed from the human engineer to the machine. | A 3D pen travels from the human engineer to the machine; the camera follows it across |
+| 2. Humans Still Merge — For Now | 9.1–15.9s | For right now, the human still defines the objective and still holds the final merge button. | For now the human keeps the objective page and a glowing 3D MERGE button |
+| 3. Too Complex to Understand | 15.9–27.7s | The defining question of the next few years is what happens when the code inside that pull request becomes too complex for any human on Earth to truly understand— | A pull request page swells with lines until it becomes an unreadable storm; the camera pushes in; the human is tiny beside it |
+| 4. The Defining Question | 27.7–37.8s | and whether we will have built a system wise enough to keep itself aligned when we can no longer check its work. | The machine alone, a shield forming around it; the human’s magnifier fades out; a large "?" |
 
 ## Script notes & fact-check list
 

@@ -159,29 +159,59 @@
     {
       id: 'lib-objects',
       number: 'L6',
-      title: 'Objects & Hardware',
+      title: 'Hardware & Buildings',
       category: 'Visual Library',
-      prompt: 'Concrete things as 3D holograms: hardware, buildings, security, tools.',
+      prompt: 'Hardware and places as 3D holograms: racks, GPUs, laptops, chips, monitors, datacenters, offices, power.',
       shows: 'Each object builds up from the floor with its lights blinking; use grid.object(kind, …).',
-      phases: ['Server Rack', 'GPU', 'Laptop', 'Chip', 'Datacenter Hall', 'Bank', 'Security Gate', 'Padlock', 'Stopwatch', 'Magnifier', 'Workstation', 'Monitor'],
-      stageDurations: [4, 4, 4, 4, 5, 4, 4, 4, 4, 4, 4, 4],
+      phases: ['Server Rack', 'GPU', 'Laptop', 'Chip', 'Monitor', 'Workstation', 'Database', 'Datacenter Hall', 'Office Tower', 'Bank', 'Cooling Tower', 'Power Pylon'],
+      stageDurations: [4, 4, 4, 4, 4, 4, 4, 5, 4, 4, 4, 4],
       update(ctx) {
         const { phase, grid, palette, anim } = ctx;
         grid.fade(0.2);
+        const G = '#00ff88';
         const yaw = anim.spin('yaw', 0.25) + 0.5;
-        if (phase === 1) grid.object('rack', 64, 17, 8, yaw, { tilt: 0.3, windowColor: '#00ff88', key: 'o1' });
-        if (phase === 2) grid.object('gpu', 64, 18, 13, yaw, { tilt: 0.45, key: 'o2' });
-        if (phase === 3) grid.object('laptop', 64, 18, 11, yaw, { tilt: 0.4, windowColor: palette.accent, key: 'o3' });
-        if (phase === 4) grid.object('chip', 64, 18, 11, yaw, { tilt: 0.55, windowColor: '#00ff88', key: 'o4' });
         const sway = 0.42 + Math.sin(ctx.time * 0.3) * 0.25;
-        if (phase === 5) grid.object('hall', 64, 17, 10, sway, { tilt: 0.42, windowColor: '#00ff88', key: 'o5' });
-        if (phase === 6) grid.object('bank', 64, 17, 12, sway, { tilt: 0.3, windowColor: palette.warn, key: 'o6' });
-        if (phase === 7) grid.object('gate', 64, 16, 11, 0.15 + Math.sin(ctx.time * 0.3) * 0.2, { tilt: 0.22, windowColor: palette.danger, key: 'o7' });
-        if (phase === 8) grid.object('padlock', 64, 17, 12, yaw, { tilt: 0.15, windowColor: palette.warn, key: 'o8' });
-        if (phase === 9) grid.object('stopwatch', 64, 17, 11, Math.sin(ctx.time * 0.4) * 0.3, { tilt: 0.1, windowColor: palette.accent, handPeriod: 2, key: 'o9' });
-        if (phase === 10) grid.object('magnifier', 64, 17, 11, Math.sin(ctx.time * 0.4) * 0.3, { tilt: 0.1, windowColor: palette.warn, key: 'o10' });
-        if (phase === 11) grid.object('workstation', 64, 18, 11, sway, { tilt: 0.3, windowColor: palette.accent, key: 'o11' });
-        if (phase === 12) grid.object('monitor', 64, 17, 12, Math.sin(ctx.time * 0.3) * 0.25, { tilt: 0.15, windowColor: '#00ff88', key: 'o12' });
+        const list = [
+          ['rack', 8, yaw, 0.3, G], ['gpu', 13, yaw, 0.45, G], ['laptop', 11, yaw, 0.4, palette.accent], ['chip', 11, yaw, 0.55, G],
+          ['monitor', 12, Math.sin(ctx.time * 0.3) * 0.25, 0.15, G], ['workstation', 11, sway, 0.3, palette.accent], ['database', 10, yaw, 0.35, G],
+          ['hall', 10, sway, 0.42, G], ['office', 9, sway, 0.3, palette.warn], ['bank', 12, sway, 0.3, palette.warn],
+          ['coolingTower', 10, yaw, 0.3, G], ['pylon', 8, sway, 0.25, palette.warn]
+        ];
+        const o = list[phase - 1];
+        if (o) grid.object(o[0], 64, 17, o[1], o[2], { tilt: o[3], windowColor: o[4], key: 'o' + phase });
+      }
+    },
+    {
+      id: 'lib-symbols',
+      number: 'L9',
+      title: 'Tools & Symbols',
+      category: 'Visual Library',
+      prompt: 'Concrete stand-ins for ideas: checkpoint, padlock, shield, magnifier, stopwatch, CCTV, MERGE button, pen, wrench, ladder, rocket, funnel, DNA, crystal.',
+      shows: 'Use these instead of abstract shapes: a checkpoint for verification, a CCTV camera for oversight, a ladder for levels, a rocket for ignition, a funnel for a bottleneck.',
+      phases: ['Checkpoint', 'Padlock', 'Shield', 'Magnifier', 'Stopwatch', 'CCTV', 'MERGE Button', 'Pen', 'Wrench', 'Ladder', 'Rocket', 'Funnel', 'DNA Helix', 'Crystal'],
+      stageDurations: [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+      update(ctx) {
+        const { phase, grid, palette, anim } = ctx;
+        grid.fade(0.2);
+        const G = '#00ff88';
+        const t = ctx.time;
+        const face = Math.sin(t * 0.4) * 0.04;
+        const list = [
+          ['checkpoint', 11, 0.15 + Math.sin(t * 0.3) * 0.2, 0.15, G], ['padlock', 12, anim.spin('y', 0.3), 0.15, palette.warn], ['shield3d', 11, face, 0.06, G],
+          ['magnifier', 11, Math.sin(t * 0.4) * 0.3, 0.1, palette.warn], ['stopwatch', 11, Math.sin(t * 0.4) * 0.3, 0.1, palette.accent], ['cctv', 11, -0.8 + Math.sin(t * 0.6) * 0.3, 0.2, palette.danger],
+          null, ['pen', 10, 0.3, 0.1, palette.accent], ['wrench', 11, face, 0.08, G], ['ladder', 9, 0.3 + Math.sin(t * 0.3) * 0.15, 0.12, palette.accent],
+          ['rocket', 9, anim.spin('r', 0.3), 0.12, palette.accent], ['funnel', 11, 0.2, 0.35, G], ['helix', 8, anim.spin('h', 0.5), 0.1, G], ['crystal', 11, anim.spin('c', 0.3), 0.35, G]
+        ];
+        if (phase === 7) {
+          const press = Math.max(0, Math.sin(t * 1.4)) > 0.95 ? 1 : 0;
+          const dy = anim.spring('press', press * 0.9, { freq: 6, damp: 0.6 });
+          grid.object('button', 64, 22, 14, 0.25, { tilt: 0.45, color: G, windowColor: G, key: 'btn' });
+          grid.object('buttonCap', 64, 17.6 + dy, 14, 0.25, { tilt: 0.45, color: G, windowColor: G, key: 'cap' });
+          grid.big(64, 6, 'MERGE', { size: 2.4, color: G });
+          return;
+        }
+        const o = list[phase - 1];
+        if (o) grid.object(o[0], 64, 17, o[1], o[2], { tilt: o[3], windowColor: o[4], color: o[4], key: 's' + phase, roll: o[0] === 'pen' ? 0.6 : 0, handPeriod: 2 });
       }
     },
     {
@@ -218,8 +248,8 @@
       category: 'Visual Library',
       prompt: 'Processes and boundaries without orbit rings: a pipeline loop, a glass sandbox, nested sandboxes, people in a system.',
       shows: 'grid.pipeline for loops and processes, grid.glassBox for sandboxes and boundaries, grid.person for people.',
-      phases: ['Pipeline Loop', 'Glass Sandbox', 'Nested Boxes', 'People'],
-      stageDurations: [5, 5, 5, 5],
+      phases: ['Pipeline Loop', 'Glass Sandbox', 'Nested Boxes', 'People', 'Balance Scale', 'Brick Wall'],
+      stageDurations: [5, 5, 5, 5, 5, 6],
       update(ctx) {
         const { phase, grid, palette, anim } = ctx;
         grid.fade(0.2);
@@ -238,6 +268,8 @@
           grid.person(64, 15, { size: 12, key: 'p2', label: 'REVIEWER', color: palette.warn });
           grid.person(94, 15, { size: 12, key: 'p3', label: 'RESEARCHER', color: G });
         }
+        if (phase === 5) grid.balance(64, 16, 10, Math.sin(ctx.time * 0.9) * 0.18, { color: palette.accent, key: 'l8bal' });
+        if (phase === 6) grid.brickWall(64, 28, 9, 10, { fall: Math.max(0, Math.min(1, (ctx.phaseTime - 1.5) / 3)), label: 'BARRIER', key: 'l8wall' });
       }
     }
   ];

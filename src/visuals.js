@@ -718,6 +718,253 @@
       seg(V, E, [0, 0.05, -0.02], [0, 0.3, -0.02]);
       ring(V, E, -0.3, -0.2, 0.3, 0.15, 0.05);
       for (let r = 0; r < 7; r++) for (let i = 0; i < 12; i++) if (hashN(r * 12 + i + 3) > 0.3) W.push([-0.75 + i * 0.125, 1.18 - r * 0.12, 0.06]);
+    } else if (kind === 'checkpoint') {
+      // Slim verification checkpoint: two posts, a light curtain between them (subtle)
+      for (const x of [-0.42, 0.42]) {
+        box(V, E, x - 0.035, 0, -0.035, x + 0.035, 0.95, 0.035);
+        ring(V, E, x - 0.09, -0.09, x + 0.09, 0.09, 0);
+      }
+      seg(V, E, [-0.42, 0.95, 0], [0.42, 0.95, 0]);
+      for (let r = 0; r < 7; r++) for (let c = 0; c < 8; c++) W.push([-0.33 + c * 0.094, 0.1 + r * 0.13, 0]);
+    } else if (kind === 'coolingTower') {
+      const N = 18;
+      const levels = 7;
+      const rad = (y) => 0.3 + 0.32 * Math.pow((y - 0.75) / 0.75, 2);
+      for (let l = 0; l < levels; l++) {
+        const y = (l / (levels - 1)) * 1.3;
+        const b = V.length;
+        for (let k = 0; k < N; k++) {
+          const a = (k / N) * Math.PI * 2;
+          V.push([Math.cos(a) * rad(y), y, Math.sin(a) * rad(y)]);
+        }
+        for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
+        if (l > 0) for (let k = 0; k < N; k += 2) E.push([b + k, b - N + ((k + 2) % N)]);
+      }
+    } else if (kind === 'pylon') {
+      const H = 1.9;
+      const w0 = 0.32;
+      const w1 = 0.06;
+      const lv = [0, 0.45, 0.9, 1.3, 1.6, H];
+      const wAt = (y) => w0 + (w1 - w0) * (y / H);
+      lv.forEach((y, i) => {
+        ring(V, E, -wAt(y), -wAt(y), wAt(y), wAt(y), y);
+        if (i > 0) {
+          const y0 = lv[i - 1];
+          for (const s of [-1, 1]) {
+            seg(V, E, [s * wAt(y0), y0, -wAt(y0)], [s * wAt(y), y, -wAt(y)]);
+            seg(V, E, [s * wAt(y0), y0, wAt(y0)], [s * wAt(y), y, wAt(y)]);
+            seg(V, E, [-wAt(y0), y0, s * wAt(y0)], [wAt(y), y, s * wAt(y)]);
+          }
+        }
+      });
+      for (const y of [1.3, 1.6]) {
+        seg(V, E, [-0.7, y, 0], [0.7, y, 0]);
+        seg(V, E, [-0.7, y, 0], [-0.7, y - 0.15, 0]);
+        seg(V, E, [0.7, y, 0], [0.7, y - 0.15, 0]);
+        W.push([-0.7, y - 0.15, 0], [0.7, y - 0.15, 0]);
+      }
+    } else if (kind === 'database') {
+      const N = 20;
+      const r = 0.5;
+      for (let d = 0; d < 3; d++) {
+        for (const y of [d * 0.38, d * 0.38 + 0.3]) {
+          const b = V.length;
+          for (let k = 0; k < N; k++) {
+            const a = (k / N) * Math.PI * 2;
+            V.push([Math.cos(a) * r, y, Math.sin(a) * r]);
+          }
+          for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
+        }
+        for (let k = 0; k < 4; k++) {
+          const a = (k / 4) * Math.PI * 2 + 0.4;
+          seg(V, E, [Math.cos(a) * r, d * 0.38, Math.sin(a) * r], [Math.cos(a) * r, d * 0.38 + 0.3, Math.sin(a) * r]);
+        }
+        for (let k = 0; k < 6; k++) W.push([-0.3 + k * 0.12, d * 0.38 + 0.15, r]);
+      }
+    } else if (kind === 'wrench') {
+      const pts = [[-0.08, 0], [0.08, 0], [0.08, 0.8], [0.22, 0.92], [0.22, 1.15], [0.1, 1.15], [0.1, 1.02], [-0.1, 1.02], [-0.1, 1.15], [-0.22, 1.15], [-0.22, 0.92], [-0.08, 0.8]];
+      const b = V.length;
+      for (const z of [-0.04, 0.04]) for (const p of pts) V.push([p[0], p[1], z]);
+      const n = pts.length;
+      for (let k = 0; k < n; k++) {
+        E.push([b + k, b + ((k + 1) % n)]);
+        E.push([b + n + k, b + n + ((k + 1) % n)]);
+        if (k % 3 === 0) E.push([b + k, b + n + k]);
+      }
+    } else if (kind === 'button') {
+      box(V, E, -0.55, 0, -0.4, 0.55, 0.16, 0.4);
+      const N = 20;
+      for (const y of [0.16, 0.24]) {
+        const b = V.length;
+        for (let k = 0; k < N; k++) {
+          const a = (k / N) * Math.PI * 2;
+          V.push([Math.cos(a) * 0.36, y, Math.sin(a) * 0.26]);
+        }
+        for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
+      }
+    } else if (kind === 'buttonCap') {
+      const N = 20;
+      for (const y of [0, 0.14]) {
+        const b = V.length;
+        for (let k = 0; k < N; k++) {
+          const a = (k / N) * Math.PI * 2;
+          V.push([Math.cos(a) * 0.3, y, Math.sin(a) * 0.21]);
+        }
+        for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
+        if (y > 0) for (let k = 0; k < N; k += 5) E.push([b + k, b - N + k]);
+      }
+      for (let k = 0; k < 8; k++) W.push([Math.cos((k / 8) * Math.PI * 2) * 0.18, 0.15, Math.sin((k / 8) * Math.PI * 2) * 0.12]);
+    } else if (kind === 'pen') {
+      const N = 8;
+      const r = 0.07;
+      const rings = [[0.2, r], [1.25, r], [1.32, r * 1.15], [1.6, r * 1.15]];
+      rings.forEach((rg) => {
+        const b = V.length;
+        for (let k = 0; k < N; k++) {
+          const a = (k / N) * Math.PI * 2;
+          V.push([Math.cos(a) * rg[1], rg[0], Math.sin(a) * rg[1]]);
+        }
+        for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
+      });
+      for (let k = 0; k < N; k++) {
+        E.push([k, 3 * N + k]);
+      }
+      const tip = V.length;
+      V.push([0, 0, 0]);
+      for (let k = 0; k < N; k++) E.push([tip, k]);
+      seg(V, E, [r * 1.15, 1.55, 0], [r * 1.6, 1.1, 0]);
+      W.push([0, 0.02, 0]);
+    } else if (kind === 'rocket') {
+      const N = 12;
+      const rr = 0.22;
+      const lv = [0.1, 0.5, 0.9, 1.2];
+      lv.forEach((y) => {
+        const b = V.length;
+        for (let k = 0; k < N; k++) {
+          const a = (k / N) * Math.PI * 2;
+          V.push([Math.cos(a) * rr, y, Math.sin(a) * rr]);
+        }
+        for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
+      });
+      for (let k = 0; k < N; k += 3) E.push([k, 3 * N + k]);
+      const nose = V.length;
+      V.push([0, 1.65, 0]);
+      for (let k = 0; k < N; k += 2) E.push([nose, 3 * N + k]);
+      for (let f = 0; f < 4; f++) {
+        const a = (f / 4) * Math.PI * 2;
+        const cx0 = Math.cos(a);
+        const sz0 = Math.sin(a);
+        const b = V.length;
+        V.push([cx0 * rr, 0.45, sz0 * rr], [cx0 * 0.48, 0, sz0 * 0.48], [cx0 * rr, 0.1, sz0 * rr]);
+        E.push([b, b + 1], [b + 1, b + 2]);
+      }
+      const nz = V.length;
+      for (let k = 0; k < N; k++) {
+        const a = (k / N) * Math.PI * 2;
+        V.push([Math.cos(a) * 0.14, 0, Math.sin(a) * 0.14]);
+      }
+      for (let k = 0; k < N; k++) E.push([nz + k, nz + ((k + 1) % N)]);
+      W.push([0, 1.02, rr], [0, 0.72, rr]);
+    } else if (kind === 'ladder') {
+      const H = 2.1;
+      for (const x of [-0.42, 0.42]) box(V, E, x - 0.04, 0, -0.04, x + 0.04, H, 0.04);
+      for (let r = 1; r <= 4; r++) {
+        const y = (r * H) / 4.6;
+        box(V, E, -0.38, y - 0.025, -0.03, 0.38, y + 0.025, 0.03);
+        W.push([0, y, 0.05]);
+      }
+    } else if (kind === 'cctv') {
+      box(V, E, -0.08, 0.9, -0.5, 0.08, 1.25, -0.42);
+      seg(V, E, [0, 1.05, -0.42], [0, 1.05, -0.15]);
+      box(V, E, -0.16, 0.95, -0.15, 0.16, 1.18, 0.45);
+      const N = 12;
+      for (const z of [0.45, 0.58]) {
+        const b = V.length;
+        for (let k = 0; k < N; k++) {
+          const a = (k / N) * Math.PI * 2;
+          V.push([Math.cos(a) * 0.1, 1.065 + Math.sin(a) * 0.1, z]);
+        }
+        for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
+      }
+      box(V, E, -0.2, 1.18, -0.2, 0.2, 1.22, 0.55);
+      W.push([0, 1.065, 0.6], [0.11, 1.12, 0.46]);
+    } else if (kind === 'shield3d') {
+      const pts = [];
+      for (let k = 0; k <= 10; k++) {
+        const t = k / 10;
+        pts.push([-0.55 + t * 1.1, 1.2 + Math.sin(t * Math.PI) * 0.06]);
+      }
+      for (let k = 1; k <= 12; k++) {
+        const t = k / 12;
+        pts.push([0.55 * Math.cos(t * Math.PI / 2), 1.2 - t * 1.2 * (0.55 + 0.45 * t)]);
+      }
+      for (let k = 11; k >= 1; k--) {
+        const t = k / 12;
+        pts.push([-0.55 * Math.cos(t * Math.PI / 2), 1.2 - t * 1.2 * (0.55 + 0.45 * t)]);
+      }
+      const n = pts.length;
+      const b = V.length;
+      for (const z of [-0.06, 0.06]) for (const p of pts) V.push([p[0], p[1] + 0.05, z]);
+      for (let k = 0; k < n; k++) {
+        E.push([b + k, b + ((k + 1) % n)]);
+        E.push([b + n + k, b + n + ((k + 1) % n)]);
+        if (k % 4 === 0) E.push([b + k, b + n + k]);
+      }
+      seg(V, E, [-0.25, 0.75, 0.07], [0, 0.45, 0.07]);
+      seg(V, E, [0, 0.45, 0.07], [0.32, 0.95, 0.07]);
+      W.push([0, 0.6, 0.08]);
+    } else if (kind === 'helix') {
+      const turns = 2.2;
+      const steps = 44;
+      const r = 0.32;
+      const H = 1.8;
+      for (const ph of [0, Math.PI]) {
+        const b = V.length;
+        for (let k = 0; k <= steps; k++) {
+          const t = k / steps;
+          const a = t * turns * Math.PI * 2 + ph;
+          V.push([Math.cos(a) * r, t * H, Math.sin(a) * r]);
+        }
+        for (let k = 0; k < steps; k++) E.push([b + k, b + k + 1]);
+      }
+      for (let k = 0; k <= steps; k += 3) {
+        E.push([k, steps + 1 + k]);
+        W.push([0, (k / steps) * H, 0]);
+      }
+    } else if (kind === 'crystal') {
+      const n = 3;
+      const sp = 0.42;
+      const idx = (i, j, k) => (i * n + j) * n + k;
+      const b = V.length;
+      for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) for (let k = 0; k < n; k++) {
+        V.push([(i - 1) * sp, j * sp, (k - 1) * sp]);
+        W.push([(i - 1) * sp, j * sp, (k - 1) * sp]);
+      }
+      for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) for (let k = 0; k < n; k++) {
+        if (i < n - 1) E.push([b + idx(i, j, k), b + idx(i + 1, j, k)]);
+        if (j < n - 1) E.push([b + idx(i, j, k), b + idx(i, j + 1, k)]);
+        if (k < n - 1) E.push([b + idx(i, j, k), b + idx(i, j, k + 1)]);
+      }
+    } else if (kind === 'funnel') {
+      const N = 22;
+      const lv = [[1.3, 0.85], [0.95, 0.6], [0.6, 0.18], [0.0, 0.1]];
+      lv.forEach((l) => {
+        const b = V.length;
+        for (let k = 0; k < N; k++) {
+          const a = (k / N) * Math.PI * 2;
+          V.push([Math.cos(a) * l[1], l[0], Math.sin(a) * l[1]]);
+        }
+        for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
+      });
+      for (let k = 0; k < N; k += 2) for (let l = 0; l < 3; l++) E.push([l * N + k, (l + 1) * N + k]);
+    } else if (kind === 'office') {
+      const hw = 0.55, hd = 0.4, H = 1.6, floors = 8;
+      box(V, E, -hw, 0, -hd, hw, H, hd);
+      for (let f = 1; f < floors; f++) ring(V, E, -hw, -hd, hw, hd, (f * H) / floors);
+      for (let f = 0; f < floors; f++) for (let k = 0; k < 6; k++) {
+        const y = ((f + 0.5) * H) / floors;
+        W.push([-hw + 0.1 + k * 0.18, y, hd], [hw, y, -hd + 0.1 + (k % 4) * 0.2]);
+      }
     } else {
       const hx = 0.5, hz = 0.38, H = 0.45;
       box(V, E, -hx, 0, -hz, hx, H, hz);
@@ -738,14 +985,19 @@
   Engine.prototype.drawBuilding = function (kind, cx, cy, scale, rotY, opts = {}) {
     const pal = this.palette;
     const m = buildModel(kind || 'tower');
-    const p = opts.progress !== undefined ? opts.progress : revealK(this, 'b:' + kind + cx, cx, cy, opts.duration || 1.8);
+    // Keyed by opts.key when given, so objects that move keep their reveal state
+    const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'b:' + kind + cx, opts.key ? 0 : cx, opts.key ? 0 : cy, opts.duration || 1.8);
     const cap = m.maxY * c01(p);
     const yc = m.maxY / 2;
     // Spin about the building's own vertical axis, then tilt toward camera (keeps it upright)
     const cy0 = Math.cos(rotY), sy0 = Math.sin(rotY);
+    // Optional roll (tilt the object sideways about its centre), then yaw, then camera tilt
+    const cr = Math.cos(opts.roll || 0), sr = Math.sin(opts.roll || 0);
     const toScreen = (v, clamp) => {
-      const y = clamp ? Math.min(v[1], cap) : v[1];
-      return [v[0] * cy0 + v[2] * sy0, -(y - yc), -v[0] * sy0 + v[2] * cy0];
+      const y0 = (clamp ? Math.min(v[1], cap) : v[1]) - yc;
+      const x = v[0] * cr - y0 * sr;
+      const y = v[0] * sr + y0 * cr;
+      return [x * cy0 + v[2] * sy0, -y, -x * sy0 + v[2] * cy0];
     };
     const verts = m.V.map(v => toScreen(v, true));
     const col = opts.color || pal.accent;
@@ -760,7 +1012,7 @@
         const q = toScreen(w, false);
         const pr = this.project3D(q[0], q[1], q[2], cx, cy, tilt, 0, 0, scale);
         if (pr.z < -0.05) continue;
-        const lit = Math.sin(this.time * (0.4 + hashN(i) * 1.6) + i) > -0.2;
+        const lit = opts.litFn ? opts.litFn(i, w) : Math.sin(this.time * (0.4 + hashN(i) * 1.6) + i) > -0.2;
         if (lit) this._vdot(pr.x, pr.y, 1.1, opts.windowColor || pal.warn, 0.75);
       }
     }
@@ -1074,9 +1326,9 @@
     // Normalise so the box height is ±1 model unit (keeps perspective sane)
     const vs = (this.viewportScale || 1) * 0.8;
     const aspect = this.cellH / this.cellW;
-    const U = h / 2;
+    const U = Math.max(h, w / aspect, d / aspect) / 2;
     const sx = (w / 2) / (U * aspect);
-    const sy = 1;
+    const sy = (h / 2) / U;
     const sz = (d / 2) / (U * aspect);
     const e = 0.55 + 0.45 * k;
     const V = [];
@@ -1329,6 +1581,101 @@
     return { xs, active: hl };
   };
 
+  // grid.balance(cx, cy, scale, angle, { color, rotY, tilt }) — a two-pan balance scale.
+  // `angle` tips the beam (+ = right pan down). Returns the screen positions of the two
+  // pans ({ left: { x, y }, right: { x, y } }) so a scene can set things on them.
+  Engine.prototype.drawBalance = function (cx, cy, scale, angle, opts = {}) {
+    const pal = this.palette;
+    const col = opts.color || pal.accent;
+    const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'bal' + cx, cx, cy, 1.2);
+    const k = smooth(p);
+    const V = [];
+    const E = [];
+    const H = 1.5;
+    box(V, E, -0.45, 0, -0.25, 0.45, 0.08, 0.25);
+    box(V, E, -0.04, 0.08, -0.04, 0.04, H, 0.04);
+    const L = 1.25;
+    const ca = Math.cos(angle);
+    const sa = Math.sin(angle);
+    const end = (s) => [s * L * ca, H - s * L * sa];
+    const le = end(-1);
+    const re = end(1);
+    // Beam and strings sit a touch in front of the post so they render as front edges
+    seg(V, E, [le[0], le[1], 0.08], [re[0], re[1], 0.08]);
+    seg(V, E, [0, H - 0.02, 0], [0, H + 0.14, 0]);
+    const pans = [];
+    for (const e of [le, re]) {
+      const py = e[1] - 0.55;
+      const N = 14;
+      const b = V.length;
+      for (let i = 0; i < N; i++) {
+        const a = (i / N) * Math.PI * 2;
+        V.push([e[0] + Math.cos(a) * 0.38, py, Math.sin(a) * 0.38]);
+      }
+      for (let i = 0; i < N; i++) E.push([b + i, b + ((i + 1) % N)]);
+      for (const a of [0, 2.1, 4.2]) seg(V, E, [e[0], e[1], 0.08], [e[0] + Math.cos(a) * 0.38, py, Math.sin(a) * 0.38 + 0.08]);
+      pans.push([e[0], py]);
+    }
+    const yc = H / 2;
+    const ry = opts.rotY !== undefined ? opts.rotY : 0.12;
+    const tilt = -(opts.tilt !== undefined ? opts.tilt : 0.12);
+    const cy0 = Math.cos(ry);
+    const sy0 = Math.sin(ry);
+    const toS = (v) => [v[0] * cy0 + v[2] * sy0, -(v[1] - yc), -v[0] * sy0 + v[2] * cy0];
+    this.drawWireframe3D(V.map(toS), E, cx, cy, { scale, rotX: tilt, rotY: 0, rotZ: 0, color: col, dim: pal.dim, ascii: false, vertices: false, packets: false, alpha: k * (opts.alpha !== undefined ? opts.alpha : 1) });
+    const proj = (q) => {
+      const s = toS([q[0], q[1], 0]);
+      const pr = this.project3D(s[0], s[1], s[2], cx, cy, tilt, 0, 0, scale);
+      return { x: pr.x, y: pr.y };
+    };
+    return { left: proj(pans[0]), right: proj(pans[1]) };
+  };
+
+  // grid.brickWall(cx, baseY, cols, rows, { fall, color, label, brick: [w, h] })
+  // A wall of bricks; `fall` 0..1 knocks it down brick by brick, top rows first.
+  Engine.prototype.drawBrickWall = function (cx, baseY, cols, rows, opts = {}) {
+    const pal = this.palette;
+    const col = opts.color || pal.warn;
+    const fall = c01(opts.fall || 0);
+    const bw = opts.brick ? opts.brick[0] : 4;
+    const bh = opts.brick ? opts.brick[1] : 1.6;
+    const x0 = cx - (cols * bw) / 2;
+    const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'wall' + cx, cx, baseY, 1);
+    this.vItems.push({
+      t: 'draw', h: this._hudMode,
+      fn(c, X, Y, cw, chh, ws) {
+        for (let r = 0; r < rows; r++) {
+          const off = r % 2 ? bw / 2 : 0;
+          for (let i = 0; i < cols; i++) {
+            const appear = c01(p * rows * 1.2 - r);
+            if (appear <= 0) continue;
+            const order = (rows - 1 - r) / rows * 0.6 + hashN(r * 31 + i) * 0.4;
+            const f = c01((fall - order * 0.7) / 0.3);
+            const bx = x0 + i * bw - (r % 2 ? bw / 2 : 0);
+            const by = baseY - (r + 1) * bh;
+            const dx = (hashN(i * 7 + r) - 0.5) * 14 * f;
+            const dy = f * f * (r + 2) * bh * 1.6;
+            const rot = (hashN(i + r * 13) - 0.5) * 2.4 * f;
+            const px = X(bx + bw / 2 + dx) - cw * 0.5;
+            const py = Y(by + bh / 2 + dy) - chh * 0.5;
+            c.save();
+            c.translate(px, py);
+            c.rotate(rot);
+            c.globalAlpha = appear * (1 - f * 0.85) * 0.9;
+            c.strokeStyle = col;
+            c.lineWidth = 1.2 * ws;
+            c.strokeRect(-bw * cw * 0.46, -bh * chh * 0.42, bw * cw * 0.92, bh * chh * 0.84);
+            c.globalAlpha = appear * (1 - f) * 0.14;
+            c.fillStyle = col;
+            c.fillRect(-bw * cw * 0.46, -bh * chh * 0.42, bw * cw * 0.92, bh * chh * 0.84);
+            c.restore();
+          }
+        }
+      }
+    });
+    if (opts.label) this.drawBigText(cx, baseY - rows * bh - 2, opts.label, { size: opts.labelSize || 1.2, color: col, alpha: 1 - fall });
+  };
+
   // --------------------------------------------------------------------------
   // Register in the scene sandbox
   // --------------------------------------------------------------------------
@@ -1354,7 +1701,9 @@
       timeline: (x0, x1, y, opts) => self.drawTimeline(x0, x1, y, opts || {}),
       glassBox: (cx, cy, w, h, d, opts) => self.drawGlassBox(cx, cy, w, h, d, opts || {}),
       pipeline: (x0, x1, y, steps, opts) => self.drawPipeline(x0, x1, y, steps, opts || {}),
-      releaseNotes: (cx, cy, opts) => self.drawReleaseNotes(cx, cy, opts || {})
+      releaseNotes: (cx, cy, opts) => self.drawReleaseNotes(cx, cy, opts || {}),
+      balance: (cx, cy, scale, angle, opts) => self.drawBalance(cx, cy, scale, angle, opts || {}),
+      brickWall: (cx, baseY, cols, rows, opts) => self.drawBrickWall(cx, baseY, cols, rows, opts || {})
     });
     return sb;
   };
