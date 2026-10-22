@@ -520,20 +520,40 @@ if (!window.termAPI) {
 
   // The video's scenes in story order (everything except the Visual Library gallery)
   function videoScenes() {
-    return window.BUILTIN_PRESETS.filter(p => p.category !== 'Visual Library' && /^rsi2-/.test(p.id));
+    return Array.isArray(window.TermFXVideoScenes) ? window.TermFXVideoScenes : [];
+  }
+
+  // The video script scenes live in src/private (git-ignored). They are loaded only when rendered.
+  function loadVideoScenes() {
+    if (videoScenes().length) return Promise.resolve(videoScenes());
+    return new Promise((resolve) => {
+      const s = document.createElement('script');
+      s.src = 'private/rsi-video-scenes.js';
+      s.onload = () => resolve(videoScenes());
+      s.onerror = () => resolve([]);
+      document.head.appendChild(s);
+    });
   }
 
   // Render All: every video scene back to back into one continuous file, or (separate) one file each
   async function renderAll({ separate = false } = {}) {
     if (rendering) return;
-    const scenes = videoScenes();
-    if (!scenes.length) return;
-    if (!separate) return renderVideo(scenes, { name: 'RSI video - all scenes' });
-    for (let i = 0; i < scenes.length; i++) {
-      const ok = await renderVideo([scenes[i]], { name: `${scenes[i].number} ${scenes[i].title}`, quiet: true, batch: `${i + 1}/${scenes.length}` });
-      if (!ok) break;
+    const previous = activeSimMeta;
+    const scenes = await loadVideoScenes();
+    if (!scenes.length) {
+      toast('Render all needs the video script, which is not part of this copy of TermFX.', 7000);
+      return;
     }
-    toast(`Rendered ${scenes.length} scene files → ${lastRenderOutput || 'renders folder'}`, 7000);
+    try {
+      if (!separate) return await renderVideo(scenes, { name: 'TermFX · all scenes' });
+      for (let i = 0; i < scenes.length; i++) {
+        const ok = await renderVideo([scenes[i]], { name: `${scenes[i].number} ${scenes[i].title}`, quiet: true, batch: `${i + 1}/${scenes.length}` });
+        if (!ok) break;
+      }
+      toast(`Rendered ${scenes.length} scene files → ${lastRenderOutput || 'renders folder'}`, 7000);
+    } finally {
+      if (previous) selectAndRunSimulation(previous, { autoType: false });
+    }
   }
 
   async function renderVideo(sceneList = null, opts = {}) {
@@ -1010,6 +1030,16 @@ if (!window.termAPI) {
 
   rebuildSimulationList();
   selectAndRunSimulation(window.BUILTIN_PRESETS[0], { autoType: false });
+
+  // First-run card: shown once per browser profile
+  const welcome = document.getElementById('welcome');
+  let welcomed = true;
+  try { welcomed = localStorage.getItem('termfx.welcomed') === '1'; } catch (_) {}
+  if (welcome && !welcomed) welcome.classList.remove('hidden');
+  document.getElementById('btn-welcome-start')?.addEventListener('click', () => {
+    welcome.classList.add('hidden');
+    try { localStorage.setItem('termfx.welcomed', '1'); } catch (_) {}
+  });
 
   let lastTime = performance.now();
   function frame(now) {

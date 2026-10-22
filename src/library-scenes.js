@@ -2,7 +2,7 @@
 // TermFX Studio - Visual Library gallery
 // One scene per kind of subject, so every primitive in visuals.js can be
 // previewed, recorded and copied into your own scenes.
-// Not part of the RSI video (the shot list only reads presets.js).
+// Visual Library previews. These ship with TermFX.
 // ============================================================================
 
 (function () {
@@ -47,9 +47,9 @@
         }
         if (phase === 2) {
           const titles = [
-            ['Dream-RSI', 'Google DeepMind', 'Oct 6'],
-            ['MASS: Multi-Agent Self-Search', 'Research preprint', 'Oct 8'],
-            ['When AI Builds Itself', 'Anthropic', 'Report']
+            ['Agent Replay Simulators', 'Example Lab', '2026'],
+            ['Multi-Agent Self-Supervision', 'Example Lab', '2026'],
+            ['Engineering Metrics Report', 'Example Lab', 'Report']
           ];
           titles.forEach((t, i) => {
             const k = anim.spring('fan' + i, 1, { from: 0, freq: 1.6 + i * 0.3, damp: 0.75 });
@@ -57,10 +57,10 @@
           });
         }
         if (phase === 3) {
-          grid.paper(64, 18, { key: 'finding', title: 'When AI Builds Itself', authors: 'Anthropic', venue: 'Report', w: 34, h: 24, highlight: 4, yaw: -0.12 });
+          grid.paper(64, 18, { key: 'finding', title: 'Engineering Metrics Report', authors: 'Example Lab', venue: 'Report', w: 34, h: 24, highlight: 4, yaw: -0.12 });
         }
         if (phase === 4) {
-          grid.paper(64, 18, { key: 'stamped', title: 'When AI Builds Itself', authors: 'Anthropic', venue: 'Report', w: 34, h: 24, stamp: 'PUBLISHED', stampColor: '#00ff88', yaw: 0.18 });
+          grid.paper(64, 18, { key: 'stamped', title: 'Engineering Metrics Report', authors: 'Example Lab', venue: 'Report', w: 34, h: 24, stamp: 'PUBLISHED', stampColor: '#00ff88', yaw: 0.18 });
         }
       }
     },
@@ -327,6 +327,9 @@
       }
     }
   ];
+
+  // Keep previews in numeric order (L1 … L10) regardless of where they are defined
+  LIBRARY.sort((x, y) => parseInt(x.number.slice(1), 10) - parseInt(y.number.slice(1), 10));
 
   for (const p of LIBRARY) {
     p.shortLabel = `${p.number}. ${p.title}`;
