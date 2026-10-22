@@ -161,10 +161,10 @@
       number: 'L6',
       title: 'Objects & Hardware',
       category: 'Visual Library',
-      prompt: 'Concrete hardware as rotating 3D holograms: a server rack, a GPU, a laptop, a chip.',
+      prompt: 'Concrete things as 3D holograms: hardware, buildings, security, tools.',
       shows: 'Each object builds up from the floor with its lights blinking; use grid.object(kind, …).',
-      phases: ['Server Rack', 'GPU', 'Laptop', 'Chip'],
-      stageDurations: [5, 5, 5, 5],
+      phases: ['Server Rack', 'GPU', 'Laptop', 'Chip', 'Datacenter Hall', 'Bank', 'Security Gate', 'Padlock', 'Stopwatch', 'Magnifier', 'Workstation', 'Monitor'],
+      stageDurations: [4, 4, 4, 4, 5, 4, 4, 4, 4, 4, 4, 4],
       update(ctx) {
         const { phase, grid, palette, anim } = ctx;
         grid.fade(0.2);
@@ -173,6 +173,15 @@
         if (phase === 2) grid.object('gpu', 64, 18, 13, yaw, { tilt: 0.45, key: 'o2' });
         if (phase === 3) grid.object('laptop', 64, 18, 11, yaw, { tilt: 0.4, windowColor: palette.accent, key: 'o3' });
         if (phase === 4) grid.object('chip', 64, 18, 11, yaw, { tilt: 0.55, windowColor: '#00ff88', key: 'o4' });
+        const sway = 0.42 + Math.sin(ctx.time * 0.3) * 0.25;
+        if (phase === 5) grid.object('hall', 64, 17, 10, sway, { tilt: 0.42, windowColor: '#00ff88', key: 'o5' });
+        if (phase === 6) grid.object('bank', 64, 17, 12, sway, { tilt: 0.3, windowColor: palette.warn, key: 'o6' });
+        if (phase === 7) grid.object('gate', 64, 16, 11, 0.15 + Math.sin(ctx.time * 0.3) * 0.2, { tilt: 0.22, windowColor: palette.danger, key: 'o7' });
+        if (phase === 8) grid.object('padlock', 64, 17, 12, yaw, { tilt: 0.15, windowColor: palette.warn, key: 'o8' });
+        if (phase === 9) grid.object('stopwatch', 64, 17, 11, Math.sin(ctx.time * 0.4) * 0.3, { tilt: 0.1, windowColor: palette.accent, handPeriod: 2, key: 'o9' });
+        if (phase === 10) grid.object('magnifier', 64, 17, 11, Math.sin(ctx.time * 0.4) * 0.3, { tilt: 0.1, windowColor: palette.warn, key: 'o10' });
+        if (phase === 11) grid.object('workstation', 64, 18, 11, sway, { tilt: 0.3, windowColor: palette.accent, key: 'o11' });
+        if (phase === 12) grid.object('monitor', 64, 17, 12, Math.sin(ctx.time * 0.3) * 0.25, { tilt: 0.15, windowColor: '#00ff88', key: 'o12' });
       }
     },
     {
@@ -180,10 +189,10 @@
       number: 'L7',
       title: 'Codebases, Dates & Timelines',
       category: 'Visual Library',
-      prompt: 'A codebase as a wall of files, a file being rewritten, a calendar with marked dates, a timeline of events.',
+      prompt: 'A codebase as a wall of files, a file being rewritten, a calendar, a timeline, release notes.',
       shows: 'grid.fileGrid fills a codebase; grid.paper lineColor rewrites lines; grid.calendar marks dates; grid.timeline places events.',
-      phases: ['Codebase', 'Rewriting a File', 'Calendar', 'Timeline'],
-      stageDurations: [5, 5, 5, 5],
+      phases: ['Codebase', 'Rewriting a File', 'Calendar', 'Timeline', 'Release Notes'],
+      stageDurations: [5, 5, 5, 5, 6],
       update(ctx) {
         const { phase, phaseTime, grid, palette } = ctx;
         grid.fade(0.2);
@@ -198,6 +207,8 @@
           { at: 1965, label: 'I. J. Good', color: palette.accent }, { at: 2017, label: 'Transformer', color: palette.primary, above: false },
           { at: 2025.1, label: 'Claude Code', color: palette.warn }, { at: 2026.8, label: 'now', color: G, above: false }
         ] });
+        if (phase === 5) grid.releaseNotes(64, 17, { product: 'Claude Developer Platform', version: 'Platform update', date: 'Oct 7', key: 'l7e', highlight: phaseTime > 3.5 ? 2 : undefined,
+          items: [{ tag: 'NEW', text: 'Claude Haiku 5.5' }, { tag: 'BETA', text: 'Agent SDK computer-use classes' }, { tag: 'SECURITY', text: 'allowed_hosts enforced' }, { tag: 'FIXED', text: 'Streaming retries' }] });
       }
     },
     {

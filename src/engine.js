@@ -2203,6 +2203,8 @@ class AsciiEngine {
     const camera = {
       zoom: (z) => { self.camZoomReq = z; },
       focus: (x, y, strength = 0.35) => { self.camFocus = { x, y, s: strength }; },
+      // Push the camera in on a point: centres (x, y) on screen at `zoom`
+      look: (x, y, zoom = 1.6) => { self.camZoomReq = zoom; self.camFocus = { x, y, s: zoom }; },
       punch: (amount) => self.punch(amount),
       shake: (amount) => self.shake(amount)
     };

@@ -18,7 +18,10 @@ All of these primitives live in `src/visuals.js`. You can preview them in the **
 | A specific object (a chip, a robot, a rocket) | Your own `.obj` 3D model as a hologram | `grid.model(…)` |
 | Countries, cities, "worldwide" | A dotted rotating Earth with pulsing markers and arcs | `grid.globe(…)` |
 | Generic people (engineers, reviewers, evaluators) | A lit silhouette, optionally labelled | `grid.person(…)` |
-| Hardware (servers, GPUs, laptops, chips) | A rotating 3D hologram with blinking lights | `grid.object('rack' \| 'gpu' \| 'laptop' \| 'chip', …)` |
+| Hardware (servers, GPUs, laptops, chips, monitors) | A rotating 3D hologram with blinking lights | `grid.object('rack' \| 'gpu' \| 'laptop' \| 'chip' \| 'monitor', …)` |
+| A datacenter / "compute" / "infrastructure" | A cut-away 3D hall: raised floor, rack rows, cooling, cable trays | `grid.object('hall', …)` |
+| A bank, a gate, a lock, timing, inspection, someone at work | 3D bank, security gate, padlock, stopwatch (sweeping hand), magnifier, workstation | `grid.object('bank' \| 'gate' \| 'padlock' \| 'stopwatch' \| 'magnifier' \| 'workstation', …)` |
+| Release notes, changelogs, SDK updates | A versioned feed: version, date pill, NEW / FIX / IMPROVED / SECURITY / BETA tags | `grid.releaseNotes(…)` |
 | A codebase, PR queue, "X% of code" | A wall of files that light up in a scattered order | `grid.fileGrid(…)` |
 | Code being rewritten | A page whose lines turn red, then green | `grid.paper(…, { lineColor })` |
 | A date or release window | A month calendar with the days marked | `grid.calendar(…)` |
@@ -26,7 +29,9 @@ All of these primitives live in `src/visuals.js`. You can preview them in the **
 | A sandbox, boundary or "contain" | A 3D glass box around the subject | `grid.glassBox(…)` |
 | A loop or process | Stations on a line with a packet and a flat return path | `grid.pipeline(…)` |
 
-Keep it to **one subject per stage**, centred unless the stage is a comparison (left vs right) or something is moving with a purpose. Don't put spinning rings or orbiting icons around things: use a glass box for boundaries and a pipeline for loops. A portrait beside a year, or a paper on its own, reads far better than a crowded frame.
+Keep it to **one subject per stage**, centred unless the stage is a comparison (left vs right) or something is moving with a purpose. Don't put spinning rings or orbiting icons around things: use a glass box for boundaries and a pipeline for loops.
+
+**Let the camera tell the story.** `camera.look(x, y, zoom)` centres a point and pushes in; call it every frame while the shot should hold, and it eases back when you stop. Push in on a paper's title (about `cy - h/2 + 3.5`), a highlighted date, the head of a growing line, or the moment something is blocked. Keep zoom between 1.05 (a lean) and 1.8 (reading a title). A portrait beside a year, or a paper on its own, reads far better than a crowded frame.
 
 ## Photos and models (assets)
 
@@ -72,6 +77,10 @@ grid.calendar(64, 18, { month: 'OCTOBER 2026', startDay: 4, marks: { 15: { color
 grid.timeline(14, 114, 18, { from: 1960, to: 2030, ticks: 10, events: [{ at: 1965, label: 'I. J. Good' }] });
 grid.glassBox(64, 17, 34, 20, 26, { color, label: 'sandbox' });
 grid.pipeline(24, 104, 18, ['propose', 'run', 'evaluate', 'commit'], { loop: true, speed: 0.5 });
+grid.releaseNotes(64, 17, { product: 'Claude Developer Platform', version: 'Platform update', date: 'Oct 7', highlight: 2,
+  items: [{ tag: 'NEW', text: 'Claude Haiku 5.5' }, { tag: 'SECURITY', text: 'allowed_hosts enforced' }] });
+grid.object('hall' /* | 'bank' | 'gate' | 'padlock' | 'stopwatch' | 'magnifier' | 'workstation' | 'monitor' */, 64, 17, 10, 0.42, { tilt: 0.42, handPeriod: 2 });
+camera.look(64, 9.5, 1.7); // push in on a paper title
 ```
 
 Most primitives take `progress` (0–1) to drive the reveal yourself, for example to sync a chart to the narration, and `key` when two of the same kind share a stage.

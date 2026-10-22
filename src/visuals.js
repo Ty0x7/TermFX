@@ -600,6 +600,124 @@
         seg(V, E, [-h, 0.06, o], [-h - 0.22, 0.06, o]);
       }
       for (let i = 0; i < 9; i++) W.push([-0.24 + (i % 3) * 0.24, 0.19, -0.24 + Math.floor(i / 3) * 0.24]);
+    } else if (kind === 'hall') {
+      // Datacenter hall, roof cut away: raised floor, three rack rows, cable trays, cooling units
+      const hx = 1.35, hz = 0.85, H = 0.8;
+      ring(V, E, -hx, -hz, hx, hz, 0);
+      for (let i = 1; i < 10; i++) seg(V, E, [-hx + (i * 2 * hx) / 10, 0, -hz], [-hx + (i * 2 * hx) / 10, 0, hz]);
+      for (let i = 1; i < 6; i++) seg(V, E, [-hx, 0, -hz + (i * 2 * hz) / 6], [hx, 0, -hz + (i * 2 * hz) / 6]);
+      for (const c of [[-hx, -hz], [hx, -hz], [hx, hz], [-hx, hz]]) seg(V, E, [c[0], 0, c[1]], [c[0], H, c[1]]);
+      ring(V, E, -hx, -hz, hx, hz, H);
+      const rows = [-0.5, 0, 0.5];
+      rows.forEach((rz) => {
+        const x0 = -1.0, x1 = 1.0, d = 0.11, h = 0.46;
+        box(V, E, x0, 0, rz - d, x1, h, rz + d);
+        for (let r = 1; r < 9; r++) {
+          const x = x0 + (r * (x1 - x0)) / 9;
+          seg(V, E, [x, 0, rz + d], [x, h, rz + d]);
+          seg(V, E, [x, 0, rz - d], [x, h, rz - d]);
+        }
+        seg(V, E, [x0, 0.6, rz], [x1, 0.6, rz]);
+        seg(V, E, [x0, h, rz], [x0, 0.6, rz]);
+        seg(V, E, [x1, h, rz], [x1, 0.6, rz]);
+        for (let r = 0; r < 9; r++) for (let l = 0; l < 3; l++) W.push([x0 + ((r + 0.5) * (x1 - x0)) / 9, 0.1 + l * 0.12, rz + d]);
+      });
+      box(V, E, -hx + 0.05, 0, -0.75, -hx + 0.25, 0.55, -0.35);
+      box(V, E, -hx + 0.05, 0, 0.35, -hx + 0.25, 0.55, 0.75);
+    } else if (kind === 'bank') {
+      box(V, E, -0.95, 0, -0.55, 0.95, 0.06, 0.55);
+      box(V, E, -0.85, 0.06, -0.47, 0.85, 0.12, 0.47);
+      box(V, E, -0.72, 0.12, -0.38, 0.72, 0.78, 0.3);
+      for (let i = 0; i < 6; i++) {
+        const x = -0.62 + i * 0.248;
+        box(V, E, x - 0.035, 0.12, 0.36, x + 0.035, 0.78, 0.43);
+      }
+      box(V, E, -0.85, 0.78, -0.47, 0.85, 0.88, 0.47);
+      const b = V.length;
+      V.push([-0.85, 0.88, 0.47], [0.85, 0.88, 0.47], [0, 1.18, 0.47], [-0.85, 0.88, -0.47], [0.85, 0.88, -0.47], [0, 1.18, -0.47]);
+      E.push([b, b + 2], [b + 1, b + 2], [b + 3, b + 5], [b + 4, b + 5], [b + 2, b + 5]);
+      W.push([0, 0.3, 0.31], [0, 0.45, 0.31], [-0.3, 0.45, 0.31], [0.3, 0.45, 0.31]);
+    } else if (kind === 'gate') {
+      box(V, E, -0.62, 0, -0.16, -0.44, 1.15, 0.16);
+      box(V, E, 0.44, 0, -0.16, 0.62, 1.15, 0.16);
+      box(V, E, -0.62, 1.15, -0.16, 0.62, 1.28, 0.16);
+      ring(V, E, -0.7, -0.5, 0.7, 0.5, 0);
+      for (let i = 0; i < 9; i++) {
+        W.push([-0.44, 0.15 + i * 0.11, 0.0], [0.44, 0.15 + i * 0.11, 0.0]);
+      }
+    } else if (kind === 'padlock') {
+      box(V, E, -0.45, 0, -0.16, 0.45, 0.62, 0.16);
+      for (const z of [-0.05, 0.05]) {
+        const b = V.length;
+        const N = 14;
+        for (let k = 0; k <= N; k++) {
+          const a = Math.PI * (k / N);
+          V.push([Math.cos(a) * 0.3, 0.88 + Math.sin(a) * 0.3, z]);
+        }
+        for (let k = 0; k < N; k++) E.push([b + k, b + k + 1]);
+        seg(V, E, [0.3, 0.62, z], [0.3, 0.88, z]);
+        seg(V, E, [-0.3, 0.62, z], [-0.3, 0.88, z]);
+      }
+      const kb = V.length;
+      for (let k = 0; k < 10; k++) {
+        const a = (k / 10) * Math.PI * 2;
+        V.push([Math.cos(a) * 0.07, 0.38 + Math.sin(a) * 0.07, 0.16]);
+      }
+      for (let k = 0; k < 10; k++) E.push([kb + k, kb + ((k + 1) % 10)]);
+      seg(V, E, [0, 0.31, 0.16], [0, 0.16, 0.16]);
+      W.push([0, 0.38, 0.17]);
+    } else if (kind === 'stopwatch') {
+      for (const z of [-0.08, 0.08]) {
+        const b = V.length;
+        const N = 28;
+        for (let k = 0; k < N; k++) {
+          const a = (k / N) * Math.PI * 2;
+          V.push([Math.cos(a) * 0.62, 0.7 + Math.sin(a) * 0.62, z]);
+        }
+        for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
+      }
+      for (let k = 0; k < 8; k++) {
+        const a = (k / 8) * Math.PI * 2;
+        seg(V, E, [Math.cos(a) * 0.62, 0.7 + Math.sin(a) * 0.62, -0.08], [Math.cos(a) * 0.62, 0.7 + Math.sin(a) * 0.62, 0.08]);
+      }
+      box(V, E, -0.08, 1.32, -0.06, 0.08, 1.44, 0.06);
+      box(V, E, -0.14, 1.44, -0.07, 0.14, 1.5, 0.07);
+      for (let k = 0; k < 12; k++) {
+        const a = (k / 12) * Math.PI * 2;
+        W.push([Math.cos(a) * 0.52, 0.7 + Math.sin(a) * 0.52, 0.09]);
+      }
+    } else if (kind === 'magnifier') {
+      for (const z of [-0.04, 0.04]) for (const r of [0.42, 0.5]) {
+        const b = V.length;
+        const N = 26;
+        for (let k = 0; k < N; k++) {
+          const a = (k / N) * Math.PI * 2;
+          V.push([Math.cos(a) * r, 0.95 + Math.sin(a) * r, z]);
+        }
+        for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
+      }
+      const hb = V.length;
+      V.push([0.33, 0.58, -0.05], [0.4, 0.62, -0.05], [0.95, 0.02, -0.05], [0.88, -0.02, -0.05], [0.33, 0.58, 0.05], [0.4, 0.62, 0.05], [0.95, 0.02, 0.05], [0.88, -0.02, 0.05]);
+      E.push([hb, hb + 1], [hb + 1, hb + 2], [hb + 2, hb + 3], [hb + 3, hb], [hb + 4, hb + 5], [hb + 5, hb + 6], [hb + 6, hb + 7], [hb + 7, hb + 4], [hb, hb + 4], [hb + 2, hb + 6]);
+      W.push([-0.18, 1.12, 0.05]);
+    } else if (kind === 'workstation') {
+      box(V, E, -0.95, 0.52, -0.42, 0.95, 0.57, 0.42);
+      for (const c of [[-0.9, -0.38], [0.9, -0.38], [0.9, 0.38], [-0.9, 0.38]]) seg(V, E, [c[0], 0, c[1]], [c[0], 0.52, c[1]]);
+      box(V, E, -0.5, 0.66, -0.3, 0.5, 1.22, -0.25);
+      seg(V, E, [0, 0.57, -0.28], [0, 0.66, -0.28]);
+      ring(V, E, -0.12, -0.34, 0.12, -0.22, 0.57);
+      ring(V, E, -0.38, 0.02, 0.38, 0.2, 0.575);
+      ring(V, E, -0.25, 0.62, 0.25, 0.95, 0.36);
+      seg(V, E, [-0.25, 0.36, 0.95], [-0.25, 0.85, 1.0]);
+      seg(V, E, [0.25, 0.36, 0.95], [0.25, 0.85, 1.0]);
+      seg(V, E, [-0.25, 0.85, 1.0], [0.25, 0.85, 1.0]);
+      seg(V, E, [0, 0, 0.78], [0, 0.36, 0.78]);
+      for (let r = 0; r < 5; r++) for (let i = 0; i < 7; i++) if (hashN(r * 7 + i) > 0.25) W.push([-0.4 + i * 0.12, 1.12 - r * 0.1, -0.24]);
+    } else if (kind === 'monitor') {
+      box(V, E, -0.9, 0.3, -0.05, 0.9, 1.3, 0.05);
+      seg(V, E, [0, 0.05, -0.02], [0, 0.3, -0.02]);
+      ring(V, E, -0.3, -0.2, 0.3, 0.15, 0.05);
+      for (let r = 0; r < 7; r++) for (let i = 0; i < 12; i++) if (hashN(r * 12 + i + 3) > 0.3) W.push([-0.75 + i * 0.125, 1.18 - r * 0.12, 0.06]);
     } else {
       const hx = 0.5, hz = 0.38, H = 0.45;
       box(V, E, -hx, 0, -hz, hx, H, hz);
@@ -645,6 +763,16 @@
         const lit = Math.sin(this.time * (0.4 + hashN(i) * 1.6) + i) > -0.2;
         if (lit) this._vdot(pr.x, pr.y, 1.1, opts.windowColor || pal.warn, 0.75);
       }
+    }
+    if (kind === 'stopwatch') {
+      // Sweep hand: one turn every `opts.handPeriod` seconds
+      const ang = (this.time / (opts.handPeriod || 4)) * Math.PI * 2;
+      const c0 = toScreen([0, 0.7, 0.09], false);
+      const c1 = toScreen([Math.sin(ang) * 0.5, 0.7 + Math.cos(ang) * 0.5, 0.09], false);
+      const a0 = this.project3D(c0[0], c0[1], c0[2], cx, cy, tilt, 0, 0, scale);
+      const a1 = this.project3D(c1[0], c1[1], c1[2], cx, cy, tilt, 0, 0, scale);
+      this._vline(a0.x, a0.y, a1.x, a1.y, '#ffffff', 0.95, 2);
+      this._vdot(a0.x, a0.y, 2, '#ffffff', 1);
     }
     if (opts.label) this.drawText(cx, gy + 2, opts.label, col, false, 'center');
   };
@@ -958,35 +1086,247 @@
     if (opts.label) this.drawText(cx, cy - h / 2 - 2, opts.label, col, false, 'center', null, k);
   };
 
-  // grid.pipeline(x0, x1, y, ['propose', 'run', ...], { active, color, loop, speed })
-  // Stations on a line with a packet travelling through; `loop` adds a flat return path.
+  // grid.releaseNotes(cx, cy, { product, version, date, items: [{ tag, text }], highlight, color, width, progress, key })
+  // A changelog: version header, a rail of entries, each with a coloured tag. Not a page — it's
+  // how release notes look in a product, and entries slide in one by one.
+  const TAG_COLORS = { NEW: '#00ff88', FIX: '#ffcc33', FIXED: '#ffcc33', IMPROVED: '#33ccff', BREAKING: '#ff3366', SECURITY: '#ff8a3d', BETA: '#b48cff', GA: '#00ff88', DEFAULT: '#33ccff' };
+  Engine.prototype.drawReleaseNotes = function (cx, cy, opts = {}) {
+    const pal = this.palette;
+    const col = opts.color || pal.accent;
+    const items = opts.items || [];
+    const key = opts.key || (opts.product || 'notes') + (opts.version || '');
+    const t0 = this._revealStart('§notes:' + key, cx, cy, 'n');
+    const time = this.time;
+    const el = time - t0;
+    const p = opts.progress !== undefined ? opts.progress : el;
+    const width = opts.width || 64;
+    const rowH = opts.rowH || 4.4;
+    const totalH = 6.5 + items.length * rowH;
+    const x0 = cx - width / 2;
+    const y0 = cy - totalH / 2;
+    const fs = this.fontSize;
+    const alpha = opts.alpha !== undefined ? opts.alpha : 1;
+    this.vItems.push({
+      t: 'draw', h: this._hudMode,
+      fn(c, X, Y, cw, chh, ws) {
+        const head = smooth(p / 0.6);
+        c.textBaseline = 'middle';
+        c.textAlign = 'left';
+        c.globalAlpha = 0.65 * head * alpha;
+        c.fillStyle = col;
+        c.font = `600 ${fs * 0.95}px "Cascadia Mono", Consolas, monospace`;
+        if (opts.product) c.fillText(String(opts.product).toUpperCase(), X(x0), Y(y0));
+        c.globalAlpha = head * alpha;
+        c.fillStyle = '#ffffff';
+        c.font = `800 ${fs * 2.3}px "Cascadia Mono", Consolas, monospace`;
+        const vtxt = opts.version || 'Release notes';
+        c.fillText(vtxt, X(x0), Y(y0 + 2.6));
+        const vw = c.measureText(vtxt).width;
+        if (opts.date) {
+          c.font = `600 ${fs * 0.95}px "Cascadia Mono", Consolas, monospace`;
+          const dw = c.measureText(opts.date).width + fs * 0.9;
+          const dx = X(x0) + vw + fs * 0.9;
+          const dy = Y(y0 + 2.6);
+          c.globalAlpha = 0.85 * head * alpha;
+          c.strokeStyle = col;
+          c.lineWidth = 1.2 * ws;
+          c.beginPath();
+          c.roundRect ? c.roundRect(dx, dy - fs * 0.55, dw, fs * 1.1, fs * 0.55) : c.rect(dx, dy - fs * 0.55, dw, fs * 1.1);
+          c.stroke();
+          c.fillStyle = col;
+          c.fillText(opts.date, dx + fs * 0.45, dy);
+        }
+        const railX = X(x0) + fs * 0.3;
+        const yFirst = Y(y0 + 6.5);
+        const yLast = Y(y0 + 6.5 + (items.length - 1) * rowH);
+        const railK = smooth((p - 0.3) / 0.8);
+        c.globalAlpha = 0.35 * alpha;
+        c.strokeStyle = col;
+        c.lineWidth = 1.2 * ws;
+        c.beginPath();
+        c.moveTo(railX, yFirst - chh);
+        c.lineTo(railX, yFirst - chh + (yLast - yFirst + chh * 2) * railK);
+        c.stroke();
+        items.forEach((it, i) => {
+          const k = smooth((p - 0.45 - i * 0.28) / 0.45);
+          if (k <= 0) return;
+          const y = Y(y0 + 6.5 + i * rowH);
+          const slide = (1 - k) * cw * 6;
+          const tag = String(it.tag || 'NEW').toUpperCase();
+          const tc = it.color || TAG_COLORS[tag] || TAG_COLORS.DEFAULT;
+          const hl = opts.highlight === i;
+          c.globalAlpha = k * alpha;
+          c.fillStyle = hl ? '#ffffff' : tc;
+          c.beginPath();
+          c.arc(railX, y, (hl ? 4.2 : 3) * ws, 0, Math.PI * 2);
+          c.fill();
+          c.font = `800 ${fs * 0.88}px "Cascadia Mono", Consolas, monospace`;
+          const tw = c.measureText(tag).width + fs * 0.9;
+          const tx = railX + fs * 1.1 + slide;
+          c.globalAlpha = 0.22 * k * alpha;
+          c.fillStyle = tc;
+          c.beginPath();
+          c.roundRect ? c.roundRect(tx, y - fs * 0.52, tw, fs * 1.04, fs * 0.25) : c.rect(tx, y - fs * 0.52, tw, fs * 1.04);
+          c.fill();
+          c.globalAlpha = 0.95 * k * alpha;
+          c.strokeStyle = tc;
+          c.lineWidth = 1 * ws;
+          c.stroke();
+          c.fillStyle = tc;
+          c.fillText(tag, tx + fs * 0.45, y);
+          c.font = `${hl ? 700 : 500} ${fs * 1.2}px "Cascadia Mono", Consolas, monospace`;
+          c.fillStyle = hl ? '#ffffff' : '#d8fff0';
+          c.globalAlpha = (hl ? 1 : 0.85) * k * alpha;
+          c.fillText(it.text || '', tx + tw + fs * 0.7, y);
+          if (hl) {
+            const tw2 = c.measureText(it.text || '').width;
+            c.globalAlpha = 0.25 * (0.7 + 0.3 * Math.sin(time * 4)) * alpha;
+            c.fillStyle = tc;
+            c.fillRect(tx - fs * 0.3, y - fs * 0.85, tw + tw2 + fs * 1.6, fs * 1.7);
+          }
+        });
+      }
+    });
+    return { titleY: y0 + 2.6, rowY: (i) => y0 + 6.5 + i * rowH, x0 };
+  };
+
+  // grid.pipeline(x0, x1, y, ['propose', 'run', ...], { color, loop, speed, icons, progress, iteration })
+  // A process: hexagonal stations joined by arrows, a glowing work packet travelling through,
+  // the station it reaches lighting up, and (loop) a curved return path back to the start.
   Engine.prototype.drawPipeline = function (x0, x1, y, steps, opts = {}) {
     const pal = this.palette;
     const col = opts.color || pal.accent;
-    const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'pipe' + x0, x0, y, 1);
+    const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'pipe' + x0, x0, y, 1.2);
     const n = steps.length;
     const xs = steps.map((_, i) => x0 + (n === 1 ? 0 : ((x1 - x0) * i) / (n - 1)));
-    const speed = opts.speed || 0.5;
-    const t = (this.time * speed) % 1;
-    const active = opts.active !== undefined ? opts.active : Math.min(n - 1, Math.floor(t * n));
-    this._vline(x0, y, x0 + (x1 - x0) * p, y, col, 0.35, 1.4);
-    if (opts.loop && p > 0.95) {
-      const dy = opts.loopDepth || 4;
-      this._vpath([[x1, y], [x1 + 2, y + 1], [x1 + 2, y + dy - 1], [x1, y + dy], [x0, y + dy], [x0 - 2, y + dy - 1], [x0 - 2, y + 1], [x0, y]], { color: col, alpha: 0.2, width: 1.2, dash: [2, 3] });
+    const speed = opts.speed || 0.4;
+    const loop = Boolean(opts.loop);
+    const depth = opts.loopDepth || 6;
+    const r = opts.radius || 3.4;
+    const time = this.time;
+    const cyc = (time * speed) % 1;
+    const fwdShare = loop ? 0.72 : 1;
+    let px;
+    let py;
+    let active = -1;
+    if (cyc < fwdShare) {
+      const u = cyc / fwdShare;
+      const f = u * (n - 1);
+      const i = Math.min(n - 2, Math.floor(f));
+      const local = f - i;
+      const dwell = 0.35;
+      const mv = local < dwell ? 0 : (local - dwell) / (1 - dwell);
+      const e = mv * mv * (3 - 2 * mv);
+      px = xs[i] + (xs[i + 1] - xs[i]) * e;
+      py = y;
+      active = local < dwell ? i : (e > 0.98 ? i + 1 : -1);
+      if (u > 0.985) active = n - 1;
+    } else {
+      const u = (cyc - fwdShare) / (1 - fwdShare);
+      const a = Math.PI * u;
+      px = x1 + (x0 - x1) * (0.5 - 0.5 * Math.cos(a));
+      py = y + Math.sin(a) * depth;
     }
-    xs.forEach((x, i) => {
-      const k = c01(p * n - i);
-      if (k <= 0) return;
-      const on = i === active;
-      this._vdot(x, y, on ? 3.4 : 2.2, on ? '#ffffff' : col, k);
-      if (on) this.addGlow(x, y, 3, col, 1);
-      this.drawText(x, y - 2.2, steps[i], on ? '#ffffff' : col, on, 'center', null, k * (on ? 1 : 0.6));
+    const hl = opts.active !== undefined ? opts.active : active;
+    const iconFor = opts.icons || [];
+    const self = this;
+    this.vItems.push({
+      t: 'draw', h: this._hudMode,
+      fn(c, X, Y, cw, chh, ws) {
+        const R = r * chh * 0.62;
+        const hex = (cx0, cy0, rad) => {
+          c.beginPath();
+          for (let k = 0; k < 6; k++) {
+            const a = Math.PI / 6 + (k * Math.PI) / 3;
+            const hx = cx0 + Math.cos(a) * rad;
+            const hy = cy0 + Math.sin(a) * rad;
+            if (k === 0) c.moveTo(hx, hy); else c.lineTo(hx, hy);
+          }
+          c.closePath();
+        };
+        // connectors with flowing dashes and chevrons
+        for (let i = 0; i < n - 1; i++) {
+          const k = c01(p * n - i - 0.5);
+          if (k <= 0) continue;
+          const ax = X(xs[i]) + R * 1.15;
+          const bx = X(xs[i + 1]) - R * 1.15;
+          const yy = Y(y);
+          c.globalAlpha = 0.45;
+          c.strokeStyle = col;
+          c.lineWidth = 1.3 * ws;
+          c.setLineDash([4 * ws, 5 * ws]);
+          c.lineDashOffset = -time * 30;
+          c.beginPath();
+          c.moveTo(ax, yy);
+          c.lineTo(ax + (bx - ax) * k, yy);
+          c.stroke();
+          c.setLineDash([]);
+          if (k >= 1) {
+            c.globalAlpha = 0.8;
+            c.beginPath();
+            c.moveTo(bx - 5, yy - 4);
+            c.lineTo(bx, yy);
+            c.lineTo(bx - 5, yy + 4);
+            c.stroke();
+          }
+        }
+        if (loop && p > 0.9) {
+          const k = c01((p - 0.9) / 0.4);
+          c.globalAlpha = 0.28 * k;
+          c.strokeStyle = col;
+          c.lineWidth = 1.2 * ws;
+          c.beginPath();
+          const N = 40;
+          for (let s = 0; s <= N; s++) {
+            const a = Math.PI * (s / N);
+            const qx = X(x1 + (x0 - x1) * (0.5 - 0.5 * Math.cos(a)));
+            const qy = Y(y + Math.sin(a) * depth) + R * 0.9 * Math.sin(a);
+            if (s === 0) c.moveTo(qx, qy); else c.lineTo(qx, qy);
+          }
+          c.stroke();
+          const ex = X(x0) - 1;
+          const ey = Y(y) + R * 0.9;
+          c.globalAlpha = 0.6 * k;
+          c.beginPath();
+          c.moveTo(ex - 4, ey + 6);
+          c.lineTo(ex, ey);
+          c.lineTo(ex + 5, ey + 5);
+          c.stroke();
+        }
+        // stations
+        xs.forEach((x, i) => {
+          const k = c01(p * n - i);
+          if (k <= 0) return;
+          const on = i === hl;
+          const cxp = X(x);
+          const cyp = Y(y);
+          hex(cxp, cyp, R * (0.6 + 0.4 * k) * (on ? 1.12 : 1));
+          c.globalAlpha = (on ? 0.32 : 0.08) * k;
+          c.fillStyle = col;
+          c.fill();
+          c.globalAlpha = (on ? 1 : 0.7) * k;
+          c.strokeStyle = on ? '#ffffff' : col;
+          c.lineWidth = (on ? 1.8 : 1.2) * ws;
+          c.stroke();
+          c.font = `800 ${self.fontSize * 1.15}px "Cascadia Mono", Consolas, monospace`;
+          c.textAlign = 'center';
+          c.textBaseline = 'middle';
+          c.fillStyle = on ? '#ffffff' : col;
+          c.globalAlpha = k;
+          c.fillText(iconFor[i] || String(i + 1), cxp, cyp + 0.5);
+          c.font = `${on ? 800 : 600} ${self.fontSize * (on ? 1.15 : 1)}px "Cascadia Mono", Consolas, monospace`;
+          c.globalAlpha = (on ? 1 : 0.65) * k;
+          c.fillText(String(steps[i]).toUpperCase(), cxp, cyp - R * 1.75);
+        });
+      }
     });
-    if (opts.packets !== false && p > 0.95) {
-      const px = x0 + (x1 - x0) * t;
-      this._vdot(px, y, 1.8, '#ffffff', 0.9);
+    if (p > 0.95 && opts.packets !== false) {
+      this._vdot(px, py, 2.4, '#ffffff', 1);
+      this.addGlow(px, py, 2.2, col, 1);
     }
-    return xs;
+    if (hl >= 0 && p > 0.95) this.addGlow(xs[hl], y, 3.2, col, 0.9);
+    if (opts.iteration !== undefined) this.drawText(x1 + r + 3, y, `×${opts.iteration}`, col, true, 'left');
+    return { xs, active: hl };
   };
 
   // --------------------------------------------------------------------------
@@ -1013,7 +1353,8 @@
       calendar: (cx, cy, opts) => self.drawCalendar(cx, cy, opts || {}),
       timeline: (x0, x1, y, opts) => self.drawTimeline(x0, x1, y, opts || {}),
       glassBox: (cx, cy, w, h, d, opts) => self.drawGlassBox(cx, cy, w, h, d, opts || {}),
-      pipeline: (x0, x1, y, steps, opts) => self.drawPipeline(x0, x1, y, steps, opts || {})
+      pipeline: (x0, x1, y, steps, opts) => self.drawPipeline(x0, x1, y, steps, opts || {}),
+      releaseNotes: (cx, cy, opts) => self.drawReleaseNotes(cx, cy, opts || {})
     });
     return sb;
   };
