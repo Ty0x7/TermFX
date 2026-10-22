@@ -158,6 +158,9 @@ if (!window.termAPI) {
       sel.appendChild(grpSaved);
     }
 
+    const countLabel = document.getElementById('scene-count-label');
+    if (countLabel) countLabel.textContent = `SCENES (${window.BUILTIN_PRESETS.length})`;
+
     const grpBuiltin = document.createElement('optgroup');
     grpBuiltin.label = `◈ Built-In 3D Showcases (${window.BUILTIN_PRESETS.length})`;
     for (const p of window.BUILTIN_PRESETS) {
@@ -217,7 +220,8 @@ if (!window.termAPI) {
       const num = idx + 1;
       const btn = document.createElement('button');
       btn.className = 'phase-btn' + (engine.phase === num ? ' active' : '');
-      btn.textContent = `${num}. ${name}`;
+      // Long stage lists stay on one line: only the active stage shows its name
+      btn.textContent = phases.length > 4 && engine.phase !== num ? `${num}` : `${num}. ${name}`;
       btn.title = `Stage ${num}: ${name} (Press SPACE or ${num})`;
       btn.addEventListener('click', () => {
         engine.setPhase(num);
@@ -225,6 +229,18 @@ if (!window.termAPI) {
       });
       container.appendChild(btn);
     });
+    renderNarration();
+  }
+
+  // Script line for the current stage, shown under the stage while recording VO
+  function renderNarration() {
+    const strip = document.getElementById('narration-strip');
+    const line = activeSimMeta?.narration?.[engine.phase - 1];
+    strip.classList.toggle('hidden', !line);
+    if (!line) return;
+    const dur = engine.stageHold(engine.phase);
+    document.getElementById('narration-tag').textContent = `VO ${engine.phase}/${engine.phaseCount} · ${dur.toFixed(1)}s`;
+    document.getElementById('narration-text').textContent = line;
   }
 
   engine.onPhaseAutoChange = () => {
@@ -502,8 +518,47 @@ if (!window.termAPI) {
     document.getElementById('render-detail').textContent = detail;
   }
 
-  async function renderVideo() {
-    if (rendering || !activeSimMeta) return;
+  // The video's scenes in story order (everything except the Visual Library gallery)
+  function videoScenes() {
+    return Array.isArray(window.TermFXVideoScenes) ? window.TermFXVideoScenes : [];
+  }
+
+  // The video script scenes live in src/private (git-ignored). They are loaded only when rendered.
+  function loadVideoScenes() {
+    if (videoScenes().length) return Promise.resolve(videoScenes());
+    return new Promise((resolve) => {
+      const s = document.createElement('script');
+      s.src = 'private/rsi-video-scenes.js';
+      s.onload = () => resolve(videoScenes());
+      s.onerror = () => resolve([]);
+      document.head.appendChild(s);
+    });
+  }
+
+  // Render All: every video scene back to back into one continuous file, or (separate) one file each
+  async function renderAll({ separate = false } = {}) {
+    if (rendering) return;
+    const previous = activeSimMeta;
+    const scenes = await loadVideoScenes();
+    if (!scenes.length) {
+      toast('Render all needs the video script, which is not part of this copy of TermFX.', 7000);
+      return;
+    }
+    try {
+      if (!separate) return await renderVideo(scenes, { name: 'TermFX · all scenes' });
+      for (let i = 0; i < scenes.length; i++) {
+        const ok = await renderVideo([scenes[i]], { name: `${scenes[i].number} ${scenes[i].title}`, quiet: true, batch: `${i + 1}/${scenes.length}` });
+        if (!ok) break;
+      }
+      toast(`Rendered ${scenes.length} scene files → ${lastRenderOutput || 'renders folder'}`, 7000);
+    } finally {
+      if (previous) selectAndRunSimulation(previous, { autoType: false });
+    }
+  }
+
+  async function renderVideo(sceneList = null, opts = {}) {
+    if (rendering || !activeSimMeta) return false;
+    const scenes = sceneList && sceneList.length ? sceneList : [activeSimMeta];
     if (!canRender) {
       toast('Rendering needs the TermFX server (launch via TermFX.exe or `node server.js`).');
       return;
@@ -530,9 +585,10 @@ if (!window.termAPI) {
 
     let job = null;
     let enc = null;
+    let renderOk = false;
     try {
       if (format === 'mp4') enc = await createH264Encoder(w, h, fps);
-      job = await postJson('/api/render/start', { name: activeSimMeta.title, format, fps, input: enc ? 'h264' : 'png' });
+      job = await postJson('/api/render/start', { name: opts.name || activeSimMeta.title, format, fps, input: enc ? 'h264' : 'png' });
       if (!job.ok) throw new Error(job.error || 'Could not start render');
       if (job.fallback) toast('MP4/ProRes need ffmpeg + WebCodecs here; rendering a PNG sequence instead.');
       if (job.input !== 'h264' && enc) {
@@ -540,9 +596,13 @@ if (!window.termAPI) {
         enc = null;
       }
 
-      selectAndRunSimulation(activeSimMeta, { autoType: false });
+      // Plan: frames per scene (each scene plays its full timeline once, stages auto-advancing)
       const dt = 1 / fps;
-      const total = Math.ceil(engine.timelineDuration() * fps);
+      const plan = scenes.map((sc) => {
+        selectAndRunSimulation(sc, { autoType: false });
+        return { sc, frames: Math.ceil(engine.timelineDuration() * fps) };
+      });
+      const total = plan.reduce((a, b) => a + b.frames, 0);
       const label = `${(job.input === 'h264' ? 'MP4' : job.format).toUpperCase()} ${w}x${h} @ ${fps}fps`;
       const usPerFrame = 1e6 / fps;
       let pending = Promise.resolve();
@@ -566,7 +626,13 @@ if (!window.termAPI) {
         pending = pending.then(() => postFrames(job.id, blob, count));
       };
 
-      for (let f = 0; f < total; f++) {
+      let f = -1;
+      for (let si = 0; si < plan.length && !rendering.cancel; si++) {
+        selectAndRunSimulation(plan[si].sc, { autoType: false });
+        engine.autoPlayStages = true;
+        engine.mouseParallax = false;
+        for (let lf = 0; lf < plan[si].frames; lf++) {
+        f++;
         if (rendering.cancel) break;
         engine.update(dt);
         engine.render({ bgMode });
@@ -589,9 +655,11 @@ if (!window.termAPI) {
         if (f % 3 === 0) {
           const elapsed = (performance.now() - t0) / 1000;
           const eta = elapsed / (f + 1) * (total - f - 1);
-          setRenderProgress(`● RENDERING ${label}`, (f + 1) / total, `Frame ${f + 1} / ${total} · ETA ${Math.ceil(eta)}s`);
+          const where = plan.length > 1 ? ` · Scene ${plan[si].sc.number} (${si + 1}/${plan.length})` : (opts.batch ? ` · File ${opts.batch}` : '');
+          setRenderProgress(`● RENDERING ${label}`, (f + 1) / total, `Frame ${f + 1} / ${total}${where} · ETA ${Math.ceil(eta)}s`);
         }
         if (f % 2 === 0) renderPhaseButtons();
+        }
       }
       if (enc) {
         await enc.encoder.flush();
@@ -605,7 +673,8 @@ if (!window.termAPI) {
       if (rendering.cancel) toast('Render cancelled.');
       else if (done.ok) {
         lastRenderOutput = done.output;
-        toast(`Saved ${done.frames} frames → ${done.output}`, 6000);
+        if (!opts.quiet) toast(`Saved ${done.frames} frames → ${done.output}`, 6000);
+        renderOk = true;
       } else {
         toast(`Render failed: ${done.error || 'unknown error'}`, 7000);
       }
@@ -626,6 +695,7 @@ if (!window.termAPI) {
       lastTime = performance.now();
       renderPhaseButtons();
     }
+    return renderOk;
   }
 
   async function saveSnapshot() {
@@ -651,9 +721,18 @@ if (!window.termAPI) {
   }
 
   document.getElementById('btn-render').addEventListener('click', () => renderVideo());
+  window.TermFX.renderVideo = renderVideo;
+  window.TermFX.renderAll = renderAll;
+  window.TermFX.videoScenes = videoScenes;
+  const btnAll = document.getElementById('btn-render-all');
+  if (btnAll) btnAll.addEventListener('click', (e) => renderAll({ separate: e.shiftKey }));
   document.getElementById('btn-snapshot').addEventListener('click', () => saveSnapshot());
   document.getElementById('btn-open-renders').addEventListener('click', () => {
     if (canRender) postJson('/api/render/reveal', { output: lastRenderOutput }).catch(() => {});
+  });
+  document.getElementById('btn-open-assets').addEventListener('click', () => {
+    if (canRender) postJson('/api/open-assets', {}).catch(() => {});
+    else toast('Assets folder: termfx_data/assets (start TermFX with its server to open it)');
   });
 
   document.getElementById('btn-generate').addEventListener('click', () => handlePromptExecution({ autoType: false }));
@@ -887,6 +966,11 @@ if (!window.termAPI) {
       renderVideo();
       return;
     }
+    if (e.key === 'F10') {
+      e.preventDefault();
+      renderAll({ separate: e.shiftKey });
+      return;
+    }
 
     if (e.key === 'Escape') {
       if (modalAi.classList.contains('open')) modalAi.classList.remove('open');
@@ -946,6 +1030,16 @@ if (!window.termAPI) {
 
   rebuildSimulationList();
   selectAndRunSimulation(window.BUILTIN_PRESETS[0], { autoType: false });
+
+  // First-run card: shown once per browser profile
+  const welcome = document.getElementById('welcome');
+  let welcomed = true;
+  try { welcomed = localStorage.getItem('termfx.welcomed') === '1'; } catch (_) {}
+  if (welcome && !welcomed) welcome.classList.remove('hidden');
+  document.getElementById('btn-welcome-start')?.addEventListener('click', () => {
+    welcome.classList.add('hidden');
+    try { localStorage.setItem('termfx.welcomed', '1'); } catch (_) {}
+  });
 
   let lastTime = performance.now();
   function frame(now) {
