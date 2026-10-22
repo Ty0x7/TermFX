@@ -69,26 +69,24 @@ class TermFXLauncher
         return null;
     }
 
+    // Finds the TermFX folder (the one containing server.js): the launcher's own folder, then
+    // its parents, then the TERMFX_HOME override. Nothing user-specific is hard-coded.
     static string ResolveProjectDir()
     {
-        string localDir = AppDomain.CurrentDomain.BaseDirectory;
-        if (File.Exists(Path.Combine(localDir, "server.js")))
+        string localDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
+        string envDir = Environment.GetEnvironmentVariable("TERMFX_HOME");
+        if (!string.IsNullOrEmpty(envDir) && File.Exists(Path.Combine(envDir, "server.js")))
         {
-            return localDir;
+            return envDir;
         }
-        string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        string[] fallbackDirs = new string[]
+        string dir = localDir;
+        for (int level = 0; level < 5 && !string.IsNullOrEmpty(dir); level++)
         {
-            Environment.GetEnvironmentVariable("TERMFX_HOME") ?? "",
-            Path.Combine(docs, @"ChatGPT\TermFX"),
-            @"C:\Users\ty0x7\Documents\ChatGPT\TermFX"
-        };
-        foreach (var dir in fallbackDirs)
-        {
-            if (dir.Length > 0 && File.Exists(Path.Combine(dir, "server.js")))
+            if (File.Exists(Path.Combine(dir, "server.js")))
             {
                 return dir;
             }
+            dir = Path.GetDirectoryName(dir);
         }
         return localDir;
     }

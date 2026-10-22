@@ -3,3 +3,6 @@ dist/
 termfx_data/
 artifacts/
 *.log
+
+# Private: the video script scenes, the shot list and its notes (local only)
+src/private/

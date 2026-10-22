@@ -4,123 +4,140 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TermFX Studio</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico?v=20261020" />
-  <link rel="stylesheet" href="styles.css?v=20261021b" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico?v=20261022i" />
+  <link rel="stylesheet" href="styles.css?v=20261022i" />
 </head>
 <body>
   <div id="app-container">
-    <!-- Minimal Top Header Bar -->
+    <!-- Top bar: brand, stage strip, view and window controls -->
     <header id="titlebar">
       <div class="title-left">
-        <span class="brand-badge">TERMFX</span>
-        <div id="phase-buttons" title="Press SPACE or keys 1-4 to advance stage"></div>
-        <span id="ai-status-pill" class="status-pill">READY</span>
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">T</span>
+          <span class="brand-badge">TERMFX</span>
+          <span class="brand-sub">STUDIO</span>
+        </div>
+        <div id="phase-buttons" class="stage-strip" title="Stages · SPACE or 1–9 to advance"></div>
       </div>
       <div class="title-controls">
-        <button id="btn-clean-view" class="warn-btn" title="Hide sidebar & top bar for recording (Hotkey: TAB or F1)">[TAB] Clean View</button>
-        <button id="btn-720p" title="1280x720 (16:9)">720p</button>
-        <button id="btn-1080p" title="1920x1080 (16:9)">1080p</button>
-        <button id="btn-min" title="Minimize">─</button>
-        <button id="btn-max" title="Maximize">□</button>
-        <button id="btn-close" class="danger-btn" title="Close">✕</button>
+        <span id="ai-status-pill" class="status-pill">READY</span>
+        <button id="btn-clean-view" class="ghost-btn" title="Hide the panels for recording (TAB or F1)">Clean view <kbd>TAB</kbd></button>
+        <div class="seg" role="group" aria-label="Preview resolution">
+          <button id="btn-720p" title="1280 × 720 (16:9)">720p</button>
+          <button id="btn-1080p" title="1920 × 1080 (16:9)">1080p</button>
+        </div>
+        <div class="win-btns">
+          <button id="btn-min" title="Minimize">–</button>
+          <button id="btn-max" title="Maximize">▢</button>
+          <button id="btn-close" class="danger-btn" title="Close">✕</button>
+        </div>
       </div>
     </header>
 
-    <!-- Main Workspace: Left Sidebar + 3D ASCII Terminal Viewport -->
+    <!-- Main workspace: side panel + viewport -->
     <div id="workspace-body">
       <aside id="sidebar">
-        <div class="sidebar-section scenes-section">
+        <section class="sidebar-section">
           <div class="sidebar-label-row">
-            <span class="sidebar-label">SCENES (10)</span>
+            <span class="sidebar-label" id="scene-count-label">PREVIEWS</span>
             <div class="scene-step-btns">
-              <button id="btn-prev-scene" title="Previous Scene (Hotkey: [)">◄</button>
-              <button id="btn-next-scene" title="Next Scene (Hotkey: ])">►</button>
+              <button id="btn-prev-scene" title="Previous scene ( [ )" aria-label="Previous scene">‹</button>
+              <button id="btn-next-scene" title="Next scene ( ] )" aria-label="Next scene">›</button>
             </div>
           </div>
           <div id="quick-scene-buttons" class="sidebar-btn-list"></div>
-          <select id="preset-select" title="Saved & Built-in Scenes" style="margin-top:4px; width:100%"></select>
-        </div>
+          <select id="preset-select" hidden></select>
+        </section>
 
-        <div class="sidebar-section">
-          <div class="sidebar-label">PLAYBACK</div>
+        <section class="sidebar-section">
+          <div class="sidebar-label">Playback</div>
           <div class="sidebar-row">
-            <button id="btn-autotype" class="primary-btn" style="flex:1" title="Auto-type prompt on screen (F2)">🎬 Type [F2]</button>
-            <button id="btn-restart" title="Reset to Stage 1 (R)">↺ [R]</button>
+            <button id="btn-autotype" class="primary-btn" style="flex:1" title="Type the prompt on screen (F2)">Type <kbd>F2</kbd></button>
+            <button id="btn-pause" title="Pause / resume (P) — step one frame with . while paused">❚❚</button>
+            <button id="btn-restart" title="Back to stage 1 (R)">↺</button>
           </div>
-        </div>
+          <div class="sidebar-row">
+            <label class="mini-label" for="cfg-stage-seconds">Stage length</label>
+            <input id="cfg-stage-seconds" title="Stage length. 4.6 = narration pace (higher = slower)" type="number" min="1.5" max="30" step="0.1" value="4.6" style="width:64px" />
+            <span class="mini-label">sec</span>
+          </div>
+        </section>
 
-        <div class="sidebar-section">
-          <div class="sidebar-label">VISUAL FX</div>
-          <select id="theme-select" style="width:100%">
-            <option value="cyberblue" selected>J.A.R.V.I.S. Cyber Blue</option>
-            <option value="jarvisgold">Stark Mark-85 (Blue/Gold)</option>
+        <section class="sidebar-section">
+          <div class="sidebar-label">Look</div>
+          <select id="theme-select" title="Colour theme">
+            <option value="cyberblue" selected>Cyber Blue</option>
+            <option value="jarvisgold">Blue &amp; Gold</option>
             <option value="cyberpunk">Cyberpunk Neon</option>
             <option value="clean">Clean Modern Blue</option>
             <option value="amber">Amber CRT</option>
-            <option value="redalert">Combat Override (Red)</option>
+            <option value="redalert">Combat Red</option>
             <option value="matrix">Matrix Green</option>
           </select>
           <div class="fx-grid">
-            <button id="btn-holo-hud" class="active" data-fx="holoHud" title="Anti-aliased hologram vector overlay">Holo</button>
+            <button id="btn-holo-hud" class="active" data-fx="holoHud" title="Hologram vector overlay">Holo</button>
             <button id="btn-glow" class="active" data-fx="crtGlow" title="Multi-pass bloom">Bloom</button>
-            <button id="btn-scanlines" class="active" data-fx="scanlines" title="CRT scanlines + refresh band">Scan</button>
-            <button class="active" data-fx="subpixel" title="Sub-pixel glyph motion (smooth gliding)">Smooth</button>
-            <button class="active" data-fx="cameraMotion" title="Camera push-in, drift & stage punches">Cam</button>
-            <button class="active" data-fx="textReveal" title="Type-on text reveal">Type</button>
-            <button class="active" data-fx="grain" title="Film grain (prevents YouTube banding)">Grain</button>
-            <button class="active" data-fx="vignette" title="Lens vignette">Vign</button>
-            <button class="active" data-fx="bgGrid" title="Parallax dot grid background">Grid</button>
-            <button class="active" data-fx="transitionFx" title="Stage-change scan sweep & punch">Trans</button>
-            <button class="active" data-fx="introFx" title="CRT power-on when a scene starts">Intro</button>
-            <button class="active" data-fx="showTimeline" title="Bottom stage timeline bar">Bar</button>
+            <button id="btn-scanlines" class="active" data-fx="scanlines" title="CRT scanlines and refresh band">Scan</button>
+            <button class="active" data-fx="cameraMotion" title="Camera push-in, drift and stage punches">Camera</button>
           </div>
-          <div class="sidebar-row" style="margin-top:4px">
-            <label class="mini-label" for="cfg-stage-seconds">Stage sec</label>
-            <input id="cfg-stage-seconds" type="number" min="1.5" max="30" step="0.1" value="4.6" style="width:58px" />
-            <button id="btn-pause" style="flex:1" title="Pause / resume (P). Step one frame with . while paused">❚❚ [P]</button>
-          </div>
-        </div>
+          <details class="more-fx">
+            <summary>More effects</summary>
+            <div class="fx-grid">
+              <button class="active" data-fx="subpixel" title="Sub-pixel glyph motion (smooth gliding)">Smooth</button>
+              <button class="active" data-fx="textReveal" title="Type-on text reveal">Type-on</button>
+              <button class="active" data-fx="grain" title="Film grain (prevents YouTube banding)">Grain</button>
+              <button class="active" data-fx="vignette" title="Lens vignette">Vignette</button>
+              <button class="active" data-fx="bgGrid" title="Parallax dot grid background">Grid</button>
+              <button class="active" data-fx="transitionFx" title="Stage-change transition">Transition</button>
+              <button class="active" data-fx="introFx" title="Power-on when a scene starts">Intro</button>
+              <button class="active" data-fx="showTimeline" title="Bottom stage timeline bar">Timeline</button>
+            </div>
+          </details>
+        </section>
 
-        <div class="sidebar-section">
-          <div class="sidebar-label">OUTPUT</div>
+        <section class="sidebar-section">
+          <div class="sidebar-label">Export</div>
           <div class="sidebar-row">
-            <select id="output-select" style="flex:1" title="Stage resolution (preview is always 16:9 except Fit)">
-              <option value="fit">Fit Window</option>
+            <select id="output-select" style="flex:1" title="Output resolution">
+              <option value="fit">Fit window</option>
               <option value="720p">720p</option>
               <option value="1080p" selected>1080p</option>
               <option value="1440p">1440p</option>
               <option value="4k">4K UHD</option>
             </select>
-            <select id="fps-select" style="width:58px" title="Render frame rate">
-              <option value="60" selected>60</option>
-              <option value="30">30</option>
-              <option value="24">24</option>
+            <select id="fps-select" style="width:78px" title="Frame rate">
+              <option value="60" selected>60 fps</option>
+              <option value="30">30 fps</option>
+              <option value="24">24 fps</option>
             </select>
           </div>
-          <select id="bg-select" style="width:100%" title="Background for exports">
-            <option value="theme" selected>Theme Background</option>
-            <option value="black">Pure Black (Screen/Add blend)</option>
-            <option value="alpha">Transparent (ProRes / PNG)</option>
-          </select>
-          <select id="format-select" style="width:100%" title="Render format">
-            <option value="mp4" selected>MP4 · H.264 (CRF 12)</option>
-            <option value="prores">MOV · ProRes 4444 + Alpha</option>
-            <option value="png">PNG Sequence</option>
-          </select>
           <div class="sidebar-row">
-            <button id="btn-render" class="rec-btn" style="flex:1" title="Frame-exact render of one full stage loop (F9)">● Render [F9]</button>
-            <button id="btn-snapshot" title="Save current frame as PNG (F8)">📷</button>
-            <button id="btn-open-renders" title="Open renders folder">📂</button>
+            <select id="bg-select" style="flex:1" title="Background for exports">
+              <option value="theme" selected>Theme background</option>
+              <option value="black">Pure black</option>
+              <option value="alpha">Transparent</option>
+            </select>
           </div>
-        </div>
+          <select id="format-select" style="width:100%" title="File format">
+            <option value="mp4" selected>MP4 · H.264</option>
+            <option value="prores">MOV · ProRes 4444 + alpha</option>
+            <option value="png">PNG sequence</option>
+          </select>
+          <button id="btn-render" class="rec-btn wide" title="Render this scene (F9)">● Render scene <kbd>F9</kbd></button>
+          <button id="btn-render-all" class="ghost-btn wide" title="Render every video scene into one file (F10). Shift+click: one file per scene">Render all scenes <kbd>F10</kbd></button>
+          <div class="sidebar-row icon-row">
+            <button id="btn-snapshot" title="Save this frame as PNG (F8)">Snapshot <kbd>F8</kbd></button>
+            <button id="btn-open-renders" title="Open the renders folder">Renders</button>
+            <button id="btn-open-assets" title="Open the assets folder (photos, logos, 3D models)">Assets</button>
+          </div>
+        </section>
 
-        <div class="sidebar-section" style="margin-top:auto">
-          <div class="sidebar-label">STUDIO</div>
+        <section class="sidebar-section sidebar-foot">
           <div class="sidebar-row">
-            <button id="btn-code" style="flex:1" title="View or edit live simulation JS">&lt;/&gt; Code</button>
-            <button id="btn-ai-settings" class="primary-btn" style="flex:1" title="Configure AI Provider">⚙ AI</button>
+            <button id="btn-code" style="flex:1" title="View or edit this scene's code">Code</button>
+            <button id="btn-ai-settings" class="primary-btn" style="flex:1" title="Connect an AI provider to generate scenes">AI settings</button>
           </div>
-        </div>
+        </section>
       </aside>
 
       <!-- Main 60FPS 3D ASCII Viewport + Bottom Prompt Bar -->
@@ -136,7 +153,22 @@
             </div>
           </div>
           <div id="toast"></div>
+          <div id="welcome" class="welcome hidden" role="dialog" aria-labelledby="welcome-title">
+            <div class="welcome-card">
+              <div class="welcome-kicker">TERMFX STUDIO</div>
+              <h2 id="welcome-title">Terminal-style explainer videos</h2>
+              <ol class="welcome-steps">
+                <li><b>Pick a preview</b> on the left. Each one is a short animated scene.</li>
+                <li><b>Press SPACE</b> to move through its stages, or <b>F2</b> to type the prompt on screen.</li>
+                <li><b>Export</b> with <b>F9</b> for this scene, or set the resolution and format in the Export panel.</li>
+                <li><b>Make your own</b> with <b>AI settings</b> (add a provider key) or edit the scene in <b>Code</b>.</li>
+              </ol>
+              <button id="btn-welcome-start" class="primary-btn">Start</button>
+            </div>
+          </div>
         </main>
+
+        <div id="narration-strip" title="Script line for the current stage (not rendered into exports)"><span id="narration-tag"></span><span id="narration-text"></span></div>
 
         <!-- Minimal Terminal Prompt Input (Remains usable in Clean View!) -->
         <footer id="prompt-bar">
@@ -287,9 +319,12 @@
     </div>
   </div>
 
-  <script src="engine.js?v=20261021b"></script>
-  <script src="presets.js?v=20261021b"></script>
-  <script src="ai-generator.js?v=20261021b"></script>
-  <script src="app.js?v=20261021b"></script>
+  <script src="engine.js?v=20261022i"></script>
+  <script src="visuals.js?v=20261022i"></script>
+  <script src="world3d.js?v=20261022i"></script>
+  <script src="presets.js?v=20261022i"></script>
+  <script src="library-scenes.js?v=20261022i"></script>
+  <script src="ai-generator.js?v=20261022i"></script>
+  <script src="app.js?v=20261022i"></script>
 </body>
 </html>
