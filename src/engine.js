@@ -214,6 +214,18 @@ const ICONS = {
       Math.floor(t * 2) % 2 ? '╰┬─┬╯' : '╰┴─┴╯'
     ];
   },
+  human: (t) => [
+    ' ◯ ',
+    Math.floor(t * 1.5) % 2 ? '╶┼╴' : '╲┼╱',
+    '╱ ╲'
+  ],
+  terminal: (t) => [
+    '┌──────┐',
+    `│>${(t * 2) % 1 < 0.5 ? '_' : ' '}    │`,
+    `│ ${['▪··', '·▪·', '··▪'][Math.floor(t * 4) % 3]}  │`,
+    '└──────┘',
+    '▔▔▔▔▔▔▔▔'
+  ],
   agentMask: (t) => [
     '  ╷  ',
     '╭─┴─╮',
@@ -403,7 +415,7 @@ class AsciiEngine {
     this.bgGrid = true;
     this.transitionFx = true;
     this.introFx = true;
-    this.showTimeline = true;
+    this.showTimeline = false;
     this.mouseParallax = true;
     this.bloomStrength = 1.0;
 
@@ -449,6 +461,9 @@ class AsciiEngine {
     this.camPanY = new Spring(0);
     this.camFocus = null;
     this.camZoomReq = null;
+    // Auto-framing: every frame the camera glides so the drawn content sits centred
+    this.frameBoxes = [];
+    this.autoFrame = true;
     this.shakeAmt = 0;
     this.flashAmt = 0;
     this.flashColor = '#ffffff';
@@ -751,9 +766,10 @@ class AsciiEngine {
     this.targetOrbitYaw = yawAngles[(clamped - 1) % 4];
     this.targetOrbitPitch = pitchAngles[(clamped - 1) % 4];
 
+    // Stage change: a soft dissolve (old content fades faster for a moment,
+    // see fadeGrid) and a gentle camera ease — no rings, flashes or sweeps
     if (this.transitionFx) {
-      this.sweepT = 0;
-      this.camPunch.v += 0.22;
+      this.camPunch.v += 0.08;
     }
 
     if (this.currentSimulation && typeof this.currentSimulation.onPhaseChange === 'function') {
@@ -788,8 +804,10 @@ class AsciiEngine {
 
   // --- Timeline ---
   stageHold(p) {
+    // Scenes timed to a voice-over carry their own per-stage durations; the
+    // Stage-sec control then acts as a speed scale (4.6s = narration pace)
     const custom = this.currentSimulation?.stageDurations?.[p - 1];
-    if (custom) return custom;
+    if (custom) return custom * (this.stageDuration / 4.6);
     return p === this.phaseCount ? this.stageDuration * 1.25 : this.stageDuration;
   }
 
@@ -894,7 +912,9 @@ class AsciiEngine {
 
   fadeGrid(decay = 0.16) {
     // Phosphor persistence, normalised to 60fps so 30/60fps renders match
-    const smoothDecay = Math.min(0.22, Math.max(0.08, decay * 0.78));
+    let smoothDecay = Math.min(0.22, Math.max(0.08, decay * 0.78));
+    // Dissolve outgoing visuals quickly right after a stage change
+    if (this.transitionFx && this.phaseTime < 0.35) smoothDecay = Math.min(0.4, smoothDecay * 2.2);
     const keep = Math.pow(Math.max(0, Math.min(1, 1 - smoothDecay)), this._dt * 60);
     for (let i = 0; i < this.cells.length; i++) {
       const c = this.cells[i];
@@ -983,6 +1003,26 @@ class AsciiEngine {
     for (const [k, v] of this.textPos) if (now - v.seen > 2) this.textPos.delete(k);
   }
 
+  // Record the bounds (cells) of something drawn this frame, for auto-framing and layout checks
+  _bb(x0, y0, x1, y1, kind = 'item', alpha = 1) {
+    if (this._hudMode || !(alpha > 0.15) || !this.frameBoxes) return;
+    if (!Number.isFinite(x0 + y0 + x1 + y1)) return;
+    this.frameBoxes.push({ x0: Math.min(x0, x1), y0: Math.min(y0, y1), x1: Math.max(x0, x1), y1: Math.max(y0, y1), kind });
+  }
+
+  // Union of this frame's content, clipped to the stage
+  contentBounds(kinds) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const b of this.frameBoxes) {
+      if (kinds && !kinds.includes(b.kind)) continue;
+      const bx0 = Math.max(0, b.x0), bx1 = Math.min(this.cols, b.x1);
+      const by0 = Math.max(0, b.y0), by1 = Math.min(this.rows, b.y1);
+      if (bx1 <= bx0 || by1 <= by0) continue;
+      x0 = Math.min(x0, bx0); y0 = Math.min(y0, by0); x1 = Math.max(x1, bx1); y1 = Math.max(y1, by1);
+    }
+    return Number.isFinite(x0) ? { x0, y0, x1, y1, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0 } : null;
+  }
+
   drawText(x, y, str, color = null, glow = false, align = 'left', bg = null, alpha = 1) {
     const text = String(str ?? '');
     if (!text) return;
@@ -990,6 +1030,7 @@ class AsciiEngine {
     let startX = x;
     if (align === 'center') startX -= Math.floor(len / 2);
     else if (align === 'right') startX -= len;
+    this._bb(startX, y - 0.5, startX + len, y + 0.5, 'text', typeof alpha === 'number' ? alpha : 1);
     if (!this.subpixel) startX = Math.round(startX);
 
     let shown = len;
@@ -1221,6 +1262,7 @@ class AsciiEngine {
 
   // --- Vector Overlay Queue (cell-space coordinates, AA strokes) ---
   _vline(x0, y0, x1, y1, color, alpha = 0.5, width = 1.2, dash = null) {
+    this._bb(x0, y0 - 0.3, x1, y1 + 0.3, 'line', alpha * 2);
     this.vItems.push({ t: 'path', p: [x0, y0, x1, y1], c: color, a: alpha, w: width, dash, h: this._hudMode });
   }
 
@@ -1234,6 +1276,11 @@ class AsciiEngine {
       for (const pt of points) flat.push(pt.x, pt.y);
     }
     if (!flat || flat.length < 4) return;
+    {
+      let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+      for (let i = 0; i < flat.length; i += 2) { bx0 = Math.min(bx0, flat[i]); bx1 = Math.max(bx1, flat[i]); by0 = Math.min(by0, flat[i + 1]); by1 = Math.max(by1, flat[i + 1]); }
+      this._bb(bx0, by0 - 0.3, bx1, by1 + 0.3, 'line', (opts.alpha !== undefined ? opts.alpha : 0.6) * 2);
+    }
     this.vItems.push({
       t: opts.taper ? 'taper' : 'path',
       p: flat,
@@ -1288,6 +1335,7 @@ class AsciiEngine {
     const rows = lines.length;
     const startY = cy - (rows - 1) / 2 + bob;
     const maxW = Math.max(...lines.map(l => l.length));
+    this._bb(cx - maxW / 2, startY, cx + maxW / 2, startY + rows + (opts.label ? 1.2 : 0), 'icon', baseAlpha);
 
     // Materialise when this icon (by key) first shows up or switches design
     const key = opts.key || (typeof name === 'string' ? name : 'icon');
@@ -1326,7 +1374,8 @@ class AsciiEngine {
     }
     if (this.holoHud) {
       if (opts.glow) this.addGlow(cx, cy, Math.max(3, maxW * 0.6), col, 0.8 * baseAlpha);
-      if (opts.base !== false) {
+      // Pulsing floor ellipse is opt-in only (it read as an orbit ring)
+      if (opts.base === true) {
         const pulse = (t * 0.8 + cx * 0.02) % 1;
         const by = startY + rows - 0.35;
         this.vItems.push({ t: 'ellipse', x: cx - 0.5, y: by, rx: maxW * 0.55, ry: 0.32, c: col, a: 0.32 * baseAlpha * Math.min(1, k), w: 1, h: this._hudMode });
@@ -1373,15 +1422,42 @@ class AsciiEngine {
       else if (ln.mark === 'dim') { col = pal.dim; }
       this.drawText(x0 + 1, y, String(i + 1).padStart(2, ' '), pal.dim, false, 'left');
       if (prefix !== ' ') this.setCell(x0 + 3, y, prefix, col, true);
-      this.drawText(tx, y, ln.text, col, ln.mark === 'add' || ln.mark === 'hl', 'left');
+      // Marked lines sit on a tinted bar, so lift their text toward white to stay legible
+      const lit = ln.mark === 'add' || ln.mark === 'hl' || ln.mark === 'warn';
+      this.drawText(tx, y, ln.text, lit ? mixColor(col, '#ffffff', 0.55) : col, lit, 'left');
       if (this.holoHud && (ln.mark === 'hl' || ln.mark === 'add' || ln.mark === 'warn')) {
         const pulse = 0.75 + 0.25 * Math.sin(this.time * 4);
-        this.vItems.push({ t: 'rect', x: x0 + 0.6, y: y, w: width - 1.2, rh: 1, c: col, a: 0.13 * pulse, h: this._hudMode });
+        this.vItems.push({ t: 'rect', x: x0 + 0.6, y: y, w: width - 1.2, rh: 1, c: col, a: 0.07 * pulse, h: this._hudMode });
       }
       if (ln.mark === 'del') {
         this._vline(tx - 0.4, y, tx + ln.text.length - 0.6, y, pal.danger, 0.85, 1.3);
       }
     }
+  }
+
+  // Large hero type drawn in the vector layer (so it glows and moves with the
+  // camera). Types on character by character the first time a string appears.
+  drawBigText(x, y, str, opts = {}) {
+    const text = String(str ?? '');
+    if (!text) return;
+    const align = opts.align || 'center';
+    {
+      const sz = opts.size || 3;
+      const w = text.length * sz * 0.96 * (this.fontSize / 16) * (10 / Math.max(1, this.cellW));
+      const hh = sz * 0.5;
+      const bx = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
+      this._bb(bx, y - hh, bx + w, y + hh, 'big', opts.alpha !== undefined ? opts.alpha : 1);
+    }
+    let shown = text.length;
+    if (opts.reveal !== false && this.textReveal) {
+      const t0 = this._revealStart('§' + text, x, y, align);
+      shown = Math.min(text.length, Math.floor((this.time - t0) * (opts.cps || 28)) + 1);
+    }
+    this.vItems.push({
+      t: 'text', x, y, str: text.slice(0, shown), size: opts.size || 3,
+      c: opts.color || this.palette.accent, a: opts.alpha !== undefined ? opts.alpha : 1,
+      align, h: this._hudMode
+    });
   }
 
   addGlow(cx, cy, radius = 6, color = null, intensity = 1) {
@@ -1606,6 +1682,11 @@ class AsciiEngine {
     }
 
     const proj = vertices.map(v => this.project3D(v[0], v[1], v[2], cx, cy, rx, ry, rz, scale));
+    if (proj.length) {
+      let px0 = Infinity, py0 = Infinity, px1 = -Infinity, py1 = -Infinity;
+      for (const q of proj) { if (q.x < px0) px0 = q.x; if (q.x > px1) px1 = q.x; if (q.y < py0) py0 = q.y; if (q.y > py1) py1 = q.y; }
+      this._bb(px0, py0, px1, py1, opts.bbKind || '3d', alpha);
+    }
 
     const sortedEdges = edges.map(e => {
       const a = proj[e[0]];
@@ -1634,7 +1715,7 @@ class AsciiEngine {
         }
       }
       const edgeCol = isFront ? color : dim;
-      this.drawLine(edge.a.x, edge.a.y, edge.b.x, edge.b.y, edgeChar, edgeCol, false, alpha * (isFront ? 1 : 0.8));
+      if (opts.ascii !== false) this.drawLine(edge.a.x, edge.a.y, edge.b.x, edge.b.y, edgeChar, edgeCol, false, alpha * (isFront ? 1 : 0.8));
 
       if (isFront && (opts.packets !== false) && (eIdx % 2 === 0)) {
         const t = ((this.time * (opts.packetSpeed || 0.55)) + eIdx * 0.17) % 1;
@@ -1650,7 +1731,8 @@ class AsciiEngine {
       if (vFront.length) this.vItems.push({ t: 'segs', p: vFront, c: color, a: 0.55 * alpha, w: 1.35, h: this._hudMode });
     }
 
-    for (const p of proj) {
+    // opts.vertices === false: clean vector-only look for dense models (buildings, OBJ)
+    if (opts.vertices !== false) for (const p of proj) {
       const isFront = p.z >= 0;
       const vChar = isFront ? (opts.vertexChar || '◈') : '·';
       this.setCell(p.x, p.y, vChar, isFront ? accent : dim, isFront, null, (isFront ? 1.0 : 0.5) * alpha);
@@ -1688,7 +1770,7 @@ class AsciiEngine {
       st.from = from;
       st.name = name;
       st.t0 = this.time;
-      if (opts.fx !== false) {
+      if (opts.fx === true) {
         const col = opts.color || this.palette.accent;
         this.spawnShockwave(cx, cy, { color: col, radius: scale * 2.6, duration: 0.9 });
         this.spawnBurst(cx, cy, { count: 14, color: col, speed: 10 });
@@ -2065,7 +2147,8 @@ class AsciiEngine {
       // Sub-pixel vector overlay (cell coordinates)
       vline: (x0, y0, x1, y1, opts = {}) => self._vline(x0, y0, x1, y1, opts.color || self.palette.primary, opts.alpha !== undefined ? opts.alpha : 0.6, opts.width || 1.4, opts.dash || null),
       vpath: (points, opts) => self._vpath(points, opts || {}),
-      vcircle: (cx, cy, r, opts = {}) => self.vItems.push({ t: 'ellipse', x: cx, y: cy, rx: r * 1.85, ry: r, c: opts.color || self.palette.primary, a: opts.alpha !== undefined ? opts.alpha : 0.5, w: opts.width || 1.2, fill: Boolean(opts.fill), h: self._hudMode }),
+      vcircle: (cx, cy, r, opts = {}) => self.vItems.push({ t: 'ellipse', x: cx, y: cy, rx: opts.rx !== undefined ? opts.rx : r * 1.85, ry: r, c: opts.color || self.palette.primary, a: opts.alpha !== undefined ? opts.alpha : 0.5, w: opts.width || 1.2, fill: Boolean(opts.fill), h: self._hudMode }),
+      big: (x, y, str, opts) => self.drawBigText(x, y, str, opts || {}),
       vdot: (x, y, r, opts = {}) => self._vdot(x, y, r, opts.color || self.palette.accent, opts.alpha !== undefined ? opts.alpha : 0.85),
       glow: (cx, cy, radius, col, intensity) => self.addGlow(cx, cy, radius, col, intensity),
       icon: (name, cx, cy, col, opts) => self.drawIcon(name, cx, cy, col, opts || {}),
@@ -2163,6 +2246,14 @@ class AsciiEngine {
     const camera = {
       zoom: (z) => { self.camZoomReq = z; },
       focus: (x, y, strength = 0.35) => { self.camFocus = { x, y, s: strength }; },
+      // Push the camera in on a point: centres (x, y) on screen at `zoom`
+      // Close-ups (zoom >= 1.3) aim at the point; gentler leans keep their zoom but stay
+      // auto-centred on the whole composition so nothing drifts to an edge
+      look: (x, y, zoom = 1.6) => {
+        self.camZoomReq = zoom;
+        if (zoom >= 1.3 || !self.autoFrame) self.camFocus = { x, y, s: zoom };
+        else self.camLean = true;
+      },
       punch: (amount) => self.punch(amount),
       shake: (amount) => self.shake(amount)
     };
@@ -2174,6 +2265,39 @@ class AsciiEngine {
     let zt = 1;
     if (this.cameraMotion) zt = 1 + ((this.smoothPhase - 1) / Math.max(1, n - 1)) * 0.05;
     if (this.camZoomReq != null) zt = this.camZoomReq;
+    // Cinematic push: odd stages slowly push in, even stages pull back out, so the zoom flows
+    // continuously across stage cuts (world shots run their own camera)
+    if (this.cinematic !== false && !this.camFocus) {
+      const k = EASE.inOutCubic(Math.min(1, this.phaseTime / Math.max(0.5, this.stageHold(this.phase))));
+      zt *= 1 + 0.065 * (this.phase % 2 ? k : 1 - k);
+    }
+    // Auto-framing: ease out a touch when the content would clip the frame
+    const rawB = !this.camFocus && this.autoFrame && this.frameBoxes.length ? this.contentBounds() : null;
+    // Stable framing envelope: grows at once, shrinks slowly, resets on a new stage — so things
+    // flying across the frame don't make the camera wobble
+    let frameB = null;
+    if (rawB) {
+      const env = this._frameEnv;
+      const key = this.phase + '|' + (this.currentSimulation && this.currentSimulation.id);
+      if (!env || this._frameEnvKey !== key) {
+        this._frameEnv = { x0: rawB.x0, y0: rawB.y0, x1: rawB.x1, y1: rawB.y1 };
+        this._frameEnvKey = key;
+      } else {
+        const k = Math.min(1, dt * 0.35);
+        env.x0 = Math.min(rawB.x0, env.x0 + (rawB.x0 - env.x0) * k);
+        env.y0 = Math.min(rawB.y0, env.y0 + (rawB.y0 - env.y0) * k);
+        env.x1 = Math.max(rawB.x1, env.x1 + (rawB.x1 - env.x1) * k);
+        env.y1 = Math.max(rawB.y1, env.y1 + (rawB.y1 - env.y1) * k);
+      }
+      const e2 = this._frameEnv;
+      frameB = { x0: e2.x0, y0: e2.y0, x1: e2.x1, y1: e2.y1, cx: (e2.x0 + e2.x1) / 2, cy: (e2.y0 + e2.y1) / 2, w: e2.x1 - e2.x0, h: e2.y1 - e2.y0 };
+    }
+    if (frameB && (this.camZoomReq == null || this.camLean)) {
+      const fit = Math.min(1.3, (this.cols - 6) / Math.max(1, frameB.w), (this.rows - 3) / Math.max(1, frameB.h));
+      if (this.camZoomReq == null) { if (fit < 1) zt = Math.max(0.9, zt * fit); }
+      else zt = Math.max(0.9, Math.min(zt, fit));
+    }
+    this.camLean = false;
     this.camZoom.target = zt;
     this.camZoom.step(dt, 2.4, 1);
     this.camPunch.target = 0;
@@ -2181,22 +2305,34 @@ class AsciiEngine {
 
     let px = 0;
     let py = 0;
+    let panFreq = 2.2;
     if (this.camFocus) {
       px = (this.cols / 2 - this.camFocus.x) * this.cellW * this.camFocus.s;
       py = (this.rows / 2 - this.camFocus.y) * this.cellH * this.camFocus.s;
+    } else if (this.autoFrame && this.frameBoxes.length) {
+      // Glide so this frame's content is centred; ease out a touch if it would clip the frame
+      const b = frameB;
+      if (b) {
+        const z = this.camZoom.x || 1;
+        const dx = Math.max(-20, Math.min(20, this.cols / 2 - b.cx));
+        const dy = Math.max(-9, Math.min(9, this.rows / 2 - b.cy));
+        px = dx * this.cellW * z;
+        py = dy * this.cellH * z;
+        panFreq = 1.3;
+      }
     }
     this.camPanX.target = px;
     this.camPanY.target = py;
-    this.camPanX.step(dt, 2.2, 1);
-    this.camPanY.step(dt, 2.2, 1);
+    this.camPanX.step(dt, panFreq, 1);
+    this.camPanY.step(dt, panFreq, 1);
 
     const t = this.time;
     const drift = this.cameraMotion ? 1 : 0;
     const amp = this.shakeAmt * 7;
     this.cam = {
       zoom: this.camZoom.x + (this.cameraMotion || this.transitionFx ? this.camPunch.x * 0.12 : 0),
-      x: this.camPanX.x + drift * (Math.sin(t * 0.21) * 1.8 + Math.sin(t * 0.53) * 0.6) + amp * (Math.sin(t * 71.3) + Math.sin(t * 43.1) * 0.6),
-      y: this.camPanY.x + drift * (Math.cos(t * 0.17) * 1.2) + amp * (Math.cos(t * 61.7) + Math.sin(t * 37.9) * 0.6),
+      x: this.camPanX.x + drift * (Math.sin(t * 0.21) * 5 + Math.sin(t * 0.53) * 1.4) + amp * (Math.sin(t * 71.3) + Math.sin(t * 43.1) * 0.6),
+      y: this.camPanY.x + drift * (Math.cos(t * 0.17) * 3.2 + Math.sin(t * 0.41) * 0.8) + amp * (Math.cos(t * 61.7) + Math.sin(t * 37.9) * 0.6),
       rot: this.shakeAmt * 0.006 * Math.sin(t * 53)
     };
   }
@@ -2221,8 +2357,10 @@ class AsciiEngine {
 
     this.vItems.length = 0;
     this.glowNodes.length = 0;
+    this.frameBoxes.length = 0;
     this.camFocus = null;
     this.camZoomReq = null;
+    this.camLean = false;
     this.introT += dt;
     this.sweepT += dt;
     this.flashAmt *= Math.exp(-dt * 7);
@@ -2434,6 +2572,24 @@ class AsciiEngine {
             c.lineWidth = w;
             c.stroke();
           }
+          break;
+        }
+        case 'draw': {
+          // Custom vector drawing (papers, portraits, charts) in logical px
+          c.save();
+          it.fn(c, X, Y, cw, chh, widthScale);
+          c.restore();
+          c.globalCompositeOperation = 'lighter';
+          break;
+        }
+        case 'text': {
+          if (!it.str) break;
+          c.globalAlpha = it.a;
+          c.fillStyle = it.c;
+          c.font = `700 ${this.fontSize * it.size * (widthScale > 1 ? 1 : 1)}px "Cascadia Mono", "Consolas", "Courier New", monospace`;
+          c.textAlign = it.align;
+          c.textBaseline = 'middle';
+          c.fillText(it.str, X(it.x) - (it.align === 'center' ? 0 : cw * 0.5), Y(it.y));
           break;
         }
         case 'rect': {

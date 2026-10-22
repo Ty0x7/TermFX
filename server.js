@@ -98,6 +98,7 @@ function sendJson(res, status, obj) {
 // or they are written out as a PNG sequence.
 // ----------------------------------------------------------------------------
 const RENDER_DIR = path.join(DATA_DIR, 'renders');
+const ASSETS_DIR = path.join(DATA_DIR, 'assets');
 let ffmpegBin;
 
 function findFfmpeg() {
@@ -163,9 +164,11 @@ function startRenderJob({ name, format, fps, input }) {
       '-c:v', 'prores_ks', '-profile:v', '4444', '-pix_fmt', 'yuva444p10le', '-alpha_bits', '16', '-vendor', 'apl0', output];
   } else {
     output = path.join(RENDER_DIR, base + '.mp4');
-    args = ['-fflags', '+genpts', '-f', 'h264', '-framerate', rate, '-i', '-',
-      '-c:v', 'copy', '-bsf:v', 'h264_metadata=colour_primaries=1:transfer_characteristics=1:matrix_coefficients=1:video_full_range_flag=0',
-      '-movflags', '+faststart', output];
+    // Raw Annex-B has no timestamps; stamp frame N at N/fps explicitly (newer ffmpeg builds
+    // otherwise mis-time copied raw H.264 — a 38 s render came out 0.8 s long)
+    args = ['-f', 'h264', '-framerate', rate, '-i', '-',
+      '-c:v', 'copy', '-bsf:v', `h264_metadata=colour_primaries=1:transfer_characteristics=1:matrix_coefficients=1:video_full_range_flag=0,setts=ts=N/(${rate}*TB)`,
+      '-video_track_timescale', String(Math.round(Number(rate) * 1000)), '-movflags', '+faststart', output];
   }
   const proc = spawn(ffmpeg, ['-hide_banner', '-loglevel', 'error', '-y', ...args], { stdio: ['pipe', 'ignore', 'pipe'], windowsHide: true });
   const job = { format, input: format === 'prores' ? 'png' : 'h264', piped: true, output, proc, frames: 0, stderr: '', exited: false, code: null, started: Date.now() };
@@ -262,6 +265,25 @@ const server = http.createServer(async (req, res) => {
       const { id } = await readJsonBody(req);
       const items = loadLibrary().filter(x => x.id !== id);
       return sendJson(res, 200, saveLibrary(items));
+    }
+    // Visual-library assets (portrait photos, .obj models): termfx_data/assets first, then src/assets
+    if (url.pathname.startsWith('/assets/') && req.method === 'GET') {
+      const name = path.basename(decodeURIComponent(url.pathname.slice('/assets/'.length)));
+      const candidates = [path.join(ASSETS_DIR, name), path.join(SRC_DIR, 'assets', name)];
+      const found = candidates.find(f => fs.existsSync(f) && fs.statSync(f).isFile());
+      if (!found) {
+        res.writeHead(404);
+        return res.end('Not Found');
+      }
+      const ext = path.extname(found).toLowerCase();
+      const types = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.obj': 'text/plain; charset=utf-8' };
+      res.writeHead(200, { 'Content-Type': types[ext] || 'application/octet-stream', 'Cache-Control': 'no-store' });
+      return fs.createReadStream(found).pipe(res);
+    }
+    if (url.pathname === '/api/open-assets' && req.method === 'POST') {
+      fs.mkdirSync(ASSETS_DIR, { recursive: true });
+      exec(`explorer.exe "${ASSETS_DIR}"`);
+      return sendJson(res, 200, { ok: true, dir: ASSETS_DIR });
     }
     if (url.pathname === '/api/open-data-dir' && req.method === 'POST') {
       exec(`explorer.exe "${DATA_DIR}"`);
