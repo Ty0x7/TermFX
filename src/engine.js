@@ -1343,7 +1343,8 @@ class AsciiEngine {
     }
     if (this.holoHud) {
       if (opts.glow) this.addGlow(cx, cy, Math.max(3, maxW * 0.6), col, 0.8 * baseAlpha);
-      if (opts.base !== false) {
+      // Pulsing floor ellipse is opt-in only (it read as an orbit ring)
+      if (opts.base === true) {
         const pulse = (t * 0.8 + cx * 0.02) % 1;
         const by = startY + rows - 0.35;
         this.vItems.push({ t: 'ellipse', x: cx - 0.5, y: by, rx: maxW * 0.55, ry: 0.32, c: col, a: 0.32 * baseAlpha * Math.min(1, k), w: 1, h: this._hudMode });

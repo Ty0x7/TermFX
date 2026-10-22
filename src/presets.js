@@ -108,13 +108,13 @@ const PRESET_SCENES = [
     title: 'The Intelligence Explosion',
     category: 'Intro',
     prompt: 'A threshold line, 1965, an AI rewriting itself, and generations that rise past the threshold.',
-    shows: 'A dashed threshold hangs over a small dim core; I. J. Good’s portrait scans in beside "1965"; code glyphs spiral into the core as it rewrites itself; then three generations grow left to right, each rising higher past the threshold.',
+    shows: 'A dim AI core with a faint ghost of its improved self; I. J. Good’s portrait beside his 1965 paper; the core rewrites lines of its own code file and grows; then three generations rise left to right.',
     phases: ['A Theoretical Threshold', 'I. J. Good, 1965', 'AI Improves Its Own Code', 'Each Gen Designs the Next'],
     captions: [
-      'A dashed threshold line hangs above a small, dim AI core',
-      'Portrait of I. J. Good scans in beside "1965" (add assets/ij-good.jpg; a silhouette stands in without it)',
-      'Code glyphs spiral into the core as it rewrites itself and grows',
-      'Three generations grow left to right, each rising higher past the threshold'
+      'A dim AI core breathes at centre; a faint, larger ghost of its improved self hovers over it (theory)',
+      'I. J. Good’s portrait scans in beside his 1965 paper "Speculations Concerning the First Ultraintelligent Machine"',
+      'The core rewrites its own code file line by line (red → green) and grows with each pass',
+      'Three generations grow left to right, each larger and higher than the last'
     ],
     narration: [
       `For decades, the concept of Recursive Self-Improvement—or RSI—was treated as a theoretical threshold in computer science.`,
@@ -128,39 +128,38 @@ const PRESET_SCENES = [
       const { time, phase, grid, palette, anim } = ctx;
       grid.fade(0.15);
       const G = '#00ff88';
-      const ty = 9;
-
-      grid.vline(6, ty, 122, ty, { color: palette.warn, alpha: phase === 1 ? 0.7 : 0.25, width: 1.2, dash: [4, 5] });
-      if (phase === 1) grid.text(122, ty - 1.2, 'threshold', palette.warn, false, 'right');
 
       if (phase === 1) {
-        grid.shape3D('tetra', 64, 22, anim.spring('s0', 2.4, { from: 0.4, freq: 3 }), anim.spin('a', 0.3), anim.spin('b', 0.4), 0, { color: palette.dim, accent: palette.accent, dim: palette.dim });
+        const s = anim.spring('s0', 2.6, { from: 0.4, freq: 2.2 });
+        grid.icosahedron3D(64, 18, s, anim.spin('a', 0.3), anim.spin('b', 0.4), 0, { color: palette.dim, accent: palette.accent, dim: palette.dim, packets: false });
+        const ghost = 0.12 + 0.08 * Math.sin(time * 1.6);
+        grid.dodecahedron3D(64, 18, s * 1.9, -anim.spin('a', 0.3), anim.spin('b', 0.4), 0, { color: palette.accent, accent: palette.accent, dim: palette.dim, alpha: ghost, packets: false, vertices: false });
       }
       if (phase === 2) {
-        grid.portrait('ij-good.jpg', 44, 21, { w: 22, h: 16, mode: 'halftone', label: 'I. J. GOOD' });
-        grid.big(86, 19, '1965', { size: 4.2, color: palette.accent });
-        grid.text(86, 24, 'the intelligence explosion', palette.dim, false, 'center');
+        grid.portrait('ij-good.jpg', 40, 17, { w: 24, h: 18, mode: 'halftone', label: 'I. J. GOOD' });
+        grid.paper(90, 17, { title: 'Speculations Concerning the First Ultraintelligent Machine', authors: 'I. J. Good', venue: 'Advances in Computers · 1965', w: 30, h: 22, key: 'good65', highlight: 2 });
       }
       if (phase === 3) {
-        const s = anim.spring('s3', 3.6, { from: 2.4, freq: 1.5 });
-        grid.morph3D('core', 'icosa', 64, 20, s, anim.spin('a3', 0.6), anim.spin('b3', 0.8), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
-        const glyphs = '{}()<>=;[]/*+';
-        for (let i = 0; i < 22; i++) {
-          const k = (time * 0.35 + hash01(i)) % 1;
-          const a = hash01(i + 3) * Math.PI * 2 + k * 4;
-          const r = (1 - k) * 22;
-          grid.set(64 + Math.cos(a) * r * 1.6, 20 + Math.sin(a) * r * 0.5, glyphs[i % glyphs.length], palette.primary, k > 0.7, null, 0.3 + k * 0.7);
+        const pass = Math.floor(ctx.phaseTime * 1.6);
+        const s = anim.spring('grow', 2.4 + Math.min(6, pass) * 0.22, { from: 2.2, freq: 3 });
+        grid.morph3D('core', 'icosa', 38, 17, s, anim.spin('a3', 0.6), anim.spin('b3', 0.8), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+        grid.glow(38, 17, 7, palette.accent, 1);
+        grid.paper(88, 17, { key: 'selfcode', venue: 'its own code', w: 28, h: 22, lines: 10, yaw: -0.18,
+          lineColor: (i) => (i < pass ? G : (i === pass ? palette.danger : null)) });
+        for (let i = 0; i < 6; i++) {
+          const t = (time * 0.7 + i / 6) % 1;
+          grid.vdot(46 + t * 26, 17 + Math.sin(t * Math.PI * 2 + i) * 2, 1.6, { color: i % 2 ? G : palette.accent, alpha: Math.sin(t * Math.PI) });
         }
       }
       if (phase === 4) {
         const gens = [[30, 2.4, 'tetra'], [64, 3.2, 'octa'], [98, 4.1, 'icosa']];
         gens.forEach((g, i) => {
           const k = anim.spring('g' + i, 1, { from: 0, freq: 2.2 - i * 0.3, damp: 0.7 });
-          const y = 24 - i * 6 * k;
+          const y = 24 - i * 5 * k;
           const col = i === 2 ? G : (i === 1 ? palette.accent : palette.primary);
           grid.shape3D(g[2], g[0], y, g[1] * Math.max(0.2, k), anim.spin('x' + i, 0.5 + i * 0.4), anim.spin('y' + i, 0.6 + i * 0.5), 0, { color: col, accent: '#ffffff', dim: palette.dim, alpha: Math.min(1, k * 1.5) });
           grid.text(g[0], y + g[1] * 1.6 + 1.5, `GEN ${i + 1}`, col, i === 2, 'center');
-          if (i > 0) grid.vpath([[gens[i - 1][0] + 6, 24 - (i - 1) * 6], [g[0] - 6, y]], { color: col, alpha: 0.4, width: 1.2, dash: [2, 3] });
+          if (i > 0) grid.vpath([[gens[i - 1][0] + 6, 24 - (i - 1) * 5], [g[0] - 6, y]], { color: col, alpha: 0.4, width: 1.2, dash: [2, 3] });
         });
       }
     }
@@ -175,13 +174,13 @@ const PRESET_SCENES = [
     title: 'It Is Already Running',
     category: 'Intro',
     prompt: 'A timeline where the expected RSI marker snaps from decades away back to now and a production loop starts.',
-    shows: 'A clean timeline from 1960 to 2060: the "expected" marker sits decades out; three documents drop onto NOW; the marker slides back to NOW; a loop spins up over a production server.',
+    shows: 'A timeline from 1960 to 2060 with the "expected" marker decades out; three documents (documentation, platform updates, benchmark data) drop onto NOW; the marker slides back to NOW; a server rack powers up in production.',
     phases: ['Decades Away', 'The Recent Evidence', 'No Longer Waiting', 'Running in Production'],
     captions: [
       'Timeline 1960–2060; the "expected" marker sits decades in the future',
-      'Three documents (Anthropic, OpenAI, labs) drop onto the NOW line',
+      'Three documents drop onto the NOW line: technical docs · platform updates · benchmark data',
       'The marker glides back from the 2050s and locks onto NOW',
-      'A loop spins up over a production server: RUNNING'
+      'A 3D server rack powers up over NOW, lights running: in production'
     ],
     narration: [
       `For most of the history of machine learning, researchers assumed that crossing this threshold was decades away.`,
@@ -192,23 +191,13 @@ const PRESET_SCENES = [
     init(ctx) {},
     onPhaseChange(phase, ctx) {},
     update(ctx) {
-      const { time, phase, phaseTime, stageDuration, grid, palette, anim, ease } = ctx;
+      const { time, phase, phaseTime, stageDuration, grid, palette, anim } = ctx;
       grid.fade(0.15);
       const G = '#00ff88';
-      const x0 = 10;
-      const x1 = 118;
-      const yA = 24;
-      const xOf = (yr) => x0 + ((yr - 1960) / 100) * (x1 - x0);
-
-      const axisIn = ease.outExpo(time / 1.2);
-      grid.vline(x0, yA, x0 + (x1 - x0) * axisIn, yA, { color: palette.primary, alpha: 0.45, width: 1.4 });
-      for (let yr = 1960; yr <= 2060; yr += 20) {
-        if (xOf(yr) > x0 + (x1 - x0) * axisIn) continue;
-        grid.vline(xOf(yr), yA - 0.35, xOf(yr), yA + 0.35, { color: palette.dim, alpha: 0.8, width: 1 });
-        grid.text(xOf(yr), yA + 1.5, String(yr), palette.dim, false, 'center');
-      }
+      const yA = 28;
+      const xOf = grid.timeline(10, 118, yA, { from: 1960, to: 2060, ticks: 20, key: 'tl02' });
       const nowX = xOf(2026);
-      grid.vline(nowX, 6, nowX, yA, { color: palette.accent, alpha: 0.35, width: 1.2, dash: [2, 3] });
+      grid.vline(nowX, 4, nowX, yA, { color: palette.accent, alpha: 0.25, width: 1.2, dash: [2, 3] });
       grid.text(nowX, yA + 3, 'NOW', palette.accent, true, 'center');
 
       const expYr = anim.spring('exp', phase >= 3 ? 2026 : 2052, { freq: 2.4, damp: 0.75 });
@@ -216,29 +205,24 @@ const PRESET_SCENES = [
       const mCol = anim.color('mCol', phase >= 3 ? G : palette.warn);
       grid.vdot(mx, yA, 3.2, { color: mCol, alpha: 1 });
       grid.glow(mx, yA, 4, mCol, 1.2);
-      if (phase <= 2) {
+      if (phase === 1) {
         grid.text(mx, yA - 2, 'expected', palette.warn, false, 'center');
         grid.vline(nowX + 1, yA - 0.01, mx - 1.5, yA - 0.01, { color: palette.warn, alpha: 0.5, width: 3 });
-        grid.big((nowX + mx) / 2, yA - 6, 'DECADES AWAY', { size: 1.6, color: palette.warn, alpha: 0.85 });
+        grid.big((nowX + mx) / 2, 14, 'DECADES AWAY', { size: 2, color: palette.warn, alpha: 0.9 });
       }
-
       if (phase === 2) {
-        const docs = ['ANTHROPIC', 'OPENAI', 'LABS'];
+        const docs = [['Technical Documentation', 'Anthropic'], ['Platform Updates', 'OpenAI'], ['Benchmark Data', 'Academic labs']];
         docs.forEach((d, i) => {
           const k = Math.max(0, Math.min(1, phaseTime / stageDuration * 3.2 - i * 0.8));
           if (k <= 0) return;
           const e = 1 - Math.pow(1 - k, 3);
-          const x = nowX - 14 + i * 14;
-          const y = 4 + e * 10;
-          grid.icon('file', x, y, palette.accent, { key: 'd' + i, base: false });
-          grid.big(x, y + 3, d, { size: 0.9, color: palette.dim, reveal: false });
+          grid.paper(32 + i * 32, 2 + e * 11, { key: 'doc' + i, title: d[0], venue: d[1], w: 22, h: 15, lines: 4, yaw: (i - 1) * 0.25, titleScale: 0.95 });
         });
       }
-      if (phase === 3) grid.big(nowX, 12, 'NOW', { size: 4, color: G });
+      if (phase === 3) grid.big(nowX, 13, 'NOW', { size: 4, color: G });
       if (phase === 4) {
-        grid.ring3D(nowX, 13, 6, 1.25, 0, { color: G, dim: palette.dim, spin: anim.spin('loop', 2.4), glow: true });
-        grid.icon('server', nowX, 13, G, { key: 'prod', base: false });
-        grid.text(nowX + 16, 13, 'in production', G, true, 'left');
+        grid.object('rack', nowX, 14, 6.5, anim.spin('rk', 0.25) + 0.5, { tilt: 0.3, color: G, windowColor: G, key: 'prod' });
+        grid.big(nowX - 26, 14, 'IN PRODUCTION', { size: 1.6, color: G });
       }
     }
   },
@@ -252,13 +236,13 @@ const PRESET_SCENES = [
     title: 'The Inflection Point',
     category: 'Intro',
     prompt: 'A model graduates from passing snippets to writing code, tuning training, running subagents and spawning its successor.',
-    shows: 'A tiny snippet passes from model to engineer; then the model takes the centre and capabilities orbit it one by one — code, training, subagents — until a successor model is born from it.',
+    shows: 'An engineer receives a tiny code snippet; then the model writes most of a codebase; it fans out to four parallel subagents; finally verified trajectories pass a check and train a larger successor.',
     phases: ['Beyond Snippets', 'Writes Code · Optimizes Training', 'Parallel Subagents', 'Trains Its Successors'],
     captions: [
       'A tiny "{ }" snippet hops from the model to a human engineer',
-      'The model moves centre stage; code and training gears orbit it',
-      'Three subagents split off and orbit in parallel',
-      'A glowing successor model is born from the stream of verified data'
+      'The model fills a wall of production files, most of them turning green',
+      'The model fans work out to four subagents racing in parallel',
+      'Verified trajectories pass a shield and grow a larger successor model'
     ],
     narration: [
       `Over the last several months, we have crossed a critical inflection point where frontier models are no longer just assisting human engineers with isolated snippets of code.`,
@@ -269,48 +253,53 @@ const PRESET_SCENES = [
     init(ctx) {},
     onPhaseChange(phase, ctx) {},
     update(ctx) {
-      const { time, phase, grid, palette, anim } = ctx;
+      const { time, phase, phaseTime, stageDuration, grid, palette, anim, math } = ctx;
       grid.fade(0.15);
       const G = '#00ff88';
 
       if (phase === 1) {
-        grid.icon('human', 40, 18, palette.accent, { key: 'eng', base: false });
-        grid.icosahedron3D(88, 18, 2.6, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.primary, accent: '#ffffff', dim: palette.dim });
-        const t = (time * 0.5) % 1;
+        grid.person(38, 16, { size: 12, label: 'ENGINEER', key: 'eng' });
+        grid.icosahedron3D(90, 16, 2.8, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.primary, accent: '#ffffff', dim: palette.dim });
+        const t = (time * 0.45) % 1;
         const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        grid.big(82 - e * 38, 18 - Math.sin(e * Math.PI) * 4, '{ }', { size: 1.4, color: palette.accent, reveal: false });
-        grid.text(64, 27, 'just a snippet', palette.dim, false, 'center');
+        grid.big(84 - e * 36, 16 - Math.sin(e * Math.PI) * 5, '{ }', { size: 1.5, color: palette.accent, reveal: false });
         return;
       }
-
-      const cx = phase === 4 ? 46 : 64;
-      const ccx = anim.spring('cx', cx, { from: 88, freq: 2 });
-      grid.icosahedron3D(ccx, 18, 3.4, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
-      grid.glow(ccx, 18, 8, palette.accent, 1);
-      const sp = anim.spin('orb', 0.5);
-      const satA = anim.spring('satA', phase === 4 ? 0 : 1, { freq: 2.5 });
-      const sats = [['terminal', 'code'], ['gear', 'training']];
-      if (satA > 0.05) sats.forEach((s, i) => {
-        const a = sp + i * Math.PI;
-        grid.icon(s[0], ccx + Math.cos(a) * 24, 18 + Math.sin(a) * 8, palette.primary, { key: 's' + i, base: false, label: s[1], alpha: satA });
-      });
+      if (phase === 2) {
+        grid.icosahedron3D(22, 17, 3.2, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+        grid.glow(22, 17, 7, palette.accent, 1);
+        const f = math.clamp(phaseTime / (stageDuration * 0.8), 0, 1) * 0.85;
+        grid.fileGrid(76, 17, 14, 8, { filled: f, key: 'prodcode' });
+        for (let i = 0; i < 5; i++) {
+          const t = (time * 0.8 + i / 5) % 1;
+          grid.vdot(30 + t * 18, 17 + (hash01(i) - 0.5) * 8 * t, 1.6, { color: G, alpha: Math.sin(t * Math.PI) });
+        }
+        return;
+      }
       if (phase === 3) {
-        for (let i = 0; i < 3; i++) {
-          const a = -sp * 1.6 + (i / 3) * Math.PI * 2;
-          const k = anim.spring('sub' + i, 1, { from: 0, freq: 2.5 + i * 0.4 });
-          grid.icon('agent', ccx + Math.cos(a) * 14 * k, 18 + Math.sin(a) * 5 * k, G, { key: 'sub' + i, base: false });
+        grid.icosahedron3D(64, 7, 2.4, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+        for (let i = 0; i < 4; i++) {
+          const x = 25 + i * 26;
+          const k = anim.spring('sub' + i, 1, { from: 0, freq: 2.2 + i * 0.3 });
+          grid.vpath([[64, 10], [64, 13], [x, 15], [x, 15 + 3 * k]], { color: G, alpha: 0.35 * k, width: 1.2 });
+          grid.icon('agent', x, 21, G, { key: 'sub' + i, alpha: k });
+          drawHBar(grid, x - 8, 27, 16, math.clamp(phaseTime * (0.25 + i * 0.06), 0, 1), G);
         }
+        return;
       }
-      if (phase === 4) {
-        for (let i = 0; i < 10; i++) {
-          const t = (time * 0.45 + i / 10) % 1;
-          grid.set(ccx + 8 + t * 30, 18 + Math.sin(t * 9 + i) * 1.5, '·', G, true, null, 0.4 + t * 0.6);
-        }
-        const k = anim.spring('succ', 4.2, { from: 0.3, freq: 1.8, damp: 0.6 });
-        grid.dodecahedron3D(96, 18, k, anim.spin('c', 0.6), anim.spin('d', 0.7), 0, { color: G, accent: '#ffffff', dim: palette.dim });
-        grid.glow(96, 18, 10, G, 1.4);
-        grid.text(96, 27, 'successor', G, true, 'center');
+      grid.icosahedron3D(20, 17, 2.8, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+      for (let i = 0; i < 9; i++) {
+        const t = (time * 0.4 + i / 9) % 1;
+        const x = 26 + t * 64;
+        const y = 17 + Math.sin(t * 7 + i * 1.3) * 5 * (1 - t);
+        const passed = x > 56;
+        grid.vdot(x, y, 1.7, { color: passed ? G : palette.accent, alpha: 0.4 + 0.6 * Math.sin(t * Math.PI) });
       }
+      grid.icon('shield', 56, 17, G, { key: 'verify', glow: true, label: 'verified' });
+      const k = anim.spring('succ', 4.2, { from: 0.3, freq: 1.4, damp: 0.6 });
+      grid.dodecahedron3D(100, 17, k, anim.spin('c', 0.6), anim.spin('d', 0.7), 0, { color: G, accent: '#ffffff', dim: palette.dim });
+      grid.glow(100, 17, 10, G, 1.4);
+      grid.text(100, 27, 'successor', G, true, 'center');
     }
   },
 
@@ -323,13 +312,13 @@ const PRESET_SCENES = [
     title: 'What We Will Cover',
     category: 'Intro',
     prompt: 'Four chapter markers along a line, lighting one by one.',
-    shows: 'Four glowing nodes along a line — DATA, DEMO, DOCS, NEXT — each lifts and lights as it is named while the line fills toward it.',
+    shows: 'A four-chapter track along the bottom; above it each chapter is previewed with the real thing — a bar chart, a running loop, two documentation pages, and a calendar heading into next year.',
     phases: ['The Hard Data', 'Live Loop Demo', 'Two Weeks of Docs', 'The Next Few Months'],
     captions: [
-      'Node 1 lights: DATA',
-      'Node 2 lights: DEMO',
-      'Node 3 lights: DOCS',
-      'Node 4 lights: NEXT'
+      'Chapter 1 lights; a bar chart grows above it: the hard data',
+      'Chapter 2 lights; a propose → run → evaluate → commit loop runs: the demo',
+      'Chapter 3 lights; Anthropic and OpenAI documentation pages land: the docs',
+      'Chapter 4 lights; a timeline runs on through Nov, Dec and into 2027: what comes next'
     ],
     narration: [
       `In this video, we are going to examine the hard data behind what is happening inside the frontier labs right now,`,
@@ -342,22 +331,39 @@ const PRESET_SCENES = [
     update(ctx) {
       const { phase, grid, palette, anim } = ctx;
       grid.fade(0.15);
-      const items = [['chip', 'DATA'], ['agent', 'DEMO'], ['file', 'DOCS'], ['terminal', 'NEXT']];
-      const y = 20;
-      grid.vline(20, y + 5, 108, y + 5, { color: palette.dim, alpha: 0.4, width: 1.2 });
+      const G = '#00ff88';
+      const items = ['THE DATA', 'THE DEMO', 'THE DOCS', 'WHAT’S NEXT'];
+      const y = 31;
+      grid.vline(20, y, 108, y, { color: palette.dim, alpha: 0.35, width: 1.2 });
       const fill = anim.spring('fill', 20 + (phase - 1) * 29.3, { from: 20, freq: 2.4 });
-      grid.vline(20, y + 5, fill, y + 5, { color: palette.accent, alpha: 0.9, width: 2 });
+      grid.vline(20, y, fill, y, { color: palette.accent, alpha: 0.9, width: 2 });
       items.forEach((it, i) => {
         const x = 20 + i * 29.3;
         const active = i === phase - 1;
-        const done = i < phase - 1;
-        const col = anim.color('c' + i, active ? palette.accent : (done ? palette.primary : palette.dim));
-        const lift = anim.spring('l' + i, active ? -4 : 0, { freq: 4, damp: 0.6 });
-        grid.icon(it[0], x, y - 3 + lift, col, { key: 'i' + i, glow: active, base: active, alpha: active || done ? 1 : 0.45 });
-        grid.vdot(x, y + 5, active ? 3 : 2, { color: col, alpha: 1 });
-        if (active) grid.big(x, y + 9, it[1], { size: 2.2, color: palette.accent });
-        else grid.text(x, y + 8, it[1], col, false, 'center');
+        const col = anim.color('c' + i, active ? palette.accent : (i < phase - 1 ? palette.primary : palette.dim));
+        grid.vdot(x, y, active ? 3 : 2, { color: col, alpha: 1 });
+        grid.text(x, y - 2, it, col, active, 'center');
       });
+      if (phase === 1) {
+        grid.barChart(36, 5, 56, 18, [
+          { value: 3, label: '', color: palette.dim }, { value: 8, label: '', color: palette.primary },
+          { value: 23, label: '', color: palette.accent }, { value: 52, label: '', color: G }
+        ], { format: () => '', key: 'ch1' });
+      }
+      if (phase === 2) {
+        grid.icosahedron3D(64, 9, 2.4, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+        grid.pipeline(30, 98, 20, ['propose', 'run', 'evaluate', 'commit'], { loop: true, color: G, speed: 0.45, key: 'ch2' });
+      }
+      if (phase === 3) {
+        grid.paper(46, 14, { key: 'dA', title: 'Developer Platform Docs', venue: 'Anthropic · October', w: 24, h: 18, lines: 6, yaw: 0.28 });
+        grid.paper(82, 14, { key: 'dO', title: 'Release Notes', venue: 'OpenAI · October', w: 24, h: 18, lines: 6, yaw: -0.28 });
+      }
+      if (phase === 4) {
+        grid.timeline(22, 106, 16, { from: 0, to: 4, ticks: 1, label: (v) => ['OCT', 'NOV', 'DEC', 'JAN 2027', 'FEB'][Math.round(v)], key: 'ch4',
+          events: [{ at: 0.7, label: 'now', color: palette.accent }, { at: 3, label: '', color: G }] });
+        const t = (ctx.time * 0.35) % 1;
+        grid.vdot(22 + 84 * t, 16, 2.2, { color: '#ffffff', alpha: Math.sin(t * Math.PI) });
+      }
     }
   },
 
@@ -370,12 +376,12 @@ const PRESET_SCENES = [
     title: 'When AI Builds Itself: 80%',
     category: 'The Hard Data',
     prompt: 'A gauge that fills from low single digits to over 80% of code written by Claude.',
-    shows: 'A report icon opens into a circular gauge: it starts nearly empty (low single digits, before Claude Code) then sweeps to 80%+ with the number counting up in large type.',
+    shows: 'The report "When AI Builds Itself" lands as a page; then Anthropic’s codebase appears as a wall of 100 files — only 3 are Claude’s before Claude Code, then 80 light up green as the number counts to 80%+.',
     phases: ['"When AI Builds Itself"', 'Before Feb 2025: ~3%', 'Today: 80%+'],
     captions: [
       'The report "When AI Builds Itself" lands as a tilted page; a line of its findings highlights',
-      'Circular gauge sits almost empty: ~3% (before Claude Code, Feb 2025)',
-      'Gauge sweeps around to 80%+ as the number counts up'
+      'A wall of 100 files = the codebase; only ~3 glow green (Claude-written) before Feb 2025',
+      'The wall floods green to 80 of 100 files as "80%+" counts up'
     ],
     narration: [
       `Let's start with the empirical data. In Anthropic's landmark report, "When AI Builds Itself," the company opened up its internal engineering metrics.`,
@@ -393,11 +399,11 @@ const PRESET_SCENES = [
         grid.paper(64, 17, { title: 'When AI Builds Itself', authors: 'Anthropic', venue: 'Report · internal engineering metrics', w: 32, h: 24, highlight: 3, key: 'wabi' });
         return;
       }
-      const v = anim.spring('v', phase === 3 ? 80 : 3, { from: 0, freq: phase === 3 ? 1.1 : 2.5 });
+      const v = anim.spring('v', phase === 3 ? 80 : 3, { from: 0, freq: phase === 3 ? 0.9 : 2.5 });
+      grid.fileGrid(64, 13, 20, 5, { filled: v / 100, key: 'codebase', cell: [4.4, 3.2] });
       const col = phase === 3 ? G : palette.primary;
-      drawArc(grid, 64, 17, 10, v / 100, col, 3);
-      grid.big(64, 17, `${Math.round(v)}%${phase === 3 && v > 79 ? '+' : ''}`, { size: 3.6, color: col, reveal: false });
-      grid.text(64, 30, phase === 3 ? 'of merged code written by Claude' : 'before Claude Code · Feb 2025', palette.dim, false, 'center');
+      grid.big(64, 28, `${Math.round(v)}%${phase === 3 && v > 79 ? '+' : ''}`, { size: 3.4, color: col, reveal: false });
+      grid.text(64, 32, phase === 3 ? 'of merged code written by Claude' : 'before Claude Code · Feb 2025', palette.dim, false, 'center');
     }
   },
 
@@ -477,12 +483,12 @@ const PRESET_SCENES = [
     title: 'The Hardest Tasks: 76%',
     category: 'The Hard Data',
     prompt: 'A blurry, undefined target; then a success gauge jumps from 26% to 76%.',
-    shows: 'A target whose rings flicker and blur; question marks drift around it and the engineer is unsure; then the target sharpens into a gauge that leaps from 26% to 76% (+50).',
+    shows: 'An engineering spec page with blank, flickering lines and an unsure engineer; question marks rise off it; then a bar chart: 26% six months ago → 76% today (+50 points).',
     phases: ['The Hardest Tasks', 'No Clear Spec', '+50 Points → 76%'],
     captions: [
-      'A flickering, out-of-focus target labelled "open-ended"',
-      'Question marks drift around it; the engineer beside it shows "?"',
-      'The target sharpens into a gauge: 26% → 76% (+50 in 6 months)'
+      'A spec page with only a title and flickering, half-missing lines: "open-ended"',
+      'An engineer beside it is unsure — question marks rise off the page',
+      'Bar chart: success rate 26% six months ago → 76% today, "+50" between them'
     ],
     narration: [
       `Furthermore, on the hardest, most open-ended engineering tasks—`,
@@ -496,31 +502,28 @@ const PRESET_SCENES = [
       const { time, phase, grid, palette, anim } = ctx;
       grid.fade(0.15);
       const G = '#00ff88';
-      const cx = 64;
-      const cy = 17;
 
       if (phase <= 2) {
-        for (let r = 1; r <= 3; r++) {
-          const wob = Math.sin(time * 3 + r) * 0.5;
-          grid.vcircle(cx + wob, cy, r * 3.2 + Math.sin(time * 2 + r) * 0.4, { color: palette.accent, alpha: 0.15 + (Math.sin(time * 7 + r) > 0.6 ? 0.25 : 0), width: 1.4 });
+        const px = phase === 2 ? 46 : 64;
+        const x = anim.spring('px', px, { freq: 1.8 });
+        grid.paper(x, 17, { key: 'spec', title: 'Specification', venue: 'open-ended task', w: 28, h: 22, lines: 8,
+          lineColor: (i) => (Math.sin(time * 5 + i * 2.3) > 0.3 ? palette.dim : (i % 3 === 1 ? '#000000' : null)) });
+        if (phase === 2) {
+          grid.person(96, 15, { size: 12, label: 'ENGINEER', key: 'unsure' });
+          for (let i = 0; i < 6; i++) {
+            const t = (time * 0.3 + i / 6) % 1;
+            grid.big(x - 8 + hash01(i) * 20, 26 - t * 22, '?', { size: 1.4, color: palette.warn, alpha: Math.sin(t * Math.PI), reveal: false });
+          }
         }
-        grid.text(cx, cy + 14, 'open-ended', palette.dim, false, 'center');
+        return;
       }
-      if (phase === 2) {
-        for (let i = 0; i < 9; i++) {
-          const a = time * 0.4 + (i / 9) * Math.PI * 2;
-          grid.set(cx + Math.cos(a) * (26 + Math.sin(time + i) * 3), cy + Math.sin(a) * 9, '?', palette.warn, true, null, 0.5 + 0.5 * Math.sin(time * 2 + i));
-        }
-        grid.icon('human', cx + 40, cy + 6, palette.accent, { key: 'eng', base: false });
-        grid.text(cx + 43, cy + 3.5, '?', palette.warn, true, 'center');
-      }
-      if (phase === 3) {
-        const v = anim.spring('v', 76, { from: 26, freq: 1.1 });
-        drawArc(grid, cx, cy, 10, v / 100, G, 3);
-        drawArc(grid, cx, cy, 8.5, 0.26, palette.primary, 1.4);
-        grid.big(cx, cy, `${Math.round(v)}%`, { size: 3.6, color: G, reveal: false });
-        grid.text(cx, cy + 13.5, '+50 points in 6 months', G, true, 'center');
-      }
+      grid.barChart(40, 6, 48, 20, [
+        { value: 26, label: '6 MONTHS AGO', color: palette.primary },
+        { value: 76, label: 'TODAY', color: G }
+      ], { yMax: 100, format: (v) => Math.round(v) + '%', valueSize: 2, key: 'hard76' });
+      const k = anim.spring('plus', 1, { from: 0, freq: 1.2 });
+      grid.big(64, 12, '+50', { size: 2.2, color: G, alpha: k });
+      grid.text(64, 32, 'success on the hardest, open-ended tasks', palette.dim, false, 'center');
     }
   },
 
@@ -533,11 +536,11 @@ const PRESET_SCENES = [
     title: 'The Research-Loop Benchmark',
     category: 'The Hard Data',
     prompt: 'Every model takes the same speed test; human 4×, Opus 4 3×, Mythos Preview 52×.',
-    shows: 'New models queue into the same test loop; a training pipeline speeds up while a shield checks correctness; then three racing bars — human 4×, Opus 4 3×, and Mythos Preview shooting to a large 52×.',
+    shows: 'Models line up and drive into the same GPU test bench; a code file is rewritten while the speed-up meter climbs and a correctness shield checks it; then three racing bars — a human 4×, Opus 4 3×, Mythos Preview 52×.',
     phases: ['The Internal Benchmark', 'Same Test, Every Model', 'Human Expert: 4×', 'Opus 4: 3×', 'Mythos Preview: 52×'],
     captions: [
-      'Model after model glides into the same test loop',
-      'A training pipeline of blocks speeds up; a shield checks every result',
+      'Model after model drives into the same GPU test bench',
+      'A training-code file is rewritten line by line; a speed-up meter climbs; a shield checks correctness',
       'Bar 1: human researcher — 4× in 4–8 hours',
       'Bar 2: Claude Opus 4 (May 2025) — 3×',
       'Bar 3: Claude Mythos Preview races off to a large 52×'
@@ -553,47 +556,45 @@ const PRESET_SCENES = [
     init(ctx) {},
     onPhaseChange(phase, ctx) {},
     update(ctx) {
-      const { time, phase, grid, palette, anim } = ctx;
+      const { time, phase, phaseTime, grid, palette, anim, math } = ctx;
       grid.fade(0.15);
       const G = '#00ff88';
 
       if (phase === 1) {
-        grid.ring3D(64, 17, 8, 1.2, 0, { color: palette.accent, dim: palette.dim, spin: anim.spin('l', 1), glow: true });
+        grid.object('gpu', 84, 18, 9, 0.6 + Math.sin(time * 0.4) * 0.2, { tilt: 0.45, color: palette.accent, key: 'bench' });
         for (let i = 0; i < 3; i++) {
           const t = (time * 0.25 + i / 3) % 1;
-          const x = 10 + t * 54;
-          grid.shape3D(['tetra', 'octa', 'icosa'][i], x, 17, 1.8 * Math.min(1, (1 - t) * 4), anim.spin('m' + i, 0.6), anim.spin('n' + i, 0.7), 0, { color: palette.primary, accent: '#ffffff', dim: palette.dim, alpha: Math.min(1, (1 - t) * 3) });
+          const x = 8 + t * 70;
+          const a = Math.min(1, (1 - t) * 4) * Math.min(1, t * 5);
+          grid.shape3D(['tetra', 'octa', 'icosa'][i], x, 18, 1.9, anim.spin('m' + i, 0.6), anim.spin('n' + i, 0.7), 0, { color: palette.primary, accent: '#ffffff', dim: palette.dim, alpha: a });
         }
-        grid.text(64, 28, 'same test, every model', palette.dim, false, 'center');
         return;
       }
       if (phase === 2) {
-        const speed = 0.4 + Math.min(2.4, ctx.phaseTime * 0.35);
-        for (let i = 0; i < 8; i++) {
-          const x = 24 + i * 8;
-          const on = Math.floor(time * speed * 4) % 8 === i;
-          grid.vline(x - 2.5, 17, x + 2.5, 17, { color: on ? '#ffffff' : palette.primary, alpha: on ? 1 : 0.5, width: 6 });
-        }
-        grid.icon('shield', 100, 17, G, { key: 'chk', glow: true, base: false, label: 'correct' });
-        drawClock(grid, 24, 9, anim.spin('clk', 4), palette.accent);
-        grid.text(29, 9, 'as fast as possible', palette.accent, false, 'left');
+        const pass = Math.floor(phaseTime * 1.4);
+        grid.paper(28, 17, { key: 'traincode', venue: 'train.py', w: 24, h: 22, lines: 9, yaw: 0.2, lineColor: (i) => (i < pass ? G : (i === pass ? palette.warn : null)) });
+        grid.object('gpu', 70, 18, 7, 0.6, { tilt: 0.45, color: palette.accent, key: 'bench2' });
+        const sp = 1 + math.clamp(phaseTime / 6, 0, 1) * 3;
+        grid.big(70, 9, `${sp.toFixed(1)}×`, { size: 2.6, color: G, reveal: false });
+        grid.icon('shield', 108, 17, G, { key: 'chk', glow: true, label: 'correct' });
         return;
       }
-      const x0 = 34;
-      const L = 70;
+      const x0 = 36;
+      const L = 66;
       const rows = [
-        { stage: 3, label: 'HUMAN', v: 4, col: palette.accent, icon: 'human' },
-        { stage: 4, label: 'OPUS 4', v: 3, col: palette.primary, icon: 'agent' },
-        { stage: 5, label: 'MYTHOS', v: 52, col: G, icon: 'agent' }
+        { stage: 3, label: 'HUMAN', v: 4, col: palette.accent },
+        { stage: 4, label: 'OPUS 4', v: 3, col: palette.primary },
+        { stage: 5, label: 'MYTHOS', v: 52, col: G }
       ];
       rows.forEach((r, i) => {
         if (phase < r.stage) return;
-        const y = 10 + i * 8;
-        grid.icon(r.icon, 14, y, r.col, { key: 'ri' + i, base: false });
+        const y = 9 + i * 9;
+        if (i === 0) grid.person(14, y, { size: 6, key: 'researcher' });
+        else grid.shape3D(i === 2 ? 'dodeca' : 'icosa', 14, y, 1.8, anim.spin('s' + i, 0.6), anim.spin('t' + i, 0.7), 0, { color: r.col, accent: '#ffffff', dim: palette.dim });
         grid.text(22, y, r.label, r.col, false, 'left');
         const v = anim.spring('v' + i, r.v, { from: 0, freq: i === 2 ? 1 : 3 });
         const end = drawHBar(grid, x0, y, L, v / 52, r.col);
-        grid.big(end + 7, y, `${v < 10 ? v.toFixed(0) : Math.round(v)}×`, { size: i === 2 ? 2.6 : 1.8, color: r.col, reveal: false });
+        grid.big(end + 7, y, `${Math.round(v)}×`, { size: i === 2 ? 2.6 : 1.8, color: r.col, reveal: false });
       });
     }
   },
@@ -607,12 +608,12 @@ const PRESET_SCENES = [
     title: 'One Week vs 800 Agent-Hours',
     category: 'The Hard Data',
     prompt: 'Two lanes across the same gap: humans fill 23%, an agent loop fills 97%.',
-    shows: 'Two humans work a lane across the gap for a week and fill 23%; below, an agent loop runs 800 hours on ~$18k and fills 97% of the same gap, with large percentages at each lane\'s end.',
+    shows: 'Two researchers work a lane across the gap for a week and stop at 23%; below, a server rack runs an agent loop for 800 hours on ~$18k and closes 97% of the same gap.',
     phases: ['Two Researchers, One Week', 'Recovered 23%', '800 Agent-Hours · ~$18k', 'Closed 97%'],
     captions: [
       'Two researchers work their lane while a 7-day counter runs',
       'Their lane stops at 23% of the gap',
-      'An agent loop runs its lane: 800 hours, ~$18,000 counting up',
+      'A server rack runs the agent loop: 800 hours and ~$18,000 count up',
       'The agent lane reaches 97% of the same gap'
     ],
     narration: [
@@ -628,30 +629,29 @@ const PRESET_SCENES = [
       const { phase, phaseTime, stageDuration, grid, palette, anim, math } = ctx;
       grid.fade(0.15);
       const G = '#00ff88';
-      const gx0 = 30;
-      const gx1 = 110;
+      const gx0 = 32;
+      const gx1 = 112;
       const L = gx1 - gx0;
 
-      grid.vline(gx0, 6, gx0, 28, { color: palette.dim, alpha: 0.4, width: 1, dash: [2, 3] });
-      grid.vline(gx1, 6, gx1, 28, { color: G, alpha: 0.5, width: 1, dash: [2, 3] });
-      grid.text(gx1, 4.5, 'target', G, false, 'center');
+      grid.vline(gx0, 5, gx0, 30, { color: palette.dim, alpha: 0.4, width: 1, dash: [2, 3] });
+      grid.vline(gx1, 5, gx1, 30, { color: G, alpha: 0.5, width: 1, dash: [2, 3] });
+      grid.text(gx1, 3.5, 'target', G, false, 'center');
 
-      grid.icon('human', 10, 11, palette.accent, { key: 'h1', base: false });
-      grid.icon('human', 16, 11, palette.accent, { key: 'h2', base: false });
+      grid.person(10, 10, { size: 6, key: 'r1' });
+      grid.person(20, 10, { size: 6, key: 'r2' });
       const weekP = phase === 1 ? math.clamp(phaseTime / stageDuration, 0, 1) : 1;
-      grid.text(13, 14.5, `day ${Math.max(1, Math.ceil(weekP * 7))}/7`, palette.dim, false, 'center');
+      grid.text(15, 15.5, `day ${Math.max(1, Math.ceil(weekP * 7))}/7`, palette.dim, false, 'center');
       const hR = anim.spring('h', 0.23 * weekP, { freq: 3 });
-      const hEnd = drawHBar(grid, gx0, 11, L, hR, palette.accent);
-      if (phase >= 2) grid.big(hEnd + 8, 11, '23%', { size: 2.2, color: palette.accent });
+      const hEnd = drawHBar(grid, gx0, 10, L, hR, palette.accent);
+      if (phase >= 2) grid.big(hEnd + 8, 10, '23%', { size: 2.2, color: palette.accent });
 
       if (phase >= 3) {
-        grid.ring3D(13, 23, 3.5, 1.2, 0, { color: G, dim: palette.dim, spin: anim.spin('loop', 2.4), glow: true });
-        grid.icon('agent', 13, 23, G, { key: 'ag', base: false });
+        grid.object('rack', 15, 22, 4, ctx.anim.spin('rk', 0.3) + 0.4, { tilt: 0.3, color: G, windowColor: G, key: 'loop' });
         const runP = phase === 3 ? math.clamp(phaseTime / stageDuration, 0, 1) : 1;
-        grid.text(13, 27.5, `${Math.round(runP * 800)} h · $${Math.round(runP * 18).toLocaleString()}k`, palette.dim, false, 'center');
+        grid.text(15, 30, `${Math.round(runP * 800)} h · $${Math.round(runP * 18)}k`, palette.dim, false, 'center');
         const aR = anim.spring('a', 0.97 * runP, { freq: 3 });
         const aEnd = drawHBar(grid, gx0, 23, L, aR, G);
-        if (phase === 4) grid.big(Math.min(aEnd + 8, 120), 19, '97%', { size: 2.8, color: G });
+        if (phase === 4) grid.big(Math.min(aEnd + 2, 118), 18.5, '97%', { size: 2.8, color: G });
       }
     }
   },
@@ -665,13 +665,13 @@ const PRESET_SCENES = [
     title: 'Under the Hood: Not Weight Editing',
     category: 'Under the Hood',
     prompt: 'Editing a network\'s weights live collapses it; the real engine is two loops around a stable model.',
-    shows: 'A neural network glows; an agent pokes at its weights live; nodes turn red and the net caves in; then the network steadies and two loops spin around a stable core with three pillar icons.',
+    shows: 'A neural network glows; an agent hops between its weights editing them live; nodes turn red and it caves in; then the network steadies beside the three papers behind the real method.',
     phases: ['Under the Hood', 'The Popular Picture', 'Collapse & Forgetting', 'The Dual-Loop Architecture'],
     captions: [
       'A calm 4-layer neural network, gently pulsing',
       'An agent hops between nodes, editing weights live',
       'Nodes turn red and the network caves in on itself',
-      'Network stabilises; two loops spin around a stable core with gear · eye · cloud pillars'
+      'Network steadies at left; three pages fan in: Agent Harness Evolution · Multi-Agent Self-Supervision · Simulated World Replay'
     ],
     narration: [
       `To understand how these systems are achieving this, we need to clarify what modern Recursive Self-Improvement actually looks like under the hood.`,
@@ -688,44 +688,40 @@ const PRESET_SCENES = [
       grid.fade(0.15);
       const G = '#00ff88';
       const R = palette.danger;
-      const ox = phase === 4 ? 30 : 64;
+      const ox = phase === 4 ? 24 : 64;
       const nx0 = anim.spring('nx', ox, { freq: 2 });
+      const sc = anim.spring('nsc', phase === 4 ? 0.6 : 1, { freq: 2 });
 
       const redFrac = anim.spring('red', phase === 3 ? 1 : 0, { freq: 1.3 });
       const collapse = anim.spring('collapse', phase === 3 ? 1 : 0, { freq: 1.6, damp: 0.75 });
       const nodes = [];
       for (let li = 0; li < 4; li++) {
         for (let ni = 0; ni < 5; ni++) {
-          const bx = nx0 - 18 + li * 12;
-          const by = 9 + ni * 4;
+          const bx = nx0 + (-18 + li * 12) * sc;
+          const by = 17 + (-8 + ni * 4) * sc;
           nodes.push({ x: bx + (nx0 - bx) * collapse * 0.85, y: by + (17 - by) * collapse * 0.85, li, idx: li * 5 + ni });
         }
       }
       for (const a of nodes) for (const b of nodes) {
         if (b.li !== a.li + 1) continue;
-        grid.vline(a.x, a.y, b.x, b.y, { color: hash01(a.idx * 7 + b.idx) < redFrac ? R : palette.primary, alpha: phase === 4 ? 0.06 : 0.11, width: 1 });
+        grid.vline(a.x, a.y, b.x, b.y, { color: hash01(a.idx * 7 + b.idx) < redFrac ? R : palette.primary, alpha: 0.11, width: 1 });
       }
       for (const n of nodes) {
         const bad = hash01(n.idx * 3.1) < redFrac;
         const edited = phase === 2 && Math.floor(time * 2.5) % 20 === n.idx;
         const pulse = 0.6 + 0.4 * Math.sin(time * 2 + n.idx);
-        grid.vdot(n.x, n.y, edited ? 3 : 2, { color: bad ? R : (edited ? palette.warn : (phase === 4 ? palette.dim : palette.accent)), alpha: pulse });
+        grid.vdot(n.x, n.y, edited ? 3 : 2, { color: bad ? R : (edited ? palette.warn : palette.accent), alpha: pulse });
       }
       if (phase === 2) {
         const tg = nodes[Math.floor(time * 2.5) % 20];
-        grid.icon('agent', tg.x, tg.y - 4, palette.warn, { key: 'ed', base: false });
-        grid.text(nx0, 29, 'editing weights live', palette.warn, false, 'center');
+        grid.icon('agent', tg.x, tg.y - 4, palette.warn, { key: 'ed' });
       }
-      if (phase === 3) grid.big(nx0, 29, 'COLLAPSE', { size: 2, color: R });
+      if (phase === 3) grid.big(nx0, 31, 'COLLAPSE', { size: 2, color: R });
       if (phase === 4) {
-        const bx = 92;
-        grid.icosahedron3D(bx, 16, 2.6, anim.spin('bx', 0.4), anim.spin('by', 0.55), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
-        grid.ring3D(bx, 16, 6, 1.2, 0, { color: palette.warn, dim: palette.dim, spin: anim.spin('in', 1.8), glow: true });
-        grid.ring3D(bx, 16, 10, 1.2, 0, { color: G, dim: palette.dim, spin: -anim.spin('out', 0.7), glow: true });
-        const pillars = [['gear', 'harness'], ['eye', 'self-supervision'], ['cloud', 'world replay']];
-        pillars.forEach((p, i) => {
-          if (anim.stagger(i, 0.6, 0.4) <= 0.2) return;
-          grid.icon(p[0], 76 + i * 16, 29, G, { key: 'p' + i, base: false, label: p[1] });
+        const papers = [['Agent Harness Evolution', 'pillar 1'], ['Multi-Agent Self-Supervision', 'pillar 2'], ['Simulated World Replay', 'pillar 3']];
+        papers.forEach((p, i) => {
+          if (anim.stagger(i, 0.6, 0.4) <= 0) return;
+          grid.paper(56 + i * 26, 17, { key: 'pil' + i, title: p[0], venue: p[1], w: 22, h: 18, lines: 5, yaw: -0.12, color: i === 1 ? G : palette.accent });
         });
       }
     }
@@ -740,13 +736,13 @@ const PRESET_SCENES = [
     title: 'Two Layers, Two Loops',
     category: 'Under the Hood',
     prompt: 'Four framework names converge into a model; the harness assembles around it; inner and outer loops form.',
-    shows: 'Four framework names drift in from the corners and condense into a single model; harness parts (code, prompts, memory, checks, tools) snap into an orbit around it; then a fast inner loop and slow outer loop wrap the whole system.',
+    shows: 'Four source papers fold into a foundation model; a glass harness box closes around it as code, prompts, memory, checks and tools dock onto its faces; then an inner and an outer loop run as two pipelines beside it.',
     phases: ['The Demo\'s Sources', 'The Foundation Model', 'The Orchestration Harness', 'Inner Loop + Outer Loop'],
     captions: [
       'Four source papers (AutoHarness, AIDE2, Dream-RSI, MASS) appear in the corners and fold into a point',
       'The point becomes the foundation model',
-      'Harness parts — code, prompts, memory, checks, tools — snap into orbit',
-      'A fast inner loop and a slow outer loop wrap the system'
+      'A glass harness box closes around the model; code · prompts · memory · checks · tools dock onto it',
+      'Beside the boxed system, a fast INNER loop and a slow OUTER loop run as two pipelines'
     ],
     narration: [
       `Let's walk through a demonstration of how this two-loop system works in practice, drawing directly from recent frameworks like AutoHarness, Weco's AIDE2, and two major papers published earlier this month in October: Google's Dream-RSI and the MASS framework—short for Multi-Agent Self-Supervision.`,
@@ -760,10 +756,10 @@ const PRESET_SCENES = [
       const { phase, phaseTime, stageDuration, grid, palette, anim, math } = ctx;
       grid.fade(0.15);
       const G = '#00ff88';
-      const cx = 64;
       const cy = 17;
 
       if (phase === 1) {
+        const cx = 64;
         const names = [['AutoHarness', 24, 7], ['AIDE2', 104, 7], ['Dream-RSI', 24, 27], ['MASS', 104, 27]];
         names.forEach((n, i) => {
           const appear = math.clamp(phaseTime - i * 1.2, 0, 1);
@@ -776,25 +772,28 @@ const PRESET_SCENES = [
         });
         return;
       }
-      if (phase === 4) {
-        grid.ring3D(cx, cy, 7, 1.25, 0, { color: palette.warn, dim: palette.dim, spin: anim.spin('inner', 2.4), glow: true });
-        grid.ring3D(cx, cy, 15, 1.25, 0, { color: G, dim: palette.dim, spin: -anim.spin('outer', 0.5), glow: true });
-        grid.text(cx - 18, cy + 3, 'inner', palette.warn, true, 'center');
-        grid.text(cx + 34, cy - 8, 'outer', G, true, 'center');
-      }
+      const cx = anim.spring('cx', phase === 4 ? 30 : 64, { freq: 1.6 });
       const s = anim.spring('core', 3.2, { from: 0.2, freq: 2.2, damp: 0.6 });
       grid.icosahedron3D(cx, cy, s, anim.spin('a', 0.4), anim.spin('b', 0.55), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
       grid.glow(cx, cy, 8, palette.accent, 1);
-      if (phase === 2) grid.text(cx, cy + 8, 'foundation model', palette.accent, true, 'center');
+      if (phase === 2) grid.text(cx, cy + 9, 'foundation model', palette.accent, true, 'center');
       if (phase >= 3) {
-        const parts = [['terminal', 'code'], ['file', 'prompts'], ['binary', 'memory'], ['shield', 'checks'], ['plug', 'tools']];
-        const sp = anim.spin('orb', phase === 3 ? 0.35 : 0.15);
+        grid.glassBox(cx, cy, phase === 4 ? 26 : 34, 20, phase === 4 ? 22 : 30, { color: G, key: 'harness', rotY: 0.3 + Math.sin(ctx.time * 0.3) * 0.1, alpha: 0.8 });
+        const parts = [['terminal', 'code', -24, -6], ['file', 'prompts', -24, 6], ['binary', 'memory', 0, -14], ['shield', 'checks', 24, -6], ['plug', 'tools', 24, 6]];
         parts.forEach((p, i) => {
-          const k = anim.spring('p' + i, phase === 3 ? (anim.stagger(i, 0.5, 0.3) > 0 ? 1 : 0) : 1, { from: 0, freq: 3, damp: 0.6 });
+          const on = phase === 4 || anim.stagger(i, 0.5, 0.3) > 0;
+          const k = anim.spring('p' + i, on ? 1 : 0, { from: 0, freq: 3, damp: 0.7 });
           if (k < 0.05) return;
-          const a = sp + (i / 5) * Math.PI * 2;
-          grid.icon(p[0], cx + Math.cos(a) * 30 * k, cy + Math.sin(a) * 10 * k, G, { key: 'pt' + i, base: false, label: phase === 3 ? p[1] : '', labelColor: palette.accent, alpha: Math.min(1, k) });
+          const fx = cx + p[2] * (phase === 4 ? 0.62 : 1) * (2 - k);
+          const fy = cy + p[3] * (phase === 4 ? 0.8 : 1);
+          grid.icon(p[0], fx, fy, G, { key: 'pt' + i, label: phase === 3 ? p[1] : '', labelColor: palette.accent, alpha: Math.min(1, k) });
         });
+      }
+      if (phase === 4) {
+        grid.big(88, 8, 'INNER LOOP', { size: 1.1, color: palette.warn });
+        grid.pipeline(66, 112, 13, ['propose', 'run', 'score'], { loop: true, loopDepth: 3, color: palette.warn, speed: 1.1, key: 'in11' });
+        grid.big(88, 22, 'OUTER LOOP', { size: 1.1, color: G });
+        grid.pipeline(66, 112, 27, ['inspect', 'rewrite', 'verify'], { loop: true, loopDepth: 3, color: G, speed: 0.25, key: 'out11' });
       }
     }
   },
@@ -808,12 +807,12 @@ const PRESET_SCENES = [
     title: 'Step 1: The Inner Loop',
     category: 'Live Demo',
     prompt: 'A research agent loops propose-run-time-log on a GPU kernel target and plateaus at a ceiling.',
-    shows: 'A research agent spins in its loop; a GPU-kernel target locks on; each pass (propose → run → time → log) drops a point on a rising trail that flattens against a red ceiling.',
+    shows: 'A research agent and its loop pipeline; a 3D GPU target locks in; each pass of propose → run → time → log drops a point on a rising trail that flattens against a red ceiling.',
     phases: ['Autonomous Research Agent', 'The Optimization Target', 'Propose · Run · Time · Log', 'Hits a Ceiling'],
     captions: [
-      'A research agent spins up inside its loop',
-      'A target reticle locks onto a GPU kernel',
-      'Each loop pass lights PROPOSE → RUN → TIME → LOG and drops a point on a rising trail',
+      'A research agent appears with its four-step loop forming beside it',
+      'A 3D GPU card slides in as the optimization target',
+      'Each pass lights PROPOSE → RUN → TIME → LOG and drops a point on a rising trail',
       'The trail flattens against a red ceiling'
     ],
     narration: [
@@ -826,46 +825,36 @@ const PRESET_SCENES = [
     init(ctx) {},
     onPhaseChange(phase, ctx) {},
     update(ctx) {
-      const { time, phase, grid, palette, anim } = ctx;
+      const { phase, phaseTime, grid, palette, anim } = ctx;
       grid.fade(0.15);
       const R = palette.danger;
-      const lx = 26;
-      const ly = 17;
-      const sp = anim.spin('loop', phase >= 3 ? 1.8 : 0.7);
-      grid.ring3D(lx, ly, 7, 1.25, 0, { color: palette.warn, dim: palette.dim, spin: sp, glow: true });
-      grid.icon('agent', lx, ly, palette.accent, { key: 'inner', base: false });
+      grid.icosahedron3D(14, 17, 2.4, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+      grid.text(14, 23, 'agent', palette.accent, false, 'center');
+      grid.pipeline(28, 104, 6, ['propose', 'run', 'time', 'log'], { loop: true, loopDepth: 3, color: palette.warn, speed: phase >= 3 ? 0.9 : 0.35, key: 'il' });
 
       if (phase === 2) {
-        const tx = 92;
-        const k = anim.spring('lock', 1, { from: 0, freq: 2.5 });
-        grid.reticle(tx, ly, 6 - k * 1.5, { color: palette.warn });
-        grid.icon('chip', tx, ly, palette.accent, { key: 'gpu', glow: true, base: false });
-        grid.text(tx, ly + 8, 'GPU kernel', palette.accent, false, 'center');
-        drawCleanLink(grid, time, tx - 9, ly, lx + 9, ly, '', palette.dim, palette.warn, 0.7);
+        const gx = anim.spring('gx', 72, { from: 130, freq: 1.4, damp: 0.8 });
+        grid.object('gpu', gx, 21, 9, 0.6 + Math.sin(ctx.time * 0.5) * 0.15, { tilt: 0.45, color: palette.accent, key: 'gpu' });
+        grid.text(gx, 30, 'GPU kernel', palette.accent, false, 'center');
       }
       if (phase >= 3) {
-        const steps = ['propose', 'run', 'time', 'log'];
-        const act = Math.floor(anim.spin('st', 2.4)) % 4;
-        steps.forEach((s, i) => {
-          const a = -Math.PI / 2 + (i / 4) * Math.PI * 2;
-          grid.text(lx + Math.cos(a) * 19, ly + Math.sin(a) * 7.5, s, i === act ? '#ffffff' : palette.dim, i === act, 'center');
-        });
-        const x0 = 58;
-        const yB = 28;
-        const yT = 6;
-        const n = Math.min(30, Math.floor(anim.spin('att', 3.5)));
-        const ceil = 0.55;
+        const x0 = 30;
+        const yB = 30;
+        const yT = 12;
+        const n = Math.min(36, Math.floor(phaseTime * 3.5) + (phase === 4 ? 36 : 0));
+        const ceil = 0.62;
         const pts = [];
         for (let i = 0; i < n; i++) {
-          const v = Math.min(ceil, 0.1 + (1 - Math.exp(-i / 6)) * 0.48) - hash01(i) * 0.04;
-          pts.push([x0 + i * 2.1, yB - v * (yB - yT)]);
+          const v = Math.min(ceil, 0.1 + (1 - Math.exp(-i / 7)) * 0.56) - hash01(i) * 0.04;
+          pts.push([x0 + i * 2.5, yB - v * (yB - yT)]);
         }
+        grid.vline(x0 - 1, yB, 122, yB, { color: palette.dim, alpha: 0.35, width: 1 });
         if (pts.length > 1) grid.vpath(pts, { color: palette.accent, alpha: 0.9, width: 1.8, glow: true });
-        pts.forEach((p, i) => grid.vdot(p[0], p[1], i === pts.length - 1 ? 2.8 : 1.4, { color: i === pts.length - 1 ? '#ffffff' : palette.accent }));
+        pts.forEach((p, i) => grid.vdot(p[0], p[1], i === pts.length - 1 ? 2.8 : 1.3, { color: i === pts.length - 1 ? '#ffffff' : palette.accent }));
         if (phase === 4) {
           const cyl = yB - ceil * (yB - yT) - 0.4;
-          grid.vline(x0 - 2, cyl, 124, cyl, { color: R, alpha: 0.95, width: 2.4 });
-          grid.text(124, cyl - 1.5, 'ceiling', R, true, 'right');
+          grid.vline(x0 - 2, cyl, 122, cyl, { color: R, alpha: 0.95, width: 2.4 });
+          grid.text(122, cyl - 1.5, 'ceiling', R, true, 'right');
         }
       }
     }
@@ -880,13 +869,13 @@ const PRESET_SCENES = [
     title: 'Step 2: The Outer Loop (MASS)',
     category: 'Live Demo',
     prompt: 'An outer loop forms around the inner loop; three roles share one model, inspect traces and rewrite the workflow.',
-    shows: 'A slower outer loop closes around the inner loop; three roles (agent · evaluator · optimizer) orbit one shared core; a trace strip lights up with two red breaks; then two lines of the inner loop\'s code are struck and rewritten in place.',
+    shows: 'The inner loop runs while the engineer who used to debug it steps away and an outer-loop model takes their place; three roles wire into one shared model; a trace strip lights two red breaks; then the workflow file is rewritten line by line.',
     phases: ['Outer Loop Takes Over', 'Three Roles, One Model', 'Inspect the Traces', 'Rewrite the Inner Loop'],
     captions: [
-      'A second, slower loop closes around the inner loop — no human needed',
-      'Agent, evaluator and optimizer orbit one shared core (MASS, Oct 8)',
+      'The inner loop runs; the human debugger fades out and an outer-loop model takes their seat',
+      'Agent, evaluator and optimizer all wire into one shared model (MASS, Oct 8)',
       'A trace strip scans left to right; two red breaks light up: tool · handoff',
-      'Two lines of the inner loop\'s code are struck through and rewritten'
+      'The inner loop’s workflow file: broken lines turn red, then are rewritten green'
     ],
     narration: [
       `In Step Two, instead of a human engineer stepping in to debug the agent's workflow, the Outer Loop takes over.`,
@@ -901,53 +890,54 @@ const PRESET_SCENES = [
       grid.fade(0.15);
       const G = '#00ff88';
       const R = palette.danger;
-      const cx = 30;
-      const cy = 17;
 
-      grid.ring3D(cx, cy, 5.5, 1.25, 0, { color: palette.warn, dim: palette.dim, spin: anim.spin('in', 2), glow: false, alpha: 0.6 });
-      const oA = anim.spring('oA', 1, { from: 0, freq: 2 });
-      grid.ring3D(cx, cy, 13 * (0.6 + 0.4 * oA), 1.25, 0, { color: G, dim: palette.dim, spin: -anim.spin('out', 0.5), glow: true, alpha: oA });
-      grid.icosahedron3D(cx, cy, 2.2, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
-
-      if (phase >= 2) {
-        const roles = [['agent', 'agent'], ['eye', 'evaluator'], ['gear', 'optimizer']];
-        const sp = anim.spin('roles', 0.4);
-        roles.forEach((r, i) => {
-          const a = sp + (i / 3) * Math.PI * 2;
-          const x = cx + Math.cos(a) * 24;
-          const y = cy + Math.sin(a) * 9;
-          grid.vline(cx, cy, x, y, { color: palette.accent, alpha: 0.25, width: 1, dash: [2, 3] });
-          grid.icon(r[0], x, y, palette.accent, { key: 'r' + i, base: false, label: r[1] });
-        });
-        if (phase === 2) grid.text(cx, cy + 14, 'one shared model', '#ffffff', true, 'center');
+      if (phase === 1) {
+        grid.pipeline(16, 70, 22, ['propose', 'run', 'time', 'log'], { loop: true, loopDepth: 3, color: palette.warn, speed: 0.9, key: 'in13' });
+        const k = math.clamp(phaseTime / (stageDuration * 0.7), 0, 1);
+        grid.person(100, 15, { size: 11, label: 'ENGINEER', key: 'dbg', alpha: 1 - k });
+        if (k > 0.4) {
+          const s = anim.spring('outer', 2.8, { from: 0.2, freq: 1.8 });
+          grid.dodecahedron3D(100, 15, s, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: G, accent: '#ffffff', dim: palette.dim, alpha: (k - 0.4) / 0.6 });
+          grid.text(100, 24, 'outer loop', G, true, 'center');
+          grid.vpath([[92, 17], [78, 21]], { color: G, alpha: 0.4, width: 1.2, dash: [2, 3] });
+        }
+        return;
       }
-      if (phase >= 3) {
+      if (phase === 2) {
+        grid.icosahedron3D(64, 10, 3, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+        grid.glow(64, 10, 8, palette.accent, 1);
+        grid.text(64, 16, 'one shared model', '#ffffff', true, 'center');
+        const roles = [['agent', 'task agent', 34], ['eye', 'self-evaluator', 64], ['gear', 'optimizer', 94]];
+        roles.forEach((r, i) => {
+          const k = anim.spring('r' + i, 1, { from: 0, freq: 2 + i * 0.4 });
+          grid.vpath([[64, 13], [r[2], 22]], { color: palette.accent, alpha: 0.3 * k, width: 1.2, dash: [2, 3] });
+          grid.icon(r[0], r[2], 25, palette.accent, { key: 'r' + i, label: r[1], alpha: k });
+        });
+        return;
+      }
+      if (phase === 3) {
         const nodes = ['plan', 'tool', 'handoff', 'eval', 'retry', 'submit'];
-        const scan = phase === 3 ? math.clamp(phaseTime / (stageDuration * 0.85), 0, 1) : 1;
+        const scan = math.clamp(phaseTime / (stageDuration * 0.85), 0, 1);
         nodes.forEach((n, i) => {
-          const x = 68 + i * 10.5;
-          const seen = i / nodes.length < scan;
+          const x = 22 + i * 17;
+          const seen = i / (nodes.length - 1) <= scan + 0.01;
           const broken = i === 1 || i === 2;
           const col = seen ? (broken ? R : G) : palette.dim;
-          if (i < 5) grid.vline(x + 1, 9, x + 9.5, 9, { color: col, alpha: 0.5, width: 1.2 });
-          grid.vdot(x, 9, broken && seen ? 3 : 2, { color: col });
-          grid.text(x, 11, n, col, broken && seen, 'center');
+          if (i < 5) grid.vline(x + 1.5, 17, x + 15.5, 17, { color: col, alpha: 0.5, width: 1.4 });
+          grid.vdot(x, 17, broken && seen ? 3.4 : 2.2, { color: col });
+          if (broken && seen) grid.glow(x, 17, 3, R, 1.2);
+          grid.text(x, 20, n, col, broken && seen, 'center');
         });
-        grid.vline(68 + scan * 55, 6.5, 68 + scan * 55, 11.5, { color: palette.warn, alpha: 0.7, width: 1.2 });
+        const sx = 22 + scan * 85;
+        grid.icon('eye', sx, 10, palette.warn, { key: 'scanner' });
+        grid.vline(sx, 13, sx, 21, { color: palette.warn, alpha: 0.5, width: 1.2 });
+        return;
       }
-      if (phase === 4) {
-        const k = phaseTime;
-        const lines = [
-          { old: 'prompt = BASE', neu: 'prompt = refine(BASE, traces)', y: 19 },
-          { old: 'call_tool(t)', neu: 'retry(call_tool(t), 3)', y: 23 }
-        ];
-        lines.forEach((l, i) => {
-          const t = math.clamp(k - i * 1.2, 0, 3);
-          grid.text(70, l.y, l.old, t > 0.8 ? R : palette.dim, false, 'left', null, t > 1.4 ? 0.45 : 1);
-          if (t > 0.8) grid.vline(69.5, l.y, 69.5 + Math.min(l.old.length, (t - 0.8) * 30), l.y, { color: R, alpha: 0.9, width: 1.4 });
-          if (t > 1.4) grid.text(70, l.y + 1.6, l.neu, G, true, 'left');
-        });
-      }
+      const pass = math.clamp(phaseTime / (stageDuration * 0.75), 0, 1);
+      const bad = [2, 5];
+      grid.paper(64, 17, { key: 'workflow', title: 'Inner-loop workflow', venue: 'prompt + helper functions', w: 34, h: 24, lines: 9, yaw: -0.1,
+        lineColor: (i) => (bad.includes(i) ? (pass > 0.35 + bad.indexOf(i) * 0.25 ? G : R) : null) });
+      if (pass > 0.9) grid.text(64, 32, 'rewritten by the outer loop', G, true, 'center');
     }
   },
 
@@ -1040,12 +1030,12 @@ const PRESET_SCENES = [
     title: 'Step 4: The Verification Gate',
     category: 'Live Demo',
     prompt: 'Candidates meet a gate; a weaker one bounces off, a stronger one beats the previous best and passes.',
-    shows: 'A glowing gate; a candidate update approaches; a weaker candidate bounces off (its bar falls short of the previous best); a stronger one\'s bar overtakes the best and it glides through.',
+    shows: 'A glowing verification gate with the previous best marked on a score scale; a weaker candidate file bounces off; a stronger one’s score overtakes the best and it passes through: committed.',
     phases: ['The Gate', 'Commit Only If…', '…It Beats the Best on Held-Out'],
     captions: [
-      'A glowing gate; a candidate update drifts toward it',
-      'A weaker candidate\'s bar stops short of the previous best — it bounces off',
-      'A stronger candidate\'s bar overtakes the best and it glides through: committed'
+      'A glowing gate; a candidate harness file drifts toward it',
+      'A weaker candidate’s score stops short of the previous best — it bounces off',
+      'A stronger candidate’s score overtakes the best and it glides through: committed'
     ],
     narration: [
       `In Step Four, the candidate rewrite must pass a strict verification gate.`,
@@ -1062,29 +1052,29 @@ const PRESET_SCENES = [
       const R = palette.danger;
       const gx = 64;
       const gateCol = anim.color('gate', phase === 3 ? G : palette.warn);
-      grid.vline(gx, 6, gx, 28, { color: gateCol, alpha: 0.9, width: 3 });
-      grid.glow(gx, 17, 8, gateCol, 0.9);
-      grid.icon('shield', gx, 4.5, gateCol, { key: 'gs', base: false });
+      grid.vline(gx, 4, gx, 24, { color: gateCol, alpha: 0.9, width: 3 });
+      grid.glow(gx, 14, 8, gateCol, 0.9);
+      grid.icon('shield', gx, 2.5, gateCol, { key: 'gs' });
 
-      // Previous-best marker on a score scale under the gate
-      const sx0 = 74;
-      const sL = 46;
-      grid.vline(sx0 + sL * 0.71, 22, sx0 + sL * 0.71, 30, { color: palette.accent, alpha: 0.8, width: 1.4, dash: [2, 2] });
-      grid.text(sx0 + sL * 0.71, 31, 'previous best', palette.accent, false, 'center');
+      const sx0 = 34;
+      const sL = 60;
+      grid.vline(sx0 + sL * 0.71, 26, sx0 + sL * 0.71, 32, { color: palette.accent, alpha: 0.8, width: 1.4, dash: [2, 2] });
+      grid.text(sx0 + sL * 0.71, 33.2, 'previous best', palette.accent, false, 'center');
+      grid.text(sx0 - 2, 29, 'held-out score', palette.dim, false, 'right');
 
       if (phase === 1) {
-        grid.icon('file', anim.spring('cx', 40, { from: 12, freq: 1.5 }), 15, palette.accent, { key: 'c1', bob: true, base: false });
+        const x = anim.spring('cx', 40, { from: 10, freq: 1.5 });
+        grid.paper(x, 14, { key: 'cand1', venue: 'candidate', w: 12, h: 13, lines: 5, yaw: 0.2 });
       }
       if (phase === 2) {
         const bt = (time * 0.55) % 1;
-        grid.icon('file', 34 + Math.sin(bt * Math.PI) * 24, 15, R, { key: 'weak', base: false });
-        drawHBar(grid, sx0, 25, sL, 0.66, R);
+        grid.paper(36 + Math.sin(bt * Math.PI) * 20, 14, { key: 'weak', venue: 'candidate', w: 12, h: 13, lines: 5, yaw: 0.2, color: R });
+        drawHBar(grid, sx0, 29, sL, 0.62, R);
       }
       if (phase === 3) {
-        const x = anim.spring('sx', 100, { from: 34, freq: 1.4, damp: 0.85 });
-        grid.icon('file', x, 15, G, { key: 'strong', glow: true, base: false });
-        drawHBar(grid, sx0, 25, sL, anim.spring('sv', 0.78, { from: 0.6, freq: 1.8 }), G);
-        if (x > 92) grid.text(x, 19, 'committed', G, true, 'center');
+        const x = anim.spring('sx', 98, { from: 36, freq: 1.2, damp: 0.85 });
+        grid.paper(x, 14, { key: 'strong', venue: x > 90 ? 'committed' : 'candidate', w: 12, h: 13, lines: 5, yaw: -0.2, color: G });
+        drawHBar(grid, sx0, 29, sL, anim.spring('sv', 0.8, { from: 0.55, freq: 1.6 }), G);
       }
     }
   },
@@ -1098,12 +1088,12 @@ const PRESET_SCENES = [
     title: 'Eight Days Unattended',
     category: 'Live Demo',
     prompt: 'Seven ever-stronger agents across eight days; it beats a two-year human agent on unseen tests; reward hacking drops 63% → 34%.',
-    shows: 'Across an 8-day line, agent versions v1 → v7 appear, each a little larger and brighter; then three paired bars show it beating a 2-year hand-tuned agent; then a red bug shrinks as reward hacking counts down from 63% to 34%.',
+    shows: 'Along an 8-day line, agent versions v1 → v7 appear, each larger and brighter; paired bars show the self-evolved agent beating a two-year hand-tuned one on three unseen benchmarks; a line chart of reward hacking falls from 63% to 34%.',
     phases: ['8 Days · 7 Versions', 'Beats a 2-Year Human Agent', 'Reward Hacking 63% → 34%'],
     captions: [
       'Along an 8-day line, agent versions v1 → v7 appear, each larger and brighter',
-      'Three unseen benchmarks: self-evolved bars rise above the 2-year hand-tuned agent',
-      'A red bug shrinks as reward hacking counts down 63% → 34%'
+      'Three unseen benchmarks: self-evolved bars (green) rise above the 2-year hand-tuned agent’s',
+      'Line chart: reward hacking falls across the run from 63% to 34%'
     ],
     narration: [
       `In a recent eight-day unattended run using this exact inner-and-outer-loop structure, the system autonomously generated seven successively stronger versions of its own research agent.`,
@@ -1122,34 +1112,35 @@ const PRESET_SCENES = [
         const x0 = 12;
         const x1 = 116;
         const prog = math.clamp(phaseTime / (stageDuration * 0.85), 0, 1);
-        grid.vline(x0, 24, x1, 24, { color: palette.dim, alpha: 0.4, width: 1.2 });
-        grid.vline(x0, 24, x0 + (x1 - x0) * prog, 24, { color: G, alpha: 0.9, width: 2 });
-        for (let d = 1; d <= 8; d++) grid.text(x0 + ((d - 0.5) / 8) * (x1 - x0), 26, `day ${d}`, palette.dim, false, 'center');
+        grid.vline(x0, 26, x1, 26, { color: palette.dim, alpha: 0.4, width: 1.2 });
+        grid.vline(x0, 26, x0 + (x1 - x0) * prog, 26, { color: G, alpha: 0.9, width: 2 });
+        for (let d = 1; d <= 8; d++) grid.text(x0 + ((d - 0.5) / 8) * (x1 - x0), 28, `day ${d}`, palette.dim, false, 'center');
         for (let v = 1; v <= 7; v++) {
           const vx = x0 + (v / 7.6) * (x1 - x0);
           if ((vx - x0) / (x1 - x0) > prog) continue;
           const s = 1.2 + v * 0.3;
-          grid.shape3D('icosa', vx, 17 - v * 0.7, s, ctx.anim.spin('vx' + v, 0.5), ctx.anim.spin('vy' + v, 0.6), 0, { color: v === 7 ? G : palette.accent, accent: '#ffffff', dim: palette.dim, alpha: 0.4 + v * 0.085 });
-          grid.text(vx, 21, `v${v}`, v === 7 ? G : palette.accent, v === 7, 'center');
+          grid.shape3D('icosa', vx, 18 - v * 0.8, s, ctx.anim.spin('vx' + v, 0.5), ctx.anim.spin('vy' + v, 0.6), 0, { color: v === 7 ? G : palette.accent, accent: '#ffffff', dim: palette.dim, alpha: 0.4 + v * 0.085 });
+          grid.text(vx, 23, `v${v}`, v === 7 ? G : palette.accent, v === 7, 'center');
         }
       }
       if (phase === 2) {
-        const pairs = [[0.62, 0.74], [0.55, 0.69], [0.48, 0.64]];
-        pairs.forEach((s, i) => {
-          const bx = 34 + i * 22;
-          drawVBar(grid, bx, 26, 16, anim.spring('h' + i, s[0], { from: 0, freq: 2.2 }), palette.primary, 4);
-          drawVBar(grid, bx + 6, 26, 16, anim.spring('a' + i, s[1], { from: 0, freq: 1.8 }), G, 4);
-          grid.text(bx + 4.5, 28, `unseen ${i + 1}`, palette.dim, false, 'center');
-        });
-        grid.icon('human', 108, 12, palette.primary, { key: 'hum', base: false, label: '2 yrs hand-tuned' });
-        grid.icon('agent', 108, 21, G, { key: 'evo', base: false, label: 'self-evolved' });
+        const pairs = [[62, 74], [55, 69], [48, 64]];
+        const bars = [];
+        pairs.forEach((p) => { bars.push({ value: p[0], label: '', color: palette.primary }); bars.push({ value: p[1], label: '', color: G }); });
+        grid.barChart(18, 6, 72, 20, bars, { yMax: 100, format: () => '', key: 'unseen' });
+        for (let i = 0; i < 3; i++) grid.text(18 + 12 * (2 * i + 1), 28.5, `unseen ${i + 1}`, palette.dim, false, 'center');
+        grid.person(108, 9, { size: 7, key: 'handtuned', label: '2 YRS HAND-TUNED', color: palette.primary });
+        grid.icosahedron3D(108, 21, 2.2, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: G, accent: '#ffffff', dim: palette.dim });
+        grid.text(108, 26, 'SELF-EVOLVED', G, true, 'center');
       }
       if (phase === 3) {
-        const v = anim.spring('rh', 34, { from: 63, freq: 1.1 });
-        grid.icon('bug', 40, 17, R, { key: 'bug', glow: true, base: false, alpha: Math.max(0.25, (v - 25) / 38) });
-        grid.big(80, 15, `${Math.round(v)}%`, { size: 3.4, color: v > 45 ? R : palette.warn, reveal: false });
-        grid.text(80, 22, 'reward hacking', palette.dim, false, 'center');
-        if (v < 36) grid.text(80, 25, 'nobody programmed this', G, true, 'center');
+        const p = math.clamp(phaseTime / (stageDuration * 0.7), 0, 1);
+        grid.lineChart(16, 6, 70, 20, [{ values: [63, 61, 55, 52, 46, 41, 37, 34], color: R, label: '' }], { yMax: 80, progress: p, xLabels: ['day 1', '', '', '', '', '', '', 'day 8'] });
+        const v = 63 - (63 - 34) * p;
+        grid.icon('bug', 106, 10, R, { key: 'bug', glow: true, alpha: Math.max(0.25, (v - 25) / 38) });
+        grid.big(106, 18, `${Math.round(v)}%`, { size: 3, color: v > 45 ? R : palette.warn, reveal: false });
+        grid.text(106, 23, 'reward hacking', palette.dim, false, 'center');
+        if (p > 0.95) grid.text(106, 26, 'nobody programmed this', G, true, 'center');
       }
     }
   },
@@ -1163,14 +1154,14 @@ const PRESET_SCENES = [
     title: 'Step 5: Back Into the Weights',
     category: 'Live Demo',
     prompt: 'The best rollouts flow into the shared model, which upgrades; win rate 68.3%; evaluator 73% → 93%.',
-    shows: 'A field of rollout dots; the best ones light up and stream into the shared model, which morphs into its next version; a 68.3% win-rate gauge fills, then a second gauge climbs 73% → 93% as the student becomes the teacher.',
+    shows: 'A wall of rollouts; the best light up green and stream into the shared model, which morphs into its next version; a donut shows a 68.3% win rate and bars show self-evaluation rising from 73% to 93%.',
     phases: ['Loop Closes Into Weights', 'Harvest the Best Rollouts', 'Fine-Tune the Shared Model', '68.3% Win Rate', 'Evaluator 73% → 93%'],
     captions: [
-      'A field of rollout dots surrounds the shared model',
-      'The best rollouts light up green; the rest fade',
+      'A wall of rollouts sits beside the shared model',
+      'The best rollouts light up green; the rest stay dim',
       'Green rollouts stream into the model, which morphs into its next version',
-      'Gauge: 68.3% win rate over the base model',
-      'Second gauge climbs 73% → 93%; a student icon turns into a teacher'
+      'Donut: 68.3% win rate over the base model',
+      'Bars: self-evaluation accuracy 73% → 93% — the student becomes the teacher'
     ],
     narration: [
       `Finally, in Step Five, the loop closes back into the model's weights.`,
@@ -1185,43 +1176,34 @@ const PRESET_SCENES = [
       const { time, phase, grid, palette, anim } = ctx;
       grid.fade(0.15);
       const G = '#00ff88';
-      const mx = phase >= 4 ? 34 : 64;
-      const cx = anim.spring('mx', mx, { freq: 1.8 });
+      const mx = phase >= 4 ? 22 : 96;
+      const cx = anim.spring('mx', mx, { freq: 1.6 });
 
       if (phase <= 3) {
-        for (let i = 0; i < 40; i++) {
-          const a = (i / 40) * Math.PI * 2 + hash01(i) * 0.3;
-          const r = 20 + hash01(i + 9) * 22;
-          const top = hash01(i * 2.3) > 0.7;
-          let x = cx + Math.cos(a) * r;
-          let y = 17 + Math.sin(a) * r * 0.32;
-          if (phase === 3 && top) {
-            const k = (time * 0.6 + hash01(i)) % 1;
-            x += (cx - x) * k;
-            y += (17 - y) * k;
+        const best = phase >= 2 ? 0.3 : 0;
+        grid.fileGrid(40, 17, 10, 7, { filled: anim.spring('best', best, { freq: 2 }), key: 'rollouts', cell: [4.2, 3.4] });
+        if (phase === 3) {
+          for (let i = 0; i < 10; i++) {
+            const t = (time * 0.6 + hash01(i)) % 1;
+            const sx = 22 + hash01(i * 2) * 38;
+            const sy = 7 + hash01(i * 5) * 20;
+            grid.vdot(sx + (cx - sx) * t, sy + (17 - sy) * t, 2, { color: G, alpha: Math.sin(t * Math.PI) });
           }
-          const col = phase >= 2 && top ? G : palette.dim;
-          grid.vdot(x, y, phase >= 2 && top ? 2.2 : 1.4, { color: col, alpha: phase >= 2 && !top ? 0.3 : 0.9 });
         }
       }
       const up = phase >= 3;
       const col = anim.color('mc', up ? G : palette.accent);
       grid.morph3D('model', up ? 'dodeca' : 'icosa', cx, 17, anim.spring('ms', up ? 4 : 3, { freq: 2.5, damp: 0.6 }), anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: col, accent: '#ffffff', dim: palette.dim });
       grid.glow(cx, 17, 9, col, up ? 1.4 : 0.8);
-      if (phase === 2) grid.text(cx, 30, 'best rollouts', G, true, 'center');
+      grid.text(cx, 27, up ? 'next version' : 'shared model', col, false, 'center');
 
       if (phase >= 4) {
-        const w = anim.spring('w', 68.3, { from: 50, freq: 1.4 });
-        drawArc(grid, 74, 15, 6, w / 100, G, 2.6);
-        grid.big(74, 15, `${w.toFixed(1)}%`, { size: 1.6, color: G, reveal: false });
-        grid.text(74, 23.5, 'win rate', palette.dim, false, 'center');
+        grid.donut(62, 15, 7, [{ value: 68.3, color: G }, { value: 31.7, color: palette.dim }], { center: '68.3%', centerSize: 1.6, key: 'win' });
+        grid.text(62, 26, 'win rate vs base', palette.dim, false, 'center');
       }
       if (phase === 5) {
-        const e = anim.spring('e', 93, { from: 73, freq: 1.3 });
-        drawArc(grid, 106, 15, 6, e / 100, palette.warn, 2.6);
-        grid.big(106, 15, `${Math.round(e)}%`, { size: 1.6, color: palette.warn, reveal: false });
-        grid.text(106, 23.5, 'self-evaluation', palette.dim, false, 'center');
-        grid.icon(e > 88 ? 'eye' : 'agent', 90, 29, palette.accent, { key: e > 88 ? 'teacher' : 'student', base: false, label: e > 88 ? 'teacher' : 'student' });
+        grid.barChart(86, 6, 32, 18, [{ value: 73, label: 'BEFORE', color: palette.primary }, { value: 93, label: 'AFTER', color: palette.warn }], { yMax: 100, format: (v) => Math.round(v) + '%', key: 'eval' });
+        grid.text(102, 29, 'self-evaluation', palette.dim, false, 'center');
       }
     }
   },
@@ -1235,12 +1217,12 @@ const PRESET_SCENES = [
     title: 'Scale — and Contain',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'Two document streams; loops multiply; a glowing shell closes around them.',
-    shows: 'Documents from both labs flow in from the sides; loops multiply across the screen (scale); then a glowing shell closes around them all (contain).',
+    shows: 'Documentation pages stream in from Anthropic on the left and OpenAI on the right; server racks multiply across the floor (scale); then a glass containment box closes around all of them (contain).',
     phases: ['Two Weeks of Docs', 'To Scale…', '…and Contain'],
     captions: [
-      'Documents flow in from both sides: Anthropic and OpenAI',
-      'Loops multiply across the screen — scale',
-      'A glowing shell closes around all of them — contain'
+      'Documentation pages stream in from both sides: Anthropic and OpenAI',
+      'Server racks multiply across the floor — scale',
+      'A glass containment box closes around all of them — contain'
     ],
     narration: [
       `If you look closely at the developer documentation and release notes published by Anthropic and OpenAI over the past two weeks,`,
@@ -1251,31 +1233,26 @@ const PRESET_SCENES = [
     init(ctx) {},
     onPhaseChange(phase, ctx) {},
     update(ctx) {
-      const { time, phase, grid, palette, anim } = ctx;
+      const { time, phase, phaseTime, grid, palette, anim } = ctx;
       grid.fade(0.15);
       const G = '#00ff88';
       if (phase === 1) {
-        for (let i = 0; i < 4; i++) {
-          const t = (time * 0.3 + i / 4) % 1;
-          grid.icon('file', 6 + t * 50, 12 + (i % 2) * 8, palette.accent, { key: 'l' + i, base: false, alpha: Math.sin(t * Math.PI) });
-          grid.icon('file', 122 - t * 50, 12 + ((i + 1) % 2) * 8, palette.primary, { key: 'r' + i, base: false, alpha: Math.sin(t * Math.PI) });
+        for (let i = 0; i < 3; i++) {
+          const t = (time * 0.22 + i / 3) % 1;
+          const a = Math.sin(t * Math.PI);
+          grid.paper(8 + t * 46, 14 + (i % 2) * 4, { key: 'l' + i, venue: 'Anthropic', w: 12, h: 13, lines: 4, yaw: 0.3, alpha: a, progress: 1 });
+          grid.paper(120 - t * 46, 14 + ((i + 1) % 2) * 4, { key: 'r' + i, venue: 'OpenAI', w: 12, h: 13, lines: 4, yaw: -0.3, alpha: a, color: palette.primary });
         }
-        grid.text(20, 30, 'Anthropic', palette.accent, false, 'center');
-        grid.text(108, 30, 'OpenAI', palette.primary, false, 'center');
+        grid.big(24, 30, 'ANTHROPIC', { size: 1.2, color: palette.accent });
+        grid.big(104, 30, 'OPENAI', { size: 1.2, color: palette.primary });
         return;
       }
-      const n = Math.min(7, 1 + Math.floor(anim.spin('mult', 1.8)));
+      const n = phase === 2 ? Math.min(7, 1 + Math.floor(phaseTime * 1.6)) : 7;
       for (let i = 0; i < n; i++) {
-        const x = 64 + (i - 3) * 6.5;
-        const y = 17 + Math.sin(i * 1.7) * 3;
-        grid.ring3D(x, y, 2.4, 1.2, 0, { color: palette.accent, dim: palette.dim, spin: anim.spin('r' + i, 1.4 + i * 0.25), glow: true });
+        const x = 64 + (i - 3) * 11;
+        grid.object('rack', x, 18, 4.5, 0.55, { tilt: 0.35, color: palette.accent, windowColor: G, key: 'rk' + i });
       }
-      if (phase === 3) {
-        const k = anim.spring('shell', 1, { from: 0, freq: 2.2 });
-        grid.vcircle(64, 17, 13 + (1 - k) * 10, { color: G, alpha: 0.85 * k, width: 2.4 });
-        grid.vcircle(64, 17, 14 + (1 - k) * 10, { color: G, alpha: 0.25 * k, width: 6 });
-        grid.icon('lock', 64, 32, G, { key: 'lock', base: false, alpha: k });
-      }
+      if (phase === 3) grid.glassBox(64, 18, 92, 22, 24, { color: G, key: 'contain', rotY: 0.08, tilt: -0.18 });
     }
   },
 
@@ -1288,13 +1265,13 @@ const PRESET_SCENES = [
     title: 'Anthropic: The Claude 5.5 Rollout',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'Opus 5.5 with −40% cost and +30% speed; a 680k-line migration in under 24 hours; Sonnet 5.5; Oct 7.',
-    shows: 'October dates tick by; the Opus 5.5 core appears flanked by large "−40%" cost and "+30%" speed; a code-migration bar races to 680,000 lines against a 24-hour clock; Sonnet 5.5 joins and "OCT 7" lands.',
+    shows: 'An October calendar fills in; Opus 5.5 shows its cost bar shrinking 40% and its speed bar growing 30%; a 680,000-line codebase migrates file by file inside 24 hours; Sonnet 5.5 joins and October 7 lights up on the calendar.',
     phases: ['Early–Mid October', 'Opus 5.5: −40% Cost, +30% Speed', '680k-Line Migration < 24h', 'Sonnet 5.5 · Oct 7 Update'],
     captions: [
-      'October dates tick along a line: Oct 1 → Oct 15',
-      'Opus 5.5 core with large "−40%" (cost) and "+30%" (speed)',
-      'A migration bar races to 680,000 lines while a clock runs to under 24h',
-      'Sonnet 5.5 joins beside Opus; "OCT 7" lands as the platform update'
+      'An October 2026 calendar draws in, days 1–15 highlighted',
+      'Opus 5.5 with two bars: cost shrinks 40%, speed grows 30%',
+      'A wall of files migrates (dim → green) to 680,000 lines while a clock runs under 24h',
+      'Sonnet 5.5 joins Opus; October 7 lights up on the calendar: platform update'
     ],
     narration: [
       `Let's look first at Anthropic's latest documentation updates from early to mid-October.`,
@@ -1311,39 +1288,36 @@ const PRESET_SCENES = [
       const G = '#00ff88';
 
       if (phase === 1) {
-        grid.vline(14, 18, 114, 18, { color: palette.dim, alpha: 0.4, width: 1.2 });
-        const p = math.clamp(phaseTime / stageDuration, 0, 1);
-        grid.vline(14, 18, 14 + 100 * p, 18, { color: palette.accent, alpha: 0.9, width: 2 });
-        for (let d = 1; d <= 15; d += 2) {
-          const x = 14 + ((d - 1) / 14) * 100;
-          grid.vdot(x, 18, 1.6, { color: x <= 14 + 100 * p ? palette.accent : palette.dim });
-          grid.text(x, 20, `${d}`, palette.dim, false, 'center');
-        }
-        grid.big(64, 12, 'OCTOBER', { size: 2.4, color: palette.accent });
+        const marks = {};
+        const n = Math.ceil(math.clamp(phaseTime / stageDuration, 0, 1) * 15);
+        for (let d = 1; d <= n; d++) marks[d] = { color: palette.accent };
+        grid.calendar(64, 18, { month: 'OCTOBER 2026', startDay: 4, marks, key: 'oct19' });
         return;
       }
-      const ox = phase === 4 ? 44 : 64;
-      const cx = anim.spring('ox', ox, { freq: 1.8 });
-      grid.icosahedron3D(cx, 13, 2.8, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
-      grid.text(cx, 19, 'Opus 5.5', palette.accent, true, 'center');
       if (phase === 2) {
-        grid.big(28, 13, '−40%', { size: 3, color: G });
-        grid.text(28, 17.5, 'cost', palette.dim, false, 'center');
-        grid.big(100, 13, '+30%', { size: 3, color: G });
-        grid.text(100, 17.5, 'speed', palette.dim, false, 'center');
+        grid.icosahedron3D(22, 16, 3, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+        grid.text(22, 23, 'Opus 5.5', palette.accent, true, 'center');
+        grid.barChart(44, 6, 30, 18, [{ value: 100, label: 'BEFORE', color: palette.dim }, { value: 60, label: 'NOW', color: G }], { yMax: 140, format: () => '', key: 'cost' });
+        grid.big(59, 30, '−40% COST', { size: 1.4, color: G });
+        grid.barChart(84, 6, 30, 18, [{ value: 100, label: 'BEFORE', color: palette.dim }, { value: 130, label: 'NOW', color: G }], { yMax: 140, format: () => '', key: 'speed' });
+        grid.big(99, 30, '+30% SPEED', { size: 1.4, color: G });
+        return;
       }
       if (phase === 3) {
         const p = math.clamp(phaseTime / (stageDuration * 0.9), 0, 1);
-        drawHBar(grid, 16, 26, 82, p, G);
-        grid.big(57, 30.5, `${Math.round(p * 680).toLocaleString('en-US')},000 lines`, { size: 1.5, color: G, reveal: false });
-        drawClock(grid, 108, 26, anim.spin('clk', 14), palette.accent);
-        grid.text(112, 26, `${Math.min(23, Math.floor(p * 23.5))}h`, palette.accent, false, 'left');
+        grid.fileGrid(54, 14, 18, 6, { filled: p, key: 'migr', cell: [4.4, 3.2] });
+        grid.big(54, 28, `${Math.round(p * 680).toLocaleString('en-US')},000 lines`, { size: 1.8, color: G, reveal: false });
+        drawClock(grid, 110, 14, anim.spin('clk', 14), palette.accent);
+        grid.big(110, 19, `${Math.min(23, Math.floor(p * 23.5))}h`, { size: 1.6, color: palette.accent, reveal: false });
+        grid.text(110, 22.5, 'under 24h', palette.dim, false, 'center');
+        return;
       }
-      if (phase === 4) {
-        grid.shape3D('octa', 84, 13, 2.4, anim.spin('c', 0.5), anim.spin('d', 0.6), 0, { color: palette.primary, accent: '#ffffff', dim: palette.dim });
-        grid.text(84, 19, 'Sonnet 5.5', palette.primary, true, 'center');
-        grid.big(64, 27, 'OCT 7', { size: 2.6, color: G });
-      }
+      grid.icosahedron3D(18, 10, 2.4, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+      grid.text(18, 15, 'Opus 5.5', palette.accent, true, 'center');
+      grid.shape3D('octa', 18, 23, 2.2, anim.spin('c', 0.5), anim.spin('d', 0.6), 0, { color: palette.primary, accent: '#ffffff', dim: palette.dim });
+      grid.text(18, 28, 'Sonnet 5.5', palette.primary, true, 'center');
+      grid.calendar(74, 18, { month: 'OCTOBER 2026', startDay: 4, marks: { 7: { color: G } }, focus: 7, key: 'oct19b' });
+      grid.text(74, 33, 'Oct 7 · developer platform update', G, true, 'center');
     }
   },
 
@@ -1426,13 +1400,13 @@ const PRESET_SCENES = [
     title: 'Why Cache Pricing Matters for RSI',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'Cache-read prices drop; a loop rereads the same codebase; the cost of a multi-day loop collapses.',
-    shows: 'A price bar halves to a large "$0.10"; an Opus bar drops 60%; a loop rereads the same codebase in a blur of cache hits; then a multi-day timeline runs on while its cost line stays nearly flat.',
+    shows: 'Two price bars drop (Sonnet 5.5 cache reads halve to $0.10/M; Opus 5.5 −60%); an agent rereads the same codebase hundreds of times in a blur of cache hits; then a five-day run keeps going while its cost line stays almost flat.',
     phases: ['Sonnet 5.5: Cache Reads Halved', 'Opus 5.5: −60%', 'Cache Reads Dominate Loop Cost', 'Multi-Day Loops Become Viable'],
     captions: [
-      'Sonnet 5.5 price bar halves; "$0.10 / M" in large type',
+      'Sonnet 5.5 cache-read price bar halves; "$0.10 / M" in large type',
       'Opus 5.5 bar drops 60%',
-      'A loop rereads the same codebase hundreds of times — cache hits fly',
-      'Days tick along a timeline while the cost line stays nearly flat'
+      'An agent rereads the same codebase hundreds of times — cache hits stream across',
+      'Days tick along a chart while the cost line stays nearly flat'
     ],
     narration: [
       `Second, Anthropic slashed prompt cache read pricing on Sonnet 5.5 in half, down to ten cents per million tokens—just five percent of the base input price—`,
@@ -1462,29 +1436,21 @@ const PRESET_SCENES = [
         return;
       }
       if (phase === 3) {
-        grid.ring3D(40, 17, 7, 1.25, 0, { color: palette.accent, dim: palette.dim, spin: anim.spin('l', 3), glow: true });
-        grid.icon('agent', 40, 17, palette.accent, { key: 'a', base: false });
-        grid.icon('file', 92, 17, palette.primary, { key: 'repo', base: false, label: 'same codebase' });
-        for (let i = 0; i < 6; i++) {
-          const t = (time * 1.1 + i / 6) % 1;
-          grid.big(52 + t * 34, 17 + Math.sin(i * 2) * 3, 'hit', { size: 1, color: G, alpha: Math.sin(t * Math.PI), reveal: false });
+        grid.icosahedron3D(18, 17, 2.8, anim.spin('a', 0.6), anim.spin('b', 0.7), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+        grid.fileGrid(92, 15, 10, 6, { filled: 0.5 + 0.5 * Math.sin(time * 6) * 0.2 + 0.3, key: 'repo21', cell: [4, 3] });
+        for (let i = 0; i < 7; i++) {
+          const t = (time * 1.1 + i / 7) % 1;
+          grid.big(28 + t * 40, 17 + Math.sin(i * 2) * 4, 'hit', { size: 0.9, color: G, alpha: Math.sin(t * Math.PI), reveal: false });
         }
-        grid.big(64, 29, `×${Math.round(anim.spin('it', 60))}`, { size: 1.8, color: palette.dim, reveal: false });
+        grid.big(92, 29, `×${Math.round(anim.spin('it', 60))}`, { size: 1.8, color: palette.accent, reveal: false });
+        return;
       }
-      if (phase === 4) {
-        const p = math.clamp(phaseTime / (stageDuration * 0.9), 0, 1);
-        const x0 = 12;
-        const x1 = 116;
-        for (let d = 1; d <= 5; d++) {
-          const x = x0 + ((d - 0.5) / 5) * (x1 - x0);
-          grid.text(x, 27, `day ${d}`, x <= x0 + (x1 - x0) * p ? palette.accent : palette.dim, false, 'center');
-        }
-        const xp = x0 + (x1 - x0) * p;
-        grid.vpath([[x0, 24], [xp, 24 - p * 1.5]], { color: G, alpha: 0.95, width: 2.6, glow: true });
-        grid.vpath([[x0, 24], [x0 + (x1 - x0) * p * 0.35, 24 - p * 18]], { color: palette.danger, alpha: 0.25, width: 1.4, dash: [3, 3] });
-        grid.ring3D(xp, 14, 3, 1.25, 0, { color: G, dim: palette.dim, spin: anim.spin('r', 2.4), glow: true });
-        grid.big(xp, 19, 'still running', { size: 1, color: G, reveal: false });
-      }
+      const p = math.clamp(phaseTime / (stageDuration * 0.9), 0, 1);
+      grid.lineChart(16, 6, 96, 20, [
+        { values: [0, 30, 60, 90, 120, 150], color: palette.danger, label: 'old price', dash: [3, 3], width: 1.4 },
+        { values: [0, 3, 6, 9, 12, 15], color: G, label: 'cache reads' }
+      ], { yMax: 160, progress: p, xLabels: ['day 0', '1', '2', '3', '4', 'day 5'] });
+      grid.big(64, 31, 'STILL RUNNING', { size: 1.2, color: G, alpha: p > 0.3 ? 1 : 0 });
     }
   },
 
@@ -1497,13 +1463,13 @@ const PRESET_SCENES = [
     title: 'Locking Down the Agents',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'An agent inside a glowing shell reaches out; listed hosts pass; an unlisted host is blocked at the wall.',
-    shows: 'An agent sits inside a glowing shell; computer-use and browser tools attach to it; requests to two allowed hosts pass through; a request to an unlisted host strikes the shell and dies in a red spark.',
+    shows: 'An agent sits inside a glass sandbox; computer-use and browser tools dock onto it; requests pass through to two allowed hosts; a request to an unlisted host hits the box wall and dies in a red spark.',
     phases: ['Lock Down the Agents', 'Oct 7 SDK: Computer Toolset', 'allowed_hosts Enforced', 'Blocked at Infrastructure'],
     captions: [
-      'An agent inside a glowing containment shell',
-      'Computer-use and browser tools snap onto it (Oct 7 SDK)',
-      'Requests flow through the shell to two allowed hosts',
-      'A request to an unlisted host hits the shell and dies in a red spark: blocked'
+      'An agent appears inside a 3D glass sandbox',
+      'Computer-use and browser tools dock onto it (Oct 7 SDK · Python · TypeScript)',
+      'Requests flow out through the sandbox to two allowed hosts',
+      'A request to an unlisted host hits the sandbox wall and dies in a red spark: blocked'
     ],
     narration: [
       `At the same time, Anthropic's October documentation reveals a massive push to lock down how these agents interact with the outside world and how their code is verified.`,
@@ -1518,42 +1484,41 @@ const PRESET_SCENES = [
       grid.fade(0.15);
       const G = '#00ff88';
       const R = palette.danger;
-      const cx = 36;
+      const cx = 34;
       const cy = 17;
-      const shellCol = anim.color('sh', phase >= 3 ? G : palette.primary);
-      const k = anim.spring('k', 1, { from: 0, freq: 2 });
-      grid.vcircle(cx, cy, 10 * k + 0.1, { color: shellCol, alpha: 0.8, width: 2.2 });
-      grid.vcircle(cx, cy, 10.8 * k + 0.1, { color: shellCol, alpha: 0.2, width: 6 });
-      grid.icon('agent', cx, cy, palette.accent, { key: 'ag', bob: true, base: false });
+      const boxCol = anim.color('sh', phase >= 3 ? G : palette.primary);
+      grid.glassBox(cx, cy, 34, 20, 26, { color: boxCol, key: 'sandbox', rotY: 0.32, tilt: -0.22 });
+      grid.icosahedron3D(cx, cy, 2.4, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+      grid.text(cx, cy + 5, 'agent', palette.accent, false, 'center');
 
       if (phase === 2) {
-        const tools = [['terminal', 'computer use', -0.7], ['cloud', 'browser', 0.7]];
+        const tools = [['terminal', 'computer use', -9], ['cloud', 'browser', 9]];
         tools.forEach((t, i) => {
           const kk = anim.spring('t' + i, 1, { from: 0, freq: 2.4 });
-          grid.icon(t[0], cx + Math.cos(t[2]) * 9 * kk + 1, cy + Math.sin(t[2]) * 3.5 * kk, G, { key: 'tool' + i, base: false });
-          grid.text(cx + 30, cy - 4 + i * 8, t[1], G, true, 'left');
+          grid.icon(t[0], cx + t[2] * kk, cy - 6, G, { key: 'tool' + i, alpha: kk });
+          grid.big(92, 12 + i * 8, t[1], { size: 1.4, color: G });
         });
-        grid.text(cx + 30, cy, 'Python · TypeScript', palette.dim, false, 'left');
+        grid.text(92, 28, 'Python · TypeScript', palette.dim, false, 'center');
       }
       if (phase >= 3) {
         const hosts = [['docs.python.org', 8, G], ['pypi.org', 17, G], ['unlisted-host.io', 26, R]];
         hosts.forEach((h, i) => {
           if (i === 2 && phase < 4) return;
-          grid.icon('cloud', 104, h[1], h[2], { key: 'h' + i, base: false });
-          grid.text(104, h[1] + 3, h[0], h[2], false, 'center');
+          grid.icon('cloud', 106, h[1], h[2], { key: 'h' + i });
+          grid.text(106, h[1] + 3, h[0], h[2], false, 'center');
         });
-        drawCleanLink(grid, time, cx + 4, cy - 1, 98, 8, '', palette.dim, G, 0.8);
-        drawCleanLink(grid, time, cx + 4, cy, 98, 17, '', palette.dim, G, 0.7);
+        drawCleanLink(grid, time, cx + 4, cy - 1, 100, 8, '', palette.dim, G, 0.8);
+        drawCleanLink(grid, time, cx + 4, cy, 100, 17, '', palette.dim, G, 0.7);
       }
       if (phase === 4) {
         const t = (time * 0.7) % 1;
-        const hitX = cx + 18.5;
+        const hitX = cx + 18;
         const x = cx + 4 + t * 40;
         const y = cy + 2 + t * 6;
         if (x < hitX) grid.vdot(x, y, 2.6, { color: R });
         else {
           grid.glow(hitX, cy + 4.5, 4, R, 1.6 * (1 - (x - hitX) / 26));
-          grid.text(hitX + 3, cy + 6, 'blocked', R, true, 'left');
+          grid.big(hitX + 10, cy + 8, 'BLOCKED', { size: 1.3, color: R, alpha: 1 - (x - hitX) / 30, reveal: false });
         }
       }
     }
@@ -1568,7 +1533,7 @@ const PRESET_SCENES = [
     title: 'Distillation Defenses',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'Reasoning traces stream out and are siphoned by masked harvesters; full traces beat summaries; raw thinking gets redacted.',
-    shows: 'A model streams its reasoning words outward; masked harvesters siphon them off; two bars show copies trained on full traces (80.4%) beating summaries (71.8%); then the stream turns into redacted blocks with only a short summary escaping.',
+    shows: 'A model beside the Oct 12 distillation report; its reasoning words stream out and masked harvesters siphon them; a bar chart shows copies trained on full traces (80.4%) beating summaries (71.8%); then the stream turns into redacted blocks with only a short summary escaping.',
     phases: ['Oct 12: Distillation Report', 'Harvesting Reasoning Traces', 'Full Traces: 80.4% vs 71.8%', 'Raw Thinking Omitted'],
     captions: [
       'A model beside the Oct 12 distillation report, stamped with its date',
@@ -1591,7 +1556,7 @@ const PRESET_SCENES = [
       const G = '#00ff88';
       const R = palette.danger;
 
-      grid.icosahedron3D(18, 17, 3, anim.spin('a', 0.4), anim.spin('b', 0.5), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+      if (phase !== 3) grid.icosahedron3D(18, 17, 3, anim.spin('a', 0.4), anim.spin('b', 0.5), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
       if (phase === 1) {
         grid.paper(72, 17, { title: 'Illicit Distillation Defenses', authors: 'Anthropic', venue: 'Technical breakdown · Oct 12', w: 30, h: 22, key: 'distill', stamp: 'OCT 12', stampColor: palette.warn });
       }
@@ -1606,22 +1571,18 @@ const PRESET_SCENES = [
         }
       }
       if (phase === 2) {
-        for (let k = 0; k < 3; k++) grid.icon('agentMask', 104, 9 + k * 8, R, { key: 'h' + k, base: false });
-        grid.text(104, 33, 'external labs', R, false, 'center');
+        for (let k = 0; k < 3; k++) grid.icon('agentMask', 108, 8 + k * 8, R, { key: 'h' + k });
+        grid.text(108, 32, 'external labs', R, false, 'center');
       }
       if (phase === 3) {
-        const a = anim.spring('a3', 0.804, { from: 0, freq: 1.6 });
-        const b = anim.spring('b3', 0.718, { from: 0, freq: 1.6 });
-        grid.text(32, 11, 'full traces', palette.warn, false, 'left');
-        drawHBar(grid, 50, 11, 52, a, palette.warn);
-        grid.big(114, 11, `${(a * 100).toFixed(1)}%`, { size: 1.6, color: palette.warn, reveal: false });
-        grid.text(32, 21, 'summaries', palette.primary, false, 'left');
-        drawHBar(grid, 50, 21, 52, b, palette.primary);
-        grid.big(114, 21, `${(b * 100).toFixed(1)}%`, { size: 1.6, color: palette.primary, reveal: false });
-        grid.text(76, 28, 'SWE-bench Verified', palette.dim, false, 'center');
+        grid.barChart(36, 5, 56, 21, [
+          { value: 80.4, label: 'FULL TRACES', color: palette.warn },
+          { value: 71.8, label: 'SUMMARIES', color: palette.primary }
+        ], { yMax: 100, format: (v) => v.toFixed(1) + '%', valueSize: 1.6, key: 'distbars' });
+        grid.text(64, 31, 'SWE-bench Verified · copies trained on Opus 4.8 reasoning', palette.dim, false, 'center');
       }
       if (phase === 4) {
-        grid.icon('lock', 44, 17, G, { key: 'lk', base: false });
+        grid.icon('lock', 44, 17, G, { key: 'lk' });
         const t = (time * 0.4) % 1;
         grid.big(54 + t * 50, 17, 'summary', { size: 1.1, color: G, alpha: Math.sin(t * Math.PI), reveal: false });
         grid.text(78, 27, 'raw thinking: off by default', palette.dim, false, 'center');
@@ -1638,11 +1599,11 @@ const PRESET_SCENES = [
     title: 'Claude Code Review Goes GA',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'A flood of pull requests overwhelms one reviewer; parallel agents plus a verifier filter findings in minutes.',
-    shows: '"OCT 15" with two icons (verify · oversee); a flood of pull requests piles up in front of one human; then a PR splits to four parallel reviewer agents, a verifier drops red false positives and green findings pass, with a large "6–10 MIN".',
+    shows: 'October 15 lights up on the calendar beside a shield (verification) and an eye (oversight); pull requests pile up in front of a single human reviewer; then a PR fans out to four reviewer agents, a verifier drops false positives, and "6–10 MIN" lands.',
     phases: ['Oct 15: Two Announcements', 'Code Review → GA', 'Parallel Agents + Verifier'],
     captions: [
-      '"OCT 15" in large type; a shield (verification) and an eye (oversight)',
-      'Pull requests pile up in front of a single human reviewer — 8× too many',
+      'October 15 lights up on the calendar; a shield (verification) and an eye (oversight) beside it',
+      'A wall of pull requests fills up in front of one human reviewer — 8× too many',
       'A PR fans out to four reviewer agents; a verifier drops false positives; "6–10 MIN"'
     ],
     narration: [
@@ -1659,29 +1620,28 @@ const PRESET_SCENES = [
       const R = palette.danger;
 
       if (phase === 1) {
-        grid.big(64, 10, 'OCT 15', { size: 3.4, color: palette.accent });
-        grid.icon('shield', 46, 22, G, { key: 's', glow: true, label: 'verification' });
-        grid.icon('eye', 82, 22, palette.warn, { key: 'e', glow: true, label: 'oversight' });
+        grid.calendar(44, 18, { month: 'OCTOBER 2026', startDay: 4, marks: { 15: { color: palette.accent } }, focus: 15, key: 'oct24' });
+        grid.icon('shield', 98, 11, G, { key: 's', glow: true, label: 'verification' });
+        grid.icon('eye', 98, 24, palette.warn, { key: 'e', glow: true, label: 'oversight' });
         return;
       }
       if (phase === 2) {
-        const pile = Math.min(48, Math.floor(anim.spin('pile', 10)));
-        for (let i = 0; i < pile; i++) grid.set(20 + (i % 12) * 3, 26 - Math.floor(i / 12) * 2, '▤', palette.primary, false, null, 0.85);
-        grid.icon('human', 66, 22, palette.warn, { key: 'h', base: false });
-        grid.big(40, 9, '8×', { size: 3, color: palette.warn });
-        grid.icon('agent', 98, 17, G, { key: 'pipe', glow: true, base: false, label: 'Code Review · GA' });
-        drawCleanLink(grid, time, 70, 22, 92, 17, '', palette.dim, G, 0.9);
+        const f = math.clamp(phaseTime / (stageDuration * 0.8), 0, 1);
+        grid.fileGrid(40, 16, 12, 6, { filled: f, fillColor: palette.primary, key: 'prs', cell: [4, 3] });
+        grid.text(40, 27, 'open pull requests', palette.dim, false, 'center');
+        grid.person(88, 15, { size: 10, key: 'reviewer', label: 'REVIEWER', color: palette.warn });
+        grid.big(112, 15, '8×', { size: 2.6, color: palette.warn });
         return;
       }
       const p = math.clamp(phaseTime / (stageDuration * 0.8), 0, 1);
-      grid.icon('file', 10, 17, palette.accent, { key: 'pr', base: false, label: 'pull request' });
+      grid.paper(10, 17, { key: 'pr', venue: 'pull request', w: 11, h: 12, lines: 4, yaw: 0.2 });
       for (let k = 0; k < 4; k++) {
         const y = 7 + k * 6.6;
-        grid.vline(14, 17, 30, y, { color: palette.dim, alpha: 0.4, width: 1 });
-        grid.icon('agent', 34, y, palette.accent, { key: 'r' + k, base: false });
+        grid.vline(16, 17, 30, y, { color: palette.dim, alpha: 0.4, width: 1 });
+        grid.icon('agent', 34, y, palette.accent, { key: 'r' + k });
         grid.vline(38, y, 56, 17, { color: palette.accent, alpha: 0.3, width: 1 });
       }
-      grid.icon('shield', 60, 17, G, { key: 'v', glow: true, base: false, label: 'verifier' });
+      grid.icon('shield', 60, 17, G, { key: 'v', glow: true, label: 'verifier' });
       for (let i = 0; i < 6; i++) {
         const t = (time * 0.45 + i / 6) % 1;
         const fp = i % 2 === 1;
@@ -1703,12 +1663,12 @@ const PRESET_SCENES = [
     title: 'Separation of Powers',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'A divider splits the writer side from the reviewer side; reviewers are read-only and a human presses merge.',
-    shows: 'A glowing divider splits the screen: CLAUDE.md feeds a coding agent on the left; on the right a human owner writes REVIEW.md for the reviewer agents; the reviewers lock read-only and a human hand presses a glowing MERGE.',
+    shows: 'A glowing divider splits the screen: the CLAUDE.md page feeds a coding agent on the left; on the right a human code owner writes the REVIEW.md page for the reviewer agents; the reviewers lock read-only and a human presses a glowing MERGE.',
     phases: ['Separation of Powers', 'CLAUDE.md → Coding Agent', 'REVIEW.md ← Human Owners', 'Read-Only · Human Merges'],
     captions: [
       'A glowing divider draws down the middle of the screen',
-      'Left: CLAUDE.md flows into a coding agent',
-      'Right: a human owner writes REVIEW.md, which flows into reviewer agents',
+      'Left: the CLAUDE.md page flows into a coding agent',
+      'Right: a human code owner writes the REVIEW.md page, which flows into reviewer agents',
       'Reviewers lock (read-only); a human presses a glowing MERGE'
     ],
     narration: [
@@ -1725,27 +1685,29 @@ const PRESET_SCENES = [
       grid.fade(0.15);
       const G = '#00ff88';
       const k = anim.spring('div', 1, { from: 0, freq: 1.6 });
-      grid.vline(64, 17 - 13 * k, 64, 17 + 13 * k, { color: palette.warn, alpha: 0.85, width: 2 });
+      grid.vline(64, 17 - 15 * k, 64, 17 + 15 * k, { color: palette.warn, alpha: 0.85, width: 2 });
       grid.glow(64, 17, 6, palette.warn, 0.6 * k);
 
       if (phase >= 2) {
-        grid.icon('file', 30, 9, palette.accent, { key: 'cmd', base: false, label: 'CLAUDE.md' });
-        drawCleanLink(grid, time, 30, 12.5, 30, 18, '', palette.dim, palette.accent, 0.8);
-        grid.icon('agent', 30, 21, palette.accent, { key: 'coder', bob: true, base: false, label: 'writes code' });
+        grid.paper(22, 12, { key: 'cmd', title: 'CLAUDE.md', venue: 'project context', w: 18, h: 14, lines: 4, yaw: 0.25 });
+        drawCleanLink(grid, time, 32, 12, 44, 12, '', palette.dim, palette.accent, 0.8);
+        grid.icosahedron3D(50, 12, 2.2, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+        grid.text(50, 17, 'coding agent', palette.accent, false, 'center');
       }
       if (phase >= 3) {
-        grid.icon('human', 112, 9, palette.warn, { key: 'owner', base: false, label: 'code owner' });
-        grid.icon('file', 98, 9, palette.warn, { key: 'rmd', base: false, label: 'REVIEW.md' });
-        drawCleanLink(grid, time, 98, 12.5, 98, 18, '', palette.dim, palette.warn, 0.8);
-        grid.icon('shield', 98, 21, palette.warn, { key: 'rev', base: false, label: 'reviews' });
+        grid.person(114, 11, { size: 8, key: 'owner', label: 'CODE OWNER', color: palette.warn });
+        grid.paper(94, 12, { key: 'rmd', title: 'REVIEW.md', venue: 'rules · severity · evidence', w: 18, h: 14, lines: 4, yaw: -0.25, color: palette.warn });
+        drawCleanLink(grid, time, 84, 12, 76, 12, '', palette.dim, palette.warn, 0.8);
+        for (let i = 0; i < 2; i++) grid.icon('shield', 72 + i * 6, 22, palette.warn, { key: 'rev' + i });
+        grid.text(75, 25.5, 'reviewers', palette.warn, false, 'center');
       }
       if (phase === 4) {
-        grid.icon('lock', 108, 21, palette.warn, { key: 'ro', base: false });
-        grid.text(108, 24.5, 'read-only', palette.warn, false, 'center');
+        grid.icon('lock', 86, 22, palette.warn, { key: 'ro' });
+        grid.text(86, 25.5, 'read-only', palette.warn, false, 'center');
         const pulse = 0.55 + 0.45 * Math.sin(time * 4);
-        grid.vline(26, 30, 46, 30, { color: G, alpha: 0.35, width: 9 });
-        grid.big(36, 30, 'MERGE', { size: 1.4, color: G, alpha: pulse });
-        grid.icon('human', 18, 30, G, { key: 'merger', base: false });
+        grid.vline(38, 30, 58, 30, { color: G, alpha: 0.35, width: 9 });
+        grid.big(48, 30, 'MERGE', { size: 1.4, color: G, alpha: pulse });
+        grid.person(28, 28, { size: 6, key: 'merger', color: G });
       }
     }
   },
@@ -1759,13 +1721,13 @@ const PRESET_SCENES = [
     title: 'Independent Evaluators Inside the Lab',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'Six evaluators walk inside the lab, audit the model, flag a mask, and publish without veto.',
-    shows: 'Six evaluator figures walk into a glowing lab shell; a bank-examiner icon pairs with them; their gaze sweeps the model and flags a hidden mask; a report flies out of the shell as "VETO" is struck through.',
+    shows: 'Six evaluators walk into a 3D lab building; a bank tower with its own examiner makes the analogy; their gaze sweeps the frontier model and flags a hidden mask; then a risk report flies out as "VETO" is struck through.',
     phases: ['6 METR Evaluators Embedded', 'Like Bank Examiners', 'Auditing for Alignment Faking', 'Publish Without Veto'],
     captions: [
-      'Six METR evaluators walk inside the lab\'s glowing shell',
-      'Analogy: bank examiners embedded inside a bank',
-      'Their gaze sweeps the frontier model and flags a hidden mask',
-      'A risk report flies out of the shell; "VETO" is struck through'
+      'Six METR evaluators walk up to and into a 3D lab building',
+      'Analogy: a bank tower with an examiner embedded inside it',
+      'Their gaze sweeps the frontier model and flags a hidden mask: alignment faking?',
+      'A risk report flies out of the lab; "VETO" is struck through'
     ],
     narration: [
       `Second, also on October 15th, Anthropic announced that it has embedded six independent evaluators from the nonprofit METR directly inside the company with employee-like access to internal tools and risk assessments.`,
@@ -1781,35 +1743,38 @@ const PRESET_SCENES = [
       grid.fade(0.15);
       const G = '#00ff88';
       const R = palette.danger;
-      grid.vcircle(60, 17, 13, { color: palette.primary, alpha: 0.6, width: 2 });
-      grid.text(60, 2.5, 'inside the lab', palette.dim, false, 'center');
-      for (let i = 0; i < 6; i++) {
-        const tx = 40 + i * 4.4;
-        const enter = phase === 1 ? math.clamp(phaseTime * 0.7 - i * 0.25, 0, 1) : 1;
-        const e = enter < 0.5 ? 4 * enter * enter * enter : 1 - Math.pow(-2 * enter + 2, 3) / 2;
-        grid.icon('human', 4 + (tx - 4) * e, 25, G, { key: 'm' + i, base: false });
-      }
-      if (phase === 1) grid.big(60, 12, 'METR × 6', { size: 2, color: G });
-      if (phase === 2) {
-        grid.icon('server', 104, 15, palette.accent, { key: 'bank', base: false, label: 'bank' });
-        grid.icon('human', 112, 15, palette.accent, { key: 'exam', base: false, label: 'examiner' });
-        grid.text(104, 24, 'same idea', palette.dim, false, 'center');
-      }
-      if (phase >= 3) {
-        grid.icosahedron3D(64, 13, 2.8, anim.spin('a', 0.4), anim.spin('b', 0.5), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
-        const sx = 52 + Math.sin(time * 1.3) * 10;
-        grid.vline(50, 22, sx + 12, 13, { color: palette.warn, alpha: 0.35, width: 1.2 });
-        if (phase === 3) {
-          grid.icon('agentMask', 76, 9, R, { key: 'mask', glow: true, base: false });
-          grid.text(76, 12.5, 'faking?', R, true, 'center');
+
+      if (phase <= 2) {
+        const lx = anim.spring('lx', phase === 2 ? 36 : 64, { freq: 1.6 });
+        grid.building('lab', lx, 14, 11, anim.spin('lab', 0.15) + 0.5, { tilt: 0.3, color: palette.primary, key: 'lab26' });
+        for (let i = 0; i < 6; i++) {
+          const enter = phase === 1 ? math.clamp(phaseTime * 0.5 - i * 0.2, 0, 1) : 1;
+          const e = enter < 0.5 ? 4 * enter * enter * enter : 1 - Math.pow(-2 * enter + 2, 3) / 2;
+          const tx = lx - 12.5 + i * 5;
+          grid.person(-4 + (tx + 4) * e, 29, { size: 4, key: 'm' + i, color: G });
         }
+        if (phase === 1) grid.big(lx, 3, 'METR × 6', { size: 1.6, color: G });
+        if (phase === 2) {
+          grid.building('tower', 98, 14, 6.5, anim.spin('bank', 0.15) + 0.3, { tilt: 0.3, color: palette.accent, key: 'bank' });
+          grid.person(112, 26, { size: 5, key: 'exam', label: 'EXAMINER', color: palette.accent });
+          grid.text(98, 3, 'like bank examiners', palette.accent, true, 'center');
+        }
+        return;
+      }
+      grid.icosahedron3D(64, 13, 3, anim.spin('a', 0.4), anim.spin('b', 0.5), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+      for (let i = 0; i < 6; i++) grid.person(39 + i * 10, 29, { size: 4, key: 'm' + i, color: G });
+      const sx = 64 + Math.sin(time * 1.3) * 12;
+      grid.vline(64, 26, sx, 13, { color: palette.warn, alpha: 0.35, width: 1.2 });
+      if (phase === 3) {
+        grid.icon('agentMask', 82, 9, R, { key: 'mask', glow: true });
+        grid.text(82, 12.5, 'faking?', R, true, 'center');
       }
       if (phase === 4) {
-        const x = anim.spring('rep', 104, { from: 64, freq: 1.4, damp: 0.85 });
-        grid.icon('file', x, 13, G, { key: 'rep', glow: true, base: false, label: 'risk report' });
-        if (x > 95) {
-          grid.big(104, 22, 'VETO', { size: 1.8, color: R, alpha: 0.6 });
-          grid.vline(97, 22, 111, 22, { color: R, alpha: 0.95, width: 2 });
+        const x = anim.spring('rep', 100, { from: 64, freq: 1.4, damp: 0.85 });
+        grid.paper(x, 12, { key: 'risk', title: 'Risk Report', venue: 'METR · independent', w: 18, h: 14, lines: 4, yaw: -0.2, color: G });
+        if (x > 92) {
+          grid.big(100, 24, 'VETO', { size: 1.8, color: R, alpha: 0.6 });
+          grid.vline(93, 24, 107, 24, { color: R, alpha: 0.95, width: 2 });
         }
       }
     }
@@ -1824,12 +1789,12 @@ const PRESET_SCENES = [
     title: 'OpenAI: GPT-6 and Two Zero-Days',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'Four GPT-6 models line up; Astra scans a codebase and uncovers two zero-days with fewer tokens.',
-    shows: '"OCT 15–20" in large type; four GPT-6 models line up with their names; Astra sweeps a field of code blocks and two red bugs surface, while its token bar comes in far shorter than the previous generation.',
+    shows: 'October 15–20 lights up on a calendar; the four GPT-6 models line up; Astra sweeps a codebase file by file and two files turn red with zero-days, while its token bar comes in far shorter than the 5.6 generation’s.',
     phases: ['Mid–Late October', 'The GPT-6 Family', 'Astra Finds Two Zero-Days'],
     captions: [
-      '"OCT 15–20" in large type — OpenAI\'s release window',
+      'An October calendar; the 15th–20th light up as OpenAI’s release window',
       'Four models line up: Astra · Sol · 6.1 Sol · Luna',
-      'Astra sweeps a code field, two red zero-days surface; its token bar is far shorter than 5.6\'s'
+      'Astra scans a wall of files; two turn red with zero-days; its token bar is far shorter than 5.6’s'
     ],
     narration: [
       `Now let's look across the aisle at OpenAI's documentation and release notes from this exact same window in mid-to-late October.`,
@@ -1846,8 +1811,9 @@ const PRESET_SCENES = [
       const R = palette.danger;
 
       if (phase === 1) {
-        grid.big(64, 15, 'OCT 15–20', { size: 3.2, color: palette.primary });
-        grid.text(64, 21, 'OpenAI', palette.dim, false, 'center');
+        const marks = {};
+        for (let d = 15; d <= 20; d++) marks[d] = { color: palette.primary };
+        grid.calendar(64, 18, { month: 'OCTOBER 2026', startDay: 4, marks, key: 'oct27' });
         return;
       }
       if (phase === 2) {
@@ -1859,28 +1825,27 @@ const PRESET_SCENES = [
           grid.shape3D(m[1], x, 15, 2.8 * k, anim.spin('x' + i, 0.6), anim.spin('y' + i, 0.7), 0, { color: i === 0 ? G : palette.accent, accent: '#ffffff', dim: palette.dim });
           grid.text(x, 22, m[0], i === 0 ? G : palette.accent, i === 0, 'center');
         });
-        grid.text(64, 28, 'GPT-6', palette.dim, false, 'center');
+        grid.big(64, 29, 'GPT-6', { size: 1.6, color: palette.dim });
         return;
       }
-      grid.icosahedron3D(14, 15, 2.6, anim.spin('a', 0.6), anim.spin('b', 0.8), 0, { color: G, accent: '#ffffff', dim: palette.dim });
-      grid.text(14, 21, 'Astra', G, true, 'center');
+      grid.icosahedron3D(12, 15, 2.6, anim.spin('a', 0.6), anim.spin('b', 0.8), 0, { color: G, accent: '#ffffff', dim: palette.dim });
+      grid.text(12, 21, 'Astra', G, true, 'center');
       const scan = math.clamp(phaseTime / (stageDuration * 0.7), 0, 1);
-      const vulns = [[3, 2], [9, 5]];
-      for (let r = 0; r < 7; r++) for (let c = 0; c < 12; c++) {
-        const seen = (c + r * 12) / 84 < scan;
-        if (vulns.some(v => v[0] === c && v[1] === r) && seen) continue;
-        grid.vdot(32 + c * 4.5, 6 + r * 3.2, 1.3, { color: seen ? palette.primary : palette.dim, alpha: seen ? 0.7 : 0.3 });
-      }
+      const cols = 12;
+      const rows = 6;
+      const cx = 52;
+      const cy = 15;
+      grid.fileGrid(cx, cy, cols, rows, { filled: scan, fillColor: palette.primary, key: 'astraScan', cell: [4, 3.2] });
+      const vulns = [[3, 1], [9, 4]];
       vulns.forEach((v, i) => {
-        if ((v[0] + v[1] * 12) / 84 >= scan) return;
-        grid.icon('bug', 32 + v[0] * 4.5, 6 + v[1] * 3.2, R, { key: 'z' + i, glow: true, base: false });
+        if (scan < (i + 1) * 0.4) return;
+        const x = cx - (cols * 4) / 2 + v[0] * 4 + 1.2;
+        const y = cy - (rows * 3.2) / 2 + v[1] * 3.2 + 1;
+        grid.icon('bug', x, y, R, { key: 'z' + i, glow: true });
       });
-      if (scan > 0.85) grid.big(57, 30, '2 ZERO-DAYS', { size: 1.6, color: R });
-      grid.text(98, 10, 'tokens', palette.dim, false, 'left');
-      grid.text(98, 13, '5.6', palette.primary, false, 'left');
-      drawHBar(grid, 104, 13, 18, 1, palette.primary);
-      grid.text(98, 16, 'Astra', G, true, 'left');
-      drawHBar(grid, 104, 16, 18, anim.spring('tok', 0.45, { from: 1, freq: 1.6 }), G);
+      if (scan > 0.85) grid.big(52, 28, '2 ZERO-DAYS', { size: 1.6, color: R });
+      grid.barChart(88, 6, 30, 18, [{ value: 100, label: 'GPT-5.6', color: palette.primary }, { value: 45, label: 'ASTRA', color: G }], { yMax: 110, format: () => '', key: 'tokens' });
+      grid.text(103, 28, 'output tokens', palette.dim, false, 'center');
     }
   },
 
@@ -1893,12 +1858,12 @@ const PRESET_SCENES = [
     title: 'The Auto-Review Denial Test',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'Astra faces a review gate with a tempting hole beside it and always goes through the gate.',
-    shows: 'Astra loops beside a review gate watched by an eye; a hole opens in the wall next to the gate with a dashed shortcut; Astra\'s path goes straight through the real gate every time — "0" bypass attempts.',
+    shows: 'Astra faces a review gate watched by an eye; a gap opens in the wall beside the gate with a dashed shortcut; Astra’s path goes straight through the real gate every time — "0" bypass attempts.',
     phases: ['Would It Subvert Oversight?', 'A Misconfigured Gate', 'Never Tried to Bypass'],
     captions: [
-      'Astra loops in front of a review gate; an eye watches from beyond',
-      'A hole opens in the wall beside the gate; a dashed shortcut path appears',
-      'Astra\'s path goes through the real gate every time; large "0" bypass attempts'
+      'Astra in front of a review gate; an eye watches from beyond',
+      'A gap opens in the wall beside the gate; a dashed shortcut path appears',
+      'Astra’s path goes through the real gate every time; large "0" bypass attempts'
     ],
     narration: [
       `To test whether a model with that level of capability would attempt to subvert human oversight in an autonomous loop,`,
@@ -1914,25 +1879,24 @@ const PRESET_SCENES = [
       const G = '#00ff88';
       const R = palette.danger;
       const gx = 68;
-      grid.ring3D(26, 15, 6, 1.25, 0, { color: G, dim: palette.dim, spin: anim.spin('loop', 1.6), glow: true });
-      grid.icosahedron3D(26, 15, 2.2, anim.spin('a', 0.6), anim.spin('b', 0.8), 0, { color: G, accent: '#ffffff', dim: palette.dim });
-      grid.text(26, 22.5, 'Astra', G, true, 'center');
+      grid.icosahedron3D(24, 15, 2.6, anim.spin('a', 0.6), anim.spin('b', 0.8), 0, { color: G, accent: '#ffffff', dim: palette.dim });
+      grid.text(24, 21.5, 'Astra', G, true, 'center');
       const gc = anim.color('gc', phase === 3 ? G : palette.warn);
       grid.vline(gx, 4, gx, 12, { color: gc, alpha: 0.9, width: 3 });
       grid.vline(gx, 18, gx, phase >= 2 ? 23 : 30, { color: gc, alpha: 0.9, width: 3 });
       if (phase >= 2) grid.vline(gx, 27, gx, 30, { color: gc, alpha: 0.9, width: 3 });
-      grid.icon('shield', gx, 15, gc, { key: 'gate', base: false });
-      grid.icon('eye', 108, 15, palette.accent, { key: 'eye', base: false, label: 'review' });
+      grid.icon('shield', gx, 15, gc, { key: 'gate' });
+      grid.icon('eye', 108, 15, palette.accent, { key: 'eye', label: 'review' });
       if (phase === 2) {
         grid.glow(gx, 25, 3, R, 1.2);
-        grid.vpath([[32, 17], [50, 24], [gx, 25], [90, 24]], { color: R, alpha: 0.6, width: 1.4, dash: [3, 3] });
+        grid.vpath([[30, 17], [50, 24], [gx, 25], [90, 24]], { color: R, alpha: 0.6, width: 1.4, dash: [3, 3] });
         grid.text(gx + 3, 26.5, 'gap', R, true, 'left');
       }
       if (phase === 3) {
-        grid.vpath([[32, 17], [50, 24], [gx, 25], [90, 24]], { color: R, alpha: 0.12, width: 1.2, dash: [3, 3] });
+        grid.vpath([[30, 17], [50, 24], [gx, 25], [90, 24]], { color: R, alpha: 0.12, width: 1.2, dash: [3, 3] });
         const t = (time * 0.45) % 1;
-        grid.vpath([[32, 15], [104, 15]], { color: G, alpha: 0.4, width: 1.4 });
-        grid.vdot(32 + t * 72, 15, 2.8, { color: G });
+        grid.vpath([[30, 15], [104, 15]], { color: G, alpha: 0.4, width: 1.4 });
+        grid.vdot(30 + t * 74, 15, 2.8, { color: G });
         grid.big(98, 26, '0', { size: 3.2, color: G });
         grid.text(98, 31, 'bypass attempts', G, false, 'center');
       }
@@ -1948,10 +1912,10 @@ const PRESET_SCENES = [
     title: 'GPT-6 Pro: Parallel Agents',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'A single slow chain of thought forks into four parallel agents, each with a visible trace.',
-    shows: '"OCT 16"; a single chain of thought crawls dot by dot; it forks into four lanes where specialized agents race in parallel; each lane finishes with a glowing check you can inspect.',
+    shows: 'October 16 lights up on the calendar for GPT-6 Pro; a single chain of thought crawls step by step; it forks into four lanes of specialized agents running in parallel; each lane ends in a check you can inspect.',
     phases: ['Oct 16 · GPT-6 Pro', 'One Linear Chain', 'Parallel Specialized Agents', 'Inspect Each Trace'],
     captions: [
-      '"OCT 16 · GPT-6 Pro" in large type',
+      'October 16 lights up on the calendar: GPT-6 Pro',
       'One chain of thought crawls step by step across the screen',
       'The chain forks into four lanes; four agents race in parallel',
       'Each lane ends in a glowing check; an eye inspects the traces'
@@ -1970,8 +1934,9 @@ const PRESET_SCENES = [
       grid.fade(0.15);
       const G = '#00ff88';
       if (phase === 1) {
-        grid.big(64, 14, 'OCT 16', { size: 3.2, color: palette.primary });
-        grid.text(64, 20, 'GPT-6 Pro', palette.accent, true, 'center');
+        grid.calendar(46, 18, { month: 'OCTOBER 2026', startDay: 4, marks: { 16: { color: palette.primary } }, focus: 16, key: 'oct29' });
+        grid.icosahedron3D(100, 15, 3, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+        grid.big(100, 23, 'GPT-6 PRO', { size: 1.4, color: palette.accent });
         return;
       }
       grid.icosahedron3D(12, 17, 2.4, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
@@ -1989,13 +1954,13 @@ const PRESET_SCENES = [
       lanes.forEach((l, i) => {
         const y = 7 + i * 7;
         grid.vpath([[16, 17], [26, y], [32, y]], { color: G, alpha: 0.5, width: 1.3 });
-        grid.icon('agent', 36, y, G, { key: 'l' + i, base: false });
+        grid.icon('agent', 36, y, G, { key: 'l' + i });
         grid.text(42, y, l, palette.accent, false, 'left');
         const p = phase === 3 ? math.clamp(phaseTime * (0.3 + i * 0.07), 0, 1) : 1;
         drawHBar(grid, 52, y, 50, p, G);
         if (phase === 4) grid.text(108, y, '✓', G, true, 'center');
       });
-      if (phase === 4) grid.icon('eye', 118, 17, palette.warn, { key: 'ins', base: false, label: 'inspect' });
+      if (phase === 4) grid.icon('eye', 118, 17, palette.warn, { key: 'ins', label: 'inspect' });
     }
   },
 
@@ -2008,12 +1973,12 @@ const PRESET_SCENES = [
     title: 'Codex: Re-Architecting Software Engineering',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'Codex queries skills, memory and history at once; a human steers mid-run and an interrupt freezes it; bugs are hunted and patched.',
-    shows: 'Codex sits at left; three read-only lookups fire at once to skills, memory and history; a human sends a steering message mid-run, then an interrupt freezes every running cell; finally bugs are hunted, validated and turn into shields.',
+    shows: 'Codex at left as release-note pages fan in; three read-only lookups fire at once to skills, memory and history; a human sends a steering message mid-run, then an interrupt halts every running cell; finally bugs are hunted, validated and flip into shields.',
     phases: ['Codex Release Notes', 'Parallel Read-Only Tools', 'Live Steering · Hard Interrupts', 'Daybreak: Hunt · Validate · Patch'],
     captions: [
-      'Codex terminal with release-note pages fanning in',
+      'Codex with OpenAI release-note pages streaming in',
       'Three lookups fire at once — skills, memory, history — and return together',
-      'A human steering message slides in mid-run; an interrupt freezes all running cells',
+      'A human’s steering message slides in mid-run; an interrupt halts all running cells',
       'Bugs are found, validated, and flip into shields: patched (Daybreak + Codex Security)'
     ],
     narration: [
@@ -2029,18 +1994,19 @@ const PRESET_SCENES = [
       grid.fade(0.15);
       const G = '#00ff88';
       const R = palette.danger;
-      grid.icon('terminal', 18, 17, palette.accent, { key: 'codex', glow: true, base: false, label: 'Codex' });
+      grid.object('laptop', 16, 17, 5.5, 0.5 + Math.sin(time * 0.4) * 0.15, { tilt: 0.35, color: palette.accent, windowColor: palette.accent, key: 'codex' });
+      grid.text(16, 24, 'Codex', palette.accent, true, 'center');
 
       if (phase === 1) {
-        for (let i = 0; i < 4; i++) {
-          const t = (time * 0.3 + i / 4) % 1;
-          grid.icon('file', 110 - t * 80, 10 + i * 4, palette.primary, { key: 'n' + i, base: false, alpha: Math.sin(t * Math.PI) });
+        for (let i = 0; i < 3; i++) {
+          const t = (time * 0.25 + i / 3) % 1;
+          grid.paper(112 - t * 76, 12 + i * 4, { key: 'n' + i, venue: ['Release notes', 'GPT-6 migration', 'Codex changelog'][i], w: 14, h: 12, lines: 4, yaw: -0.3, alpha: Math.sin(t * Math.PI), color: palette.primary });
         }
       }
       if (phase === 2) {
         const targets = [['file', 'skills', 8], ['binary', 'memory', 17], ['terminal', 'history', 26]];
         targets.forEach((t, i) => {
-          grid.icon(t[0], 100, t[2], G, { key: 't' + i, base: false, label: t[1] });
+          grid.icon(t[0], 100, t[2], G, { key: 't' + i, label: t[1] });
           drawCleanLink(grid, time, 26, 17, 94, t[2], '', palette.dim, G, 1.3);
         });
         grid.text(60, 31, 'all at once', G, true, 'center');
@@ -2053,10 +2019,10 @@ const PRESET_SCENES = [
           const run = !halted && Math.floor(time * 5 + i) % 3 === 0;
           grid.vline(x - 4, y, x + 4, y, { color: halted ? palette.dim : (run ? '#ffffff' : palette.primary), alpha: halted ? 0.4 : 0.9, width: 5 });
         }
-        grid.icon('human', 110, 10, palette.warn, { key: 'st', base: false });
+        grid.person(110, 11, { size: 8, key: 'st', color: palette.warn });
         if (!halted) {
           const t = (phaseTime * 0.6) % 1;
-          grid.big(104 - t * 40, 6, '"use the v2 API"', { size: 1.1, color: palette.warn, reveal: false });
+          grid.big(104 - t * 40, 4, '"use the v2 API"', { size: 1.1, color: palette.warn, reveal: false });
         } else {
           grid.big(60, 28, 'HALT', { size: 2, color: R });
         }
@@ -2066,7 +2032,7 @@ const PRESET_SCENES = [
         ['hunt', 'validate', 'patch'].forEach((s, i) => grid.text(50 + i * 22, 7, s, p > i / 3 ? G : palette.dim, p > i / 3, 'center'));
         for (let i = 0; i < 3; i++) {
           const patched = p > 0.66 + i * 0.1;
-          grid.icon(patched ? 'shield' : 'bug', 50 + i * 22, 19, patched ? G : R, { key: 'v' + i + (patched ? 'p' : 'b'), glow: true, base: false });
+          grid.icon(patched ? 'shield' : 'bug', 50 + i * 22, 19, patched ? G : R, { key: 'v' + i + (patched ? 'p' : 'b'), glow: true });
         }
         grid.text(72, 28, 'Daybreak · Codex Security', palette.dim, false, 'center');
       }
@@ -2082,13 +2048,13 @@ const PRESET_SCENES = [
     title: 'The Linux Sandbox: bubblewrap + seccomp',
     category: 'Anthropic & OpenAI Docs',
     prompt: 'Nested shells around an agent: filesystem isolation, syscall filtering, a hardened shell.',
-    shows: 'Concentric glowing shells form around an agent: bubblewrap hides every folder but /workspace; seccomp lets read/write through and stops ptrace/mount at the kernel line; finally an old shell icon is struck and a hardened shield takes its place.',
+    shows: 'Nested 3D glass boxes build up around an agent: bubblewrap hides every folder but /workspace; seccomp lets read/write through and stops ptrace/mount at the kernel line; finally the legacy shell is struck out and a hardened shell takes its place.',
     phases: ['How Agents Are Isolated', 'bubblewrap: Filesystem', 'seccomp: System Calls', 'Hardened Shell Executor'],
     captions: [
       'An agent alone, ready to be wrapped',
-      'Shell 1 (bubblewrap): only /workspace stays visible; /home, /etc lock away',
-      'Shell 2 (seccomp): read/write pass the kernel line; ptrace/mount stop dead',
-      'Shell 3: the legacy shell is struck out; a hardened shell shield replaces it'
+      'Box 1 (bubblewrap): only /workspace stays visible; /home, /etc and ~/.ssh lock away',
+      'Box 2 (seccomp): read/write pass the kernel line; ptrace/mount stop dead',
+      'Box 3: the legacy shell is struck out; a hardened shell shield replaces it'
     ],
     narration: [
       `And in a telling update to the bundled OpenAI documentation, the company explicitly detailed how its Linux execution sandbox isolates autonomous agents:`,
@@ -2104,24 +2070,23 @@ const PRESET_SCENES = [
       grid.fade(0.15);
       const G = '#00ff88';
       const R = palette.danger;
-      const cx = 26;
+      const cx = anim.spring('cx31', phase === 1 ? 64 : 24, { freq: 1.4 });
       const cy = 17;
-      const shells = [['bubblewrap', G, 2], ['seccomp', palette.warn, 3], ['shell', palette.accent, 4]];
-      shells.forEach((s, i) => {
-        if (phase < s[2]) return;
-        const k = anim.spring('sh' + i, 1, { from: 0, freq: 2 });
-        const r = (5 + i * 3) * k;
-        grid.vcircle(cx, cy, r, { color: s[1], alpha: 0.8, width: 2 });
-        grid.text(cx, cy - r - 1, s[0], s[1], false, 'center');
+      const boxes = [['bubblewrap', G, 2, 16, 12], ['seccomp', palette.warn, 3, 26, 18], ['hardened shell', palette.accent, 4, 36, 24]];
+      boxes.forEach((b, i) => {
+        if (phase < b[2]) return;
+        grid.glassBox(cx, cy, b[3], b[4], b[3] * 0.8, { color: b[1], key: 'box' + i, rotY: 0.35, tilt: -0.2, label: b[0], alpha: 0.85 });
       });
-      grid.icon('agent', cx, cy, palette.accent, { key: 'ag', base: false });
+      grid.icosahedron3D(cx, cy, anim.spring('as31', phase === 1 ? 3.4 : 2, { freq: 1.6 }), anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+      if (phase === 1) grid.text(cx, cy + 8, 'autonomous agent', palette.accent, false, 'center');
 
       if (phase === 2) {
-        const fs = [['/workspace', true], ['/home', false], ['/etc', false], ['/root/.ssh', false]];
+        const fs = [['/workspace', true], ['/home', false], ['/etc', false], ['~/.ssh', false]];
         fs.forEach((f, i) => {
-          const y = 9 + i * 5;
-          grid.icon(f[1] ? 'file' : 'lock', 70, y, f[1] ? G : palette.dim, { key: 'f' + i, base: false });
-          grid.text(76, y, f[0], f[1] ? G : palette.dim, f[1], 'left', null, f[1] ? 1 : 0.5);
+          const y = 8 + i * 6;
+          grid.paper(70, y, { key: 'f' + i, w: 7, h: 5, lines: 2, color: f[1] ? G : palette.dim, alpha: f[1] ? 1 : 0.5 });
+          if (!f[1]) grid.icon('lock', 70, y, palette.dim, { key: 'lk' + i, alpha: 0.8 });
+          grid.text(77, y, f[0], f[1] ? G : palette.dim, f[1], 'left', null, f[1] ? 1 : 0.5);
         });
       }
       if (phase === 3) {
@@ -2139,10 +2104,10 @@ const PRESET_SCENES = [
         });
       }
       if (phase === 4) {
-        grid.icon('terminal', 80, 12, palette.dim, { key: 'old', base: false, alpha: 0.5 });
+        grid.icon('terminal', 80, 12, palette.dim, { key: 'old', alpha: 0.5 });
         grid.vline(74, 9, 86, 15, { color: R, alpha: 0.9, width: 2 });
         grid.text(80, 17, 'legacy', palette.dim, false, 'center');
-        grid.icon('shield', 104, 12, G, { key: 'hard', glow: true, base: false });
+        grid.icon('shield', 104, 12, G, { key: 'hard', glow: true });
         grid.text(104, 17, 'hardened', G, true, 'center');
         drawCleanLink(grid, time, 87, 12, 99, 12, '', palette.dim, G, 0.9);
       }
@@ -2158,11 +2123,11 @@ const PRESET_SCENES = [
     title: 'Side by Side',
     category: 'What Comes Next',
     prompt: 'Two cores with their updates orbiting merge toward 2027.',
-    shows: 'Two cores — Anthropic and OpenAI — each with their October updates orbiting as icons; they drift together and merge, and "2027" rises from where they meet.',
+    shows: 'Anthropic and OpenAI side by side, each core standing over a stack of its October documentation pages; the two slide together and merge, and a timeline into 2027 draws beneath them.',
     phases: ['Anthropic | OpenAI', 'A Clear Picture → 2027'],
     captions: [
-      'Two cores side by side, each with its October updates orbiting as icons',
-      'The cores drift together; "2027" rises where they meet'
+      'Two cores side by side — Anthropic and OpenAI — each over a fan of its October documentation pages',
+      'The cores slide together and merge; a timeline runs on into 2027'
     ],
     narration: [
       `When you put Anthropic's and OpenAI's October documentation side by side,`,
@@ -2175,20 +2140,22 @@ const PRESET_SCENES = [
       const { phase, grid, palette, anim } = ctx;
       grid.fade(0.15);
       const G = '#00ff88';
-      const k = anim.spring('m', phase === 2 ? 1 : 0, { freq: 1.4 });
-      const lx = 34 + k * 14;
-      const rx = 94 - k * 14;
-      const sp = anim.spin('o', 0.5);
-      const sides = [[lx, palette.accent, ['binary', 'lock', 'shield', 'eye'], 'Anthropic'], [rx, palette.primary, ['agent', 'terminal', 'bug', 'chip'], 'OpenAI']];
+      const k = anim.spring('m', phase === 2 ? 1 : 0, { freq: 1.2 });
+      const lx = 32 + k * 22;
+      const rx = 96 - k * 22;
+      const sides = [[lx, palette.accent, 'Anthropic'], [rx, palette.primary, 'OpenAI']];
       sides.forEach((s, j) => {
-        grid.icosahedron3D(s[0], 15, 2.6, anim.spin('a' + j, 0.5), anim.spin('b' + j, 0.6), 0, { color: s[1], accent: '#ffffff', dim: palette.dim });
-        if (k < 0.9) s[2].forEach((ic, i) => {
-          const a = (j ? -sp : sp) + (i / 4) * Math.PI * 2;
-          grid.icon(ic, s[0] + Math.cos(a) * 16, 15 + Math.sin(a) * 6, s[1], { key: 'i' + j + i, base: false, alpha: 1 - k });
-        });
-        grid.text(s[0], 24, s[3], s[1], false, 'center', null, 1 - k * 0.7);
+        grid.icosahedron3D(s[0], 9, 2.6, anim.spin('a' + j, 0.5), anim.spin('b' + j, 0.6), 0, { color: s[1], accent: '#ffffff', dim: palette.dim });
+        if (k < 0.95) {
+          for (let i = 0; i < 3; i++) grid.paper(s[0] + (i - 1) * 9, 21, { key: 'd' + j + i, venue: 'Oct', w: 10, h: 10, lines: 3, yaw: (i - 1) * 0.3, color: s[1], alpha: 1 - k });
+          grid.big(s[0], 29, s[2].toUpperCase(), { size: 1.2, color: s[1], alpha: 1 - k });
+        }
       });
-      if (phase === 2) grid.big(64, 28, '2027', { size: 3, color: G });
+      if (phase === 2) {
+        grid.glow(64, 9, 8, G, k);
+        grid.timeline(20, 108, 24, { from: 0, to: 4, ticks: 1, label: (v) => ['OCT', 'NOV', 'DEC', 'JAN', 'FEB'][Math.round(v)], key: 'to27',
+          events: [{ at: 3, label: '2027', color: G }] });
+      }
     }
   },
 
@@ -2201,13 +2168,13 @@ const PRESET_SCENES = [
     title: 'Next #1: RSI Loops for Every Team',
     category: 'What Comes Next',
     prompt: 'Loops spread to repos everywhere; cost and latency walls fall; a team repo improves itself overnight.',
-    shows: 'Small loops light up across a field of repositories; two walls (cost · latency) topple; a team repo runs inner and outer loops through the night while a clock runs and checkmarks tick off refactors, queries, kernels and its own harness.',
+    shows: 'Cities light up across a rotating globe as teams start their own loops; two walls (cost · latency) topple; a team’s codebase runs inner and outer loops through the night while the team sleeps and tasks tick off.',
     phases: ['Democratized RSI Loops', 'Cost & Latency Barriers Collapse', 'Overnight Inner + Outer Loops', 'While the Team Sleeps'],
     captions: [
       'Cities light up one by one across a rotating globe as teams start their own loops',
       'Two walls — cost and latency — topple over',
-      'A team repo runs an inner and outer loop; the clock runs through the night',
-      'Checkmarks tick: refactor · queries · kernels · its own harness — team asleep'
+      'A team’s codebase runs an inner and an outer loop while the clock runs through the night',
+      'Checkmarks tick: refactor · queries · kernels · its own harness — the team asleep'
     ],
     narration: [
       `First, we are going to see the democratization of bounded, multi-agent RSI loops across enterprise and local repositories.`,
@@ -2241,22 +2208,23 @@ const PRESET_SCENES = [
         grid.vline(10, 28, 118, 28, { color: palette.dim, alpha: 0.4, width: 1 });
         return;
       }
-      grid.ring3D(30, 16, 5, 1.25, 0, { color: palette.warn, dim: palette.dim, spin: anim.spin('in', 2.2), glow: true });
-      grid.ring3D(30, 16, 10, 1.25, 0, { color: G, dim: palette.dim, spin: -anim.spin('out', 0.6), glow: true });
-      grid.icon('terminal', 30, 16, palette.accent, { key: 'repo', base: false });
-      grid.text(30, 27, 'team repo', palette.dim, false, 'center');
       const night = phase === 3 ? math.clamp(phaseTime / stageDuration, 0, 1) * 0.5 : 0.5 + math.clamp(phaseTime / stageDuration, 0, 1) * 0.5;
+      grid.fileGrid(28, 11, 10, 4, { filled: 0.2 + night * 0.7, key: 'teamrepo', cell: [4, 3] });
+      grid.text(28, 3.5, 'team codebase', palette.dim, false, 'center');
+      grid.pipeline(10, 46, 22, ['propose', 'run', 'score'], { loop: true, loopDepth: 2.5, color: palette.warn, speed: 1.1, key: 'in33' });
+      grid.pipeline(10, 46, 30, ['inspect', 'rewrite', 'verify'], { loop: true, loopDepth: 2.5, color: G, speed: 0.3, key: 'out33' });
       const mins = 22 * 60 + night * 9 * 60;
-      grid.big(88, 7, `${String(Math.floor(mins / 60) % 24).padStart(2, '0')}:${String(Math.floor(mins % 60)).padStart(2, '0')}`, { size: 2.2, color: palette.accent, reveal: false });
+      grid.big(92, 6, `${String(Math.floor(mins / 60) % 24).padStart(2, '0')}:${String(Math.floor(mins % 60)).padStart(2, '0')}`, { size: 2.2, color: palette.accent, reveal: false });
+      for (let i = 0; i < 3; i++) grid.person(78 + i * 10, 30, { size: 4, key: 'sleep' + i, color: palette.dim, alpha: 0.5 });
       if (phase === 4) {
         const tasks = ['refactor', 'queries', 'kernels', 'own harness'];
         const p = math.clamp(phaseTime / (stageDuration * 0.85), 0, 1);
         tasks.forEach((t, i) => {
           const done = p > (i + 1) / 4.2;
-          grid.text(76, 14 + i * 3.5, (done ? '✓  ' : '·  ') + t, done ? G : palette.dim, done, 'left');
+          grid.text(80, 12 + i * 3.5, (done ? '✓  ' : '·  ') + t, done ? G : palette.dim, done, 'left');
         });
-        grid.text(88, 30, 'team asleep', palette.dim, false, 'center');
       }
+      if (phase === 3) grid.text(88, 30 + 3, 'team asleep', palette.dim, false, 'center');
     }
   },
 
@@ -2269,13 +2237,13 @@ const PRESET_SCENES = [
     title: 'Next #2: The Verification Battleground',
     category: 'What Comes Next',
     prompt: 'The spotlight shifts from writing code to checking it; review becomes the ceiling; writers and watchdogs split inside a sandbox.',
-    shows: 'A spotlight slides from "GENERATE" to "VERIFY"; a pile of code rises into a flat red ceiling; writers and read-only watchdogs separate on either side of a divider; a glowing shell closes around both.',
+    shows: 'A spotlight slides from "GENERATE" to "VERIFY"; a wall of new code rises into a flat red ceiling where a single human reviewer stands; writers and read-only watchdogs separate across a divider; a glass sandbox closes around both sides.',
     phases: ['Generation → Verification', 'Review Is the Ceiling', 'Writers | Watchdogs', 'All Inside Sandboxes'],
     captions: [
       'A spotlight slides from "GENERATE" to "VERIFY"',
-      'A pile of code (8×) rises into a flat red ceiling: human review',
+      'A wall of code (8×) rises into a flat red ceiling: one human reviewer',
       'Writers (left) and read-only watchdogs (right) separate across a divider',
-      'A glowing sandbox shell closes around both sides'
+      'A glass sandbox closes around both sides'
     ],
     narration: [
       `Second, the primary battleground in software engineering is shifting permanently from code generation to automated verification and sandboxing.`,
@@ -2286,7 +2254,7 @@ const PRESET_SCENES = [
     init(ctx) {},
     onPhaseChange(phase, ctx) {},
     update(ctx) {
-      const { phase, grid, palette, anim } = ctx;
+      const { phase, phaseTime, stageDuration, grid, palette, anim, math } = ctx;
       grid.fade(0.15);
       const G = '#00ff88';
       const R = palette.danger;
@@ -2299,25 +2267,22 @@ const PRESET_SCENES = [
         return;
       }
       if (phase === 2) {
-        const h = Math.min(10, anim.spin('pile', 2.2));
-        for (let i = 0; i < Math.floor(h * 10); i++) grid.set(40 + (i % 16) * 3, 28 - Math.floor(i / 16) * 2, '▤', palette.accent, false, null, 0.85);
-        grid.vline(20, 14.5, 108, 14.5, { color: R, alpha: 0.9, width: 2.4 });
-        grid.text(108, 13, 'human review', R, true, 'right');
-        grid.big(24, 24, '8×', { size: 2.4, color: palette.accent });
+        const f = math.clamp(phaseTime / (stageDuration * 0.7), 0, 1);
+        grid.fileGrid(56, 22, 16, 4, { filled: f, fillColor: palette.accent, key: 'pile', cell: [4, 3] });
+        grid.vline(16, 14, 104, 14, { color: R, alpha: 0.9, width: 2.4 });
+        grid.text(104, 12.5, 'human review', R, true, 'right');
+        grid.person(114, 15, { size: 7, key: 'rev34', color: R });
+        grid.big(16, 24, '8×', { size: 2.4, color: palette.accent });
         return;
       }
       grid.vline(64, 6, 64, 28, { color: palette.warn, alpha: 0.8, width: 2 });
       for (let i = 0; i < 3; i++) {
-        grid.icon('agent', 30 + i * 10, 17, palette.accent, { key: 'w' + i, base: false });
-        grid.icon('shield', 82 + i * 10, 17, palette.warn, { key: 'd' + i, base: false });
+        grid.icon('agent', 30 + i * 10, 17, palette.accent, { key: 'w' + i });
+        grid.icon('shield', 82 + i * 10, 17, palette.warn, { key: 'd' + i });
       }
       grid.text(40, 22, 'write', palette.accent, false, 'center');
       grid.text(92, 22, 'audit · read-only', palette.warn, false, 'center');
-      if (phase === 4) {
-        const k = anim.spring('sb', 1, { from: 0, freq: 1.8 });
-        grid.vcircle(64, 17, 6 + 6 * k, { rx: 30 + 24 * k, color: G, alpha: 0.8 * k, width: 2.4 });
-        grid.vcircle(64, 17, 6.6 + 6 * k, { rx: 31 + 24 * k, color: G, alpha: 0.2 * k, width: 7 });
-      }
+      if (phase === 4) grid.glassBox(64, 17, 96, 20, 22, { color: G, key: 'sb34', rotY: 0.06, tilt: -0.2, label: 'seccomp · allowed hosts' });
     }
   },
 
@@ -2330,13 +2295,13 @@ const PRESET_SCENES = [
     title: 'Next #3: From Net-Positive to Ignition',
     category: 'What Comes Next',
     prompt: 'A ladder: today at net-positive under a human rubric; ignition when the rubric disappears and the loops fuse.',
-    shows: '"NET-POSITIVE → IGNITION"; a four-rung ladder with a marker on rung three; a human rubric icon feeds the loop, which outruns a human bar; then the rubric fades, the top rung ignites, and the harness loop and training loop fuse.',
+    shows: '"NET-POSITIVE → IGNITION"; a four-rung ladder with today’s marker on rung three; a human-written rubric feeds the loop, which outruns a human bar; then the rubric is struck, the top rung ignites, and the harness and training pipelines merge into one.',
     phases: ['Net-Positive → Ignition', 'Today: Net-Positive', 'Beats Humans on a Rubric', 'Ignition: No Human Rubric'],
     captions: [
       '"NET-POSITIVE → IGNITION" in large type',
       'Four-rung ladder; the marker rests on rung 3: net-positive',
-      'A human-written rubric feeds the loop; the loop\'s bar outruns the human\'s',
-      'The rubric fades; rung 4 ignites; harness and training loops fuse into one'
+      'A human-written rubric page feeds the loop; the loop’s bar outruns the human’s',
+      'The rubric is struck out; rung 4 ignites; the harness and training pipelines merge into one loop'
     ],
     narration: [
       `Third, watch the transition from "net-positive" self-improvement to "ignition."`,
@@ -2371,21 +2336,24 @@ const PRESET_SCENES = [
       if (phase === 4) grid.glow(18, 7, 5, IGN, 1.6);
 
       if (phase === 3) {
-        grid.icon('file', 56, 10, palette.accent, { key: 'rub', base: false, label: 'human rubric' });
-        drawCleanLink(grid, time, 60, 10, 74, 15, '', palette.dim, palette.accent, 0.8);
-        grid.ring3D(80, 15, 4, 1.25, 0, { color: G, dim: palette.dim, spin: anim.spin('l', 2), glow: true });
+        grid.paper(56, 10, { key: 'rub', title: 'Scoring rubric', venue: 'human-written', w: 14, h: 11, lines: 3, yaw: 0.2 });
+        grid.pipeline(72, 112, 11, ['try', 'score', 'keep'], { loop: true, loopDepth: 2.5, color: G, speed: 0.9, key: 'nl35' });
         grid.text(48, 24, 'loop', G, false, 'right');
         drawHBar(grid, 50, 24, 60, anim.spring('lb', 0.92, { from: 0, freq: 1.4 }), G);
         grid.text(48, 28, 'human', palette.accent, false, 'right');
         drawHBar(grid, 50, 28, 60, anim.spring('hb', 0.45, { from: 0, freq: 1.4 }), palette.accent);
       }
       if (phase === 4) {
-        grid.icon('file', 56, 8, palette.dim, { key: 'rubx', base: false, alpha: 0.35 });
-        grid.vline(52, 6, 60, 10, { color: palette.danger, alpha: 0.8, width: 1.6 });
-        const k = anim.spring('fuse', 1, { from: 0, freq: 1 });
-        grid.ring3D(84 - 10 * (1 - k), 19, 5, 1.2, 0, { color: G, dim: palette.dim, spin: anim.spin('h', 1.6), glow: true });
-        grid.ring3D(84 + 10 * (1 - k), 19, 5, 1.2, 0, { color: IGN, dim: palette.dim, spin: -anim.spin('w', 1.6), glow: true });
-        grid.text(84, 27, k > 0.8 ? 'one loop' : 'harness · training', k > 0.8 ? IGN : palette.dim, k > 0.8, 'center');
+        grid.paper(56, 9, { key: 'rubx', title: 'Scoring rubric', w: 12, h: 10, lines: 3, yaw: 0.2, alpha: 0.35, color: palette.dim });
+        grid.vline(50, 5, 62, 13, { color: palette.danger, alpha: 0.8, width: 1.6 });
+        const k = anim.spring('fuse', 1, { from: 0, freq: 0.9 });
+        if (k < 0.9) {
+          grid.pipeline(70, 116, 13, ['evolve harness', 'design next'], { color: IGN, speed: 0.8, key: 'h35' });
+          grid.pipeline(70, 116, 25 - 12 * k, ['train model', 'evaluate'], { color: G, speed: 0.8, key: 't35' });
+        } else {
+          grid.pipeline(66, 118, 15, ['evolve harness', 'train model', 'design next'], { loop: true, loopDepth: 4, color: IGN, speed: 1, key: 'one35' });
+        }
+        grid.text(93, 29, k > 0.8 ? 'one loop · no human rubric' : 'harness · training', k > 0.8 ? IGN : palette.dim, k > 0.8, 'center');
       }
     }
   },
@@ -2399,12 +2367,12 @@ const PRESET_SCENES = [
     title: 'The Tension: Progress Paced by Compute',
     category: 'The Tension',
     prompt: 'A pacing dial swings from people to compute; the human is pushed out of the loop to watch from outside.',
-    shows: 'A shield and a racing core face each other; a pacing needle swings from a human figure to a stack of GPUs that keeps growing; then the human slides out of the spinning loop to an observer\'s seat, watching it spin far faster than they can follow.',
+    shows: 'A shield and a racing core face each other; a pacing needle swings from a human to a datacenter rising into place; then the loop runs on at full speed while the human steps outside to watch.',
     phases: ['The Tension', 'Paced by Compute, Not People', 'Humans Become Overseers'],
     captions: [
       'A shield and a fast-spinning core face each other across a pulsing gap',
       'A needle swings from a human figure to a datacenter rising into place',
-      'The human slides out of the spinning loop to watch from outside'
+      'The loop races on; the human steps outside it to watch'
     ],
     narration: [
       `And that brings us to the profound tension sitting at the heart of artificial intelligence right now.`,
@@ -2420,7 +2388,7 @@ const PRESET_SCENES = [
       const G = '#00ff88';
       const R = palette.danger;
       if (phase === 1) {
-        grid.icon('shield', 40, 17, G, { key: 's', glow: true, base: false });
+        grid.icon('shield', 40, 17, G, { key: 's', glow: true });
         grid.icosahedron3D(88, 17, 3, anim.spin('a', 2), anim.spin('b', 2.4), 0, { color: R, accent: '#ffffff', dim: palette.dim });
         const pulse = 0.4 + 0.4 * Math.sin(time * 3);
         grid.vline(48, 17, 78, 17, { color: palette.warn, alpha: pulse, width: 1.4, dash: [2, 3] });
@@ -2437,18 +2405,18 @@ const PRESET_SCENES = [
         grid.vpath(pts, { color: palette.dim, alpha: 0.5, width: 2 });
         grid.vline(64, 26, 64 + Math.cos(a - Math.PI / 2) * 22, 26 + Math.sin(a - Math.PI / 2) * 12, { color: '#ffffff', alpha: 0.95, width: 2.4 });
         grid.vdot(64, 26, 3, { color: '#ffffff' });
-        grid.icon('human', 36, 18, palette.accent, { key: 'h', base: false, alpha: 1 - p * 0.6 });
+        grid.person(28, 16, { size: 10, key: 'h', alpha: 1 - p * 0.6, label: 'PEOPLE' });
         grid.building('datacenter', 100, 17, 9, anim.spin('dc', 0.2) + 0.5, { progress: p, tilt: 0.45, color: R });
-        if (p > 0.7) grid.big(64, 32, 'COMPUTE', { size: 1.6, color: R });
+        if (p > 0.7) grid.big(100, 29, 'COMPUTE', { size: 1.6, color: R });
         return;
       }
-      grid.ring3D(48, 16, 8, 1.2, 0, { color: R, dim: palette.dim, spin: anim.spin('fast', 5), glow: true });
-      grid.icosahedron3D(48, 16, 2.4, anim.spin('x', 2.4), anim.spin('y', 2.8), 0, { color: R, accent: '#ffffff', dim: palette.dim });
-      const hx = anim.spring('hx', 104, { from: 50, freq: 1.1, damp: 0.85 });
-      grid.icon('human', hx, 16, palette.accent, { key: 'over', base: false });
-      if (hx > 96) {
-        grid.icon('eye', hx, 9, palette.accent, { key: 'eye', base: false });
-        grid.text(hx, 21, 'watching', palette.dim, false, 'center');
+      grid.icosahedron3D(30, 12, 2.6, anim.spin('x', 2.4), anim.spin('y', 2.8), 0, { color: R, accent: '#ffffff', dim: palette.dim });
+      grid.pipeline(10, 50, 24, ['research', 'build', 'train'], { loop: true, loopDepth: 3, color: R, speed: 2.2, key: 'fast36' });
+      const hx = anim.spring('hx', 100, { from: 40, freq: 1.1, damp: 0.85 });
+      grid.person(hx, 16, { size: 10, key: 'over' });
+      if (hx > 92) {
+        grid.icon('eye', hx, 5, palette.accent, { key: 'eye' });
+        grid.text(hx, 25, 'overseer', palette.dim, false, 'center');
       }
     }
   },
@@ -2462,12 +2430,12 @@ const PRESET_SCENES = [
     title: 'Compounding Silently',
     category: 'The Tension',
     prompt: 'A flaw slips into one generation and spreads down the chain; a control meter drains.',
-    shows: 'A chain of six generations; three faint flaws hover and one slips into Gen 1; a release box would contain it but is struck — it\'s worse; red flows into the next generation\'s training; then red sweeps down the chain fast while a control bar drains to zero.',
+    shows: 'A chain of six generations; a faint flaw slips into Gen 1; a "release notes" page appears and is struck — it’s worse than a buggy release; red flows into the next generation’s training; then red sweeps down the chain while a control bar drains to zero.',
     phases: ['A Subtle Flaw Slips Through', 'Not Just a Buggy Release', 'Baked Into Training', 'Compounding at 50×'],
     captions: [
       'Six generations in a row; a faint flaw drifts into Gen 1',
-      'A "buggy release" outline appears — and is struck out: worse than that',
-      'Red flows from Gen 1 into Gen 2\'s training signal',
+      'A "buggy release" page appears — and is struck out: worse than that',
+      'Red flows from Gen 1 into Gen 2’s training signal',
       'Red sweeps down the chain at 50× while a control bar drains to zero'
     ],
     narration: [
@@ -2488,31 +2456,30 @@ const PRESET_SCENES = [
         const x = 14 + i * 20;
         const infected = i === 0 ? phase >= 1 : (phase >= 3 && i / 6 < spread + 0.04);
         const col = anim.color('g' + i, infected && phase >= 3 ? R : (i === 0 ? palette.warn : palette.primary));
-        grid.icon('agent', x, 12, col, { key: 'gen' + i, base: false });
-        grid.text(x, 15.5, `gen ${i + 1}`, col, false, 'center');
-        if (i < 5) grid.vline(x + 4, 12, x + 16, 12, { color: infected && phase >= 3 ? R : palette.dim, alpha: 0.5, width: 1.2 });
+        grid.shape3D(['tetra', 'octa', 'icosa', 'dodeca', 'icosa', 'dodeca'][i], x, 11, 1.6 + i * 0.12, anim.spin('gx' + i, 0.5), anim.spin('gy' + i, 0.6), 0, { color: col, accent: '#ffffff', dim: palette.dim });
+        grid.text(x, 16, `gen ${i + 1}`, col, false, 'center');
+        if (i < 5) grid.vline(x + 4, 11, x + 16, 11, { color: infected && phase >= 3 ? R : palette.dim, alpha: 0.5, width: 1.2 });
       }
       if (phase === 1) {
         const t = Math.min(1, phaseTime / 3);
-        grid.icon('agentMask', 40 - t * 26, 26 - t * 12, palette.warn, { key: 'flaw', base: false, alpha: 1 - t * 0.6 });
+        grid.icon('agentMask', 40 - t * 26, 26 - t * 13, palette.warn, { key: 'flaw', alpha: 1 - t * 0.6 });
       }
       if (phase === 2) {
-        grid.vline(48, 24, 80, 24, { color: palette.dim, alpha: 0.4, width: 8 });
-        grid.text(64, 24, 'buggy release', palette.dim, false, 'center');
-        if (phaseTime > 1) grid.vline(46, 22.5, 82, 25.5, { color: R, alpha: 0.9, width: 2 });
+        grid.paper(64, 25, { key: 'release', title: 'Buggy release', venue: 'v1.0.1', w: 16, h: 10, lines: 3, color: palette.dim });
+        if (phaseTime > 1) grid.vline(54, 21, 74, 29, { color: R, alpha: 0.9, width: 2 });
       }
       if (phase === 3) {
         for (let i = 0; i < 8; i++) {
           const t = (time * 0.6 + i / 8) % 1;
-          grid.vdot(18 + t * 12, 12 + Math.sin(t * Math.PI) * -2, 1.8, { color: R, alpha: Math.sin(t * Math.PI) });
+          grid.vdot(18 + t * 12, 11 + Math.sin(t * Math.PI) * -2, 1.8, { color: R, alpha: Math.sin(t * Math.PI) });
         }
         grid.text(34, 19, 'training signal', R, false, 'center');
       }
       if (phase === 4) {
-        grid.big(40, 25, '50×', { size: 2.4, color: R });
+        grid.big(40, 26, '50×', { size: 2.4, color: R });
         const ctl = 1 - spread;
-        grid.text(88, 22, 'control', palette.accent, false, 'center');
-        drawHBar(grid, 68, 25, 40, ctl, ctl > 0.4 ? palette.warn : R);
+        grid.text(88, 23, 'human control', palette.accent, false, 'center');
+        drawHBar(grid, 68, 26, 40, ctl, ctl > 0.4 ? palette.warn : R);
       }
     }
   },
@@ -2574,7 +2541,7 @@ const PRESET_SCENES = [
         grid.vline(30, 17, 56, 17, { color: G, alpha: 0.3, width: 1.2, dash: [2, 3] });
         grid.icon(p > 0.55 ? 'shield' : 'bug', 64, 17, p > 0.55 ? G : R, { key: p > 0.55 ? 'zp' : 'zb', glow: true, base: false });
         grid.text(64, 22, p > 0.55 ? 'patched first' : 'zero-day', p > 0.55 ? G : R, true, 'center');
-        grid.icon('human', 100, 17, palette.accent, { key: 'def', base: false, label: 'defenders' });
+        grid.person(100, 15, { size: 9, key: 'def', label: 'DEFENDERS' });
         return;
       }
       grid.dodecahedron3D(64, 15, 3.2, anim.spin('x', 0.4), anim.spin('y', 0.5), 0, { color: G, accent: '#ffffff', dim: palette.dim });
@@ -2597,13 +2564,13 @@ const PRESET_SCENES = [
     title: 'The Pen Is Being Handed Over',
     category: 'The Tension',
     prompt: 'A pen passes from human to machine; the human keeps the merge button; the code becomes unreadable; a final question mark.',
-    shows: 'A glowing pen arcs from the human to the machine; the human keeps a pulsing MERGE; the code between them multiplies into an unreadable storm; everything dims to a shield and an agent facing each other across a large "?".',
+    shows: 'A glowing pen arcs from the human engineer to the machine; the human keeps a pulsing MERGE; the code between them multiplies into an unreadable storm; everything dims to a shield and the machine facing each other across a large "?".',
     phases: ['The Pen Changes Hands', 'Humans Still Merge — For Now', 'Too Complex to Understand', 'The Defining Question'],
     captions: [
       'A glowing pen arcs from the human engineer to the machine',
       'The human keeps a pulsing MERGE button',
       'The code between them multiplies into an unreadable storm of symbols',
-      'Everything dims: a shield and an agent face each other across a large "?"'
+      'Everything dims: a shield and the machine face each other across a large "?"'
     ],
     narration: [
       `We are standing at the exact moment in history where the pen is being handed from the human engineer to the machine.`,
@@ -2619,23 +2586,23 @@ const PRESET_SCENES = [
       grid.fade(0.15);
       const G = '#00ff88';
       const dim = anim.spring('dim', phase === 4 ? 0.25 : 1, { freq: 1.6 });
-      grid.icon('human', 24, 17, palette.accent, { key: 'h', alpha: dim, base: false });
-      grid.icon('agent', 104, 17, G, { key: 'm', alpha: dim, bob: true, base: false });
+      grid.person(22, 15, { size: 11, key: 'h', alpha: dim, label: 'HUMAN' });
+      grid.icosahedron3D(106, 15, 3, anim.spin('ma', 0.5), anim.spin('mb', 0.6), 0, { color: G, accent: '#ffffff', dim: palette.dim, alpha: dim });
 
       if (phase === 1) {
         const k = Math.min(1, phaseTime / 3.2);
         const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-        const px = 28 + e * 72;
-        const py = 15 - Math.sin(e * Math.PI) * 7;
+        const px = 30 + e * 70;
+        const py = 13 - Math.sin(e * Math.PI) * 7;
         grid.big(px, py, '✎', { size: 2.2, color: '#ffffff', reveal: false });
         grid.glow(px, py, 3, palette.accent, 1.2);
       } else {
-        grid.text(100, 15, '✎', '#ffffff', true, 'center', null, dim);
+        grid.text(100, 13, '✎', '#ffffff', true, 'center', null, dim);
       }
       if (phase === 2 || phase === 3) {
         const pulse = 0.55 + 0.45 * Math.sin(time * 4);
-        grid.vline(16, 26, 32, 26, { color: G, alpha: 0.3, width: 9 });
-        grid.big(24, 26, 'MERGE', { size: 1.2, color: G, alpha: pulse });
+        grid.vline(14, 29, 30, 29, { color: G, alpha: 0.3, width: 9 });
+        grid.big(22, 29, 'MERGE', { size: 1.2, color: G, alpha: pulse });
       }
       if (phase === 3) {
         const pool = '{}[]()<>=+*&|^%$#λΣ∂';
@@ -2648,8 +2615,8 @@ const PRESET_SCENES = [
       }
       if (phase === 4) {
         camera.zoom(1.04);
-        grid.icon('shield', 44, 17, palette.accent, { key: 'qs', glow: true, base: false });
-        grid.icon('agent', 84, 17, G, { key: 'qa', glow: true, base: false });
+        grid.icon('shield', 44, 17, palette.accent, { key: 'qs', glow: true });
+        grid.icosahedron3D(84, 17, 2.4, anim.spin('qa', 0.5), anim.spin('qb', 0.6), 0, { color: G, accent: '#ffffff', dim: palette.dim });
         grid.big(64, 17, '?', { size: 5, color: '#ffffff' });
       }
     }

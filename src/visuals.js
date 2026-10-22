@@ -127,7 +127,7 @@
     const col = opts.color || pal.accent;
     const mode = opts.mode || 'halftone';
     const a = name ? getImage(name) : { status: 'missing' };
-    const t0 = this._revealStart('§portrait:' + (name || 'anon') + mode, cx, cy, 'p');
+    const t0 = this._revealStart('§portrait:' + (opts.key || name || 'anon') + mode, cx, cy, 'p');
     const k = c01((this.time - t0) / (opts.revealTime || 1.6));
     const time = this.time;
     const alpha = opts.alpha !== undefined ? opts.alpha : 1;
@@ -334,8 +334,11 @@
             c.fillRect(x0 + pad - 3, ly - lineH * 0.25, lw + 6, lineH * 0.9);
             c.fillStyle = col;
           }
-          c.globalAlpha = (opts.highlight === i ? 0.9 : 0.35) * alpha;
+          const mark = opts.lineColor ? opts.lineColor(i) : null;
+          c.globalAlpha = (opts.highlight === i || mark ? 0.9 : 0.35) * alpha;
+          if (mark) c.fillStyle = mark;
           c.fillRect(x0 + pad, ly, lw, Math.max(1.4, lineH * 0.28));
+          if (mark) c.fillStyle = col;
         }
         if (opts.stamp && kBody > 0.6) {
           c.save();
@@ -553,6 +556,50 @@
       for (let f = 1; f < 6; f++) ring(V, E, hx - 0.05, -0.3, hx + 0.55, 0.3, (f * 1.3) / 6);
       box(V, E, -0.25, 0.32, hz, 0.25, 0.36, hz + 0.25);
       for (let i = 0; i < 10; i++) for (let r = 0; r < 2; r++) W.push([-hx + 0.09 + i * 0.163, 0.15 + r * 0.31, hz]);
+    } else if (kind === 'rack') {
+      const hx = 0.32, hz = 0.4, H = 1.9;
+      box(V, E, -hx, 0, -hz, hx, H, hz);
+      for (let u = 1; u < 12; u++) ring(V, E, -hx, -hz, hx, hz, (u * H) / 12);
+      for (let u = 0; u < 12; u++) for (let l = 0; l < 3; l++) W.push([-hx + 0.08 + l * 0.08, ((u + 0.5) * H) / 12, hz]);
+    } else if (kind === 'gpu') {
+      const hx = 1.1, hz = 0.45, H = 0.16;
+      box(V, E, -hx, 0, -hz, hx, H, hz);
+      for (let f = 0; f < 3; f++) {
+        const fx = -0.7 + f * 0.7;
+        const b = V.length;
+        const N = 16;
+        for (let k = 0; k < N; k++) {
+          const a = (k / N) * Math.PI * 2;
+          V.push([fx + Math.cos(a) * 0.3, H, Math.sin(a) * 0.3]);
+        }
+        for (let k = 0; k < N; k++) E.push([b + k, b + ((k + 1) % N)]);
+        for (let k = 0; k < 5; k++) {
+          const a = (k / 5) * Math.PI * 2;
+          seg(V, E, [fx, H, 0], [fx + Math.cos(a) * 0.28, H, Math.sin(a) * 0.28]);
+        }
+      }
+      box(V, E, -hx + 0.1, -0.12, hz - 0.02, hx - 0.6, 0, hz);
+      for (let i = 0; i < 8; i++) W.push([-hx + 0.2 + i * 0.25, 0.08, hz]);
+    } else if (kind === 'laptop') {
+      const hx = 0.8, hz = 0.55;
+      box(V, E, -hx, 0, -hz, hx, 0.05, hz);
+      const b = V.length;
+      V.push([-hx, 0.05, -hz], [hx, 0.05, -hz], [hx, 1.05, -hz - 0.18], [-hx, 1.05, -hz - 0.18]);
+      E.push([b, b + 1], [b + 1, b + 2], [b + 2, b + 3], [b + 3, b]);
+      ring(V, E, -0.6, -0.2, 0.6, 0.35, 0.05);
+      for (let r = 0; r < 5; r++) for (let i = 0; i < 6; i++) W.push([-0.6 + i * 0.22 + 0.1, 0.25 + r * 0.17, -hz - 0.06 - r * 0.03]);
+    } else if (kind === 'chip') {
+      const h = 0.7;
+      box(V, E, -h, 0, -h, h, 0.12, h);
+      box(V, E, -0.35, 0.12, -0.35, 0.35, 0.18, 0.35);
+      for (let i = 0; i < 7; i++) {
+        const o = -h + 0.15 + i * 0.2;
+        seg(V, E, [o, 0.06, h], [o, 0.06, h + 0.22]);
+        seg(V, E, [o, 0.06, -h], [o, 0.06, -h - 0.22]);
+        seg(V, E, [h, 0.06, o], [h + 0.22, 0.06, o]);
+        seg(V, E, [-h, 0.06, o], [-h - 0.22, 0.06, o]);
+      }
+      for (let i = 0; i < 9; i++) W.push([-0.24 + (i % 3) * 0.24, 0.19, -0.24 + Math.floor(i / 3) * 0.24]);
     } else {
       const hx = 0.5, hz = 0.38, H = 0.45;
       box(V, E, -hx, 0, -hz, hx, H, hz);
@@ -743,6 +790,206 @@
   };
 
   // --------------------------------------------------------------------------
+  // MORE THINGS: people, codebases, calendars, timelines, containment, pipelines
+  // --------------------------------------------------------------------------
+  // grid.person(cx, cy, { size, label, color, photo, alpha }) — a generic person
+  // (lit silhouette) or a named one when `photo` is given
+  Engine.prototype.drawPerson = function (cx, cy, opts = {}) {
+    const s = opts.size || 8;
+    this.drawPortrait(opts.photo || null, cx, cy, {
+      key: opts.key || 'person' + Math.round(cx) + ',' + Math.round(cy), w: s * 1.25, h: s, mode: opts.mode || 'halftone', frame: false, color: opts.color,
+      label: opts.label, labelSize: opts.labelSize || 1, alpha: opts.alpha, pitch: opts.pitch || 3.4, revealTime: opts.revealTime || 0.9
+    });
+  };
+
+  // grid.fileGrid(cx, cy, cols, rows, { filled, fillColor, color, progress, key, cell })
+  // A codebase as a wall of files; `filled` (0..1) of them light up in fillColor,
+  // spreading in a stable scattered order.
+  Engine.prototype.drawFileGrid = function (cx, cy, cols, rows, opts = {}) {
+    const pal = this.palette;
+    const col = opts.color || pal.dim;
+    const fillCol = opts.fillColor || '#00ff88';
+    const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'files' + cx, cx, cy, 1.2);
+    const filled = c01(opts.filled || 0);
+    const cw0 = opts.cell ? opts.cell[0] : 3.2;
+    const ch0 = opts.cell ? opts.cell[1] : 2.4;
+    const n = cols * rows;
+    const order = [];
+    for (let i = 0; i < n; i++) order.push([hashN(i * 3.7 + 1), i]);
+    order.sort((a, b) => a[0] - b[0]);
+    const rank = new Array(n);
+    order.forEach((o, r) => { rank[o[1]] = r; });
+    const x0 = cx - (cols * cw0) / 2;
+    const y0 = cy - (rows * ch0) / 2;
+    const alpha = opts.alpha !== undefined ? opts.alpha : 1;
+    this.vItems.push({
+      t: 'draw', h: this._hudMode,
+      fn(c, X, Y, cw, chh, ws) {
+        for (let i = 0; i < n; i++) {
+          const gx = i % cols;
+          const gy = Math.floor(i / cols);
+          const appear = c01(p * 1.6 - (gy / rows) * 0.6);
+          if (appear <= 0) continue;
+          const on = rank[i] < filled * n;
+          const fresh = on && rank[i] > filled * n - Math.max(1, n * 0.03);
+          const px = X(x0 + gx * cw0) - cw * 0.5;
+          const py = Y(y0 + gy * ch0) - chh * 0.5;
+          const w = cw0 * cw * 0.72;
+          const h = ch0 * chh * 0.78;
+          const fold = w * 0.28;
+          c.globalAlpha = alpha * appear * (on ? 0.95 : 0.35);
+          c.strokeStyle = fresh ? '#ffffff' : on ? fillCol : col;
+          c.lineWidth = 1 * ws;
+          c.beginPath();
+          c.moveTo(px, py); c.lineTo(px + w - fold, py); c.lineTo(px + w, py + fold); c.lineTo(px + w, py + h); c.lineTo(px, py + h); c.closePath();
+          c.stroke();
+          if (on) {
+            c.globalAlpha = alpha * appear * 0.18;
+            c.fillStyle = fillCol;
+            c.fill();
+          }
+          c.globalAlpha = alpha * appear * (on ? 0.8 : 0.3);
+          c.fillStyle = on ? fillCol : col;
+          for (let l = 0; l < 3; l++) c.fillRect(px + w * 0.15, py + h * (0.3 + l * 0.2), w * (l === 2 ? 0.4 : 0.65), Math.max(0.8, h * 0.06));
+        }
+      }
+    });
+  };
+
+  // grid.calendar(cx, cy, { month, startDay, days, marks: { 7: { color } }, focus, progress })
+  Engine.prototype.drawCalendar = function (cx, cy, opts = {}) {
+    const pal = this.palette;
+    const col = opts.color || pal.primary;
+    const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'cal' + cx, cx, cy, 1.4);
+    const days = opts.days || 31;
+    const start = opts.startDay || 0;
+    const marks = opts.marks || {};
+    const cellX = opts.cellX || 6;
+    const cellY = opts.cellY || 3;
+    const x0 = cx - (7 * cellX) / 2 + cellX / 2;
+    const rows = Math.ceil((start + days) / 7);
+    const y0 = cy - (rows * cellY) / 2 + cellY / 2 + 1;
+    const time = this.time;
+    if (opts.month) this.drawBigText(cx, y0 - cellY - 0.6, opts.month, { size: opts.monthSize || 1.6, color: opts.monthColor || pal.accent });
+    'SMTWTFS'.split('').forEach((d, i) => this.drawText(x0 + i * cellX, y0 - cellY * 0.75, d, pal.dim, false, 'center', null, 0.6 * p));
+    for (let d = 1; d <= days; d++) {
+      const idx = start + d - 1;
+      const k = c01(p * 1.5 - (d / days) * 0.5);
+      if (k <= 0) continue;
+      const x = x0 + (idx % 7) * cellX;
+      const y = y0 + Math.floor(idx / 7) * cellY;
+      const m = marks[d];
+      const isFocus = opts.focus === d;
+      if (m) {
+        const mc = m.color || pal.accent;
+        const pulse = isFocus ? 0.75 + 0.25 * Math.sin(time * 4) : 0.8;
+        this.vItems.push({ t: 'draw', h: this._hudMode, fn(c, X, Y, cw, chh, ws) {
+          const w = cellX * cw * 0.8;
+          const h = cellY * chh * 0.78;
+          c.globalAlpha = 0.22 * k * pulse;
+          c.fillStyle = mc;
+          c.fillRect(X(x) - w / 2, Y(y) - h / 2, w, h);
+          c.globalAlpha = 0.9 * k * pulse;
+          c.strokeStyle = mc;
+          c.lineWidth = (isFocus ? 1.8 : 1.2) * ws;
+          c.strokeRect(X(x) - w / 2, Y(y) - h / 2, w, h);
+        } });
+        this.drawText(x, y, String(d), '#ffffff', true, 'center', null, k);
+      } else {
+        this.drawText(x, y, String(d), col, false, 'center', null, 0.55 * k);
+      }
+    }
+  };
+
+  // grid.timeline(x0, x1, y, { from, to, ticks, label(v), progress, events: [{ at, label, color, above }] })
+  // Returns the value → x mapping so scenes can place things on it.
+  Engine.prototype.drawTimeline = function (x0, x1, y, opts = {}) {
+    const pal = this.palette;
+    const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'tl' + x0, x0, y, 1.2);
+    const from = opts.from || 0;
+    const to = opts.to || 1;
+    const xOf = (v) => x0 + ((v - from) / (to - from)) * (x1 - x0);
+    const xe = x0 + (x1 - x0) * p;
+    this._vline(x0, y, xe, y, opts.color || pal.primary, 0.5, 1.4);
+    const step = opts.ticks || (to - from) / 5;
+    for (let v = from; v <= to + 1e-6; v += step) {
+      const x = xOf(v);
+      if (x > xe + 0.01) break;
+      this._vline(x, y - 0.35, x, y + 0.35, pal.dim, 0.8, 1);
+      this.drawText(x, y + 1.5, opts.label ? opts.label(v) : String(Math.round(v)), pal.dim, false, 'center');
+    }
+    (opts.events || []).forEach((e) => {
+      const x = xOf(e.at);
+      if (x > xe + 0.01) return;
+      const ec = e.color || pal.accent;
+      this._vdot(x, y, 2.6, ec, 1);
+      this.addGlow(x, y, 2.5, ec, 0.8);
+      if (e.label) {
+        const below = e.above === false;
+        const ly = below ? y + 3.4 : y - 2.6;
+        this._vline(x, y + (below ? 0.6 : -0.6), x, ly + (below ? -0.8 : 0.8), ec, 0.4, 1);
+        this.drawText(x, ly, e.label, ec, true, 'center');
+      }
+    });
+    return xOf;
+  };
+
+  // grid.glassBox(cx, cy, w, h, d, { color, progress, rotY, tilt, label })
+  // A 3D containment box (sandbox / boundary) around whatever sits at cx, cy. Sizes in cells.
+  Engine.prototype.drawGlassBox = function (cx, cy, w, h, d, opts = {}) {
+    const pal = this.palette;
+    const col = opts.color || pal.accent;
+    const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'gbox' + cx, cx, cy, 1.1);
+    const k = smooth(p);
+    const ry = opts.rotY !== undefined ? opts.rotY : 0.35;
+    const tilt = opts.tilt !== undefined ? opts.tilt : -0.25;
+    // Normalise so the box height is ±1 model unit (keeps perspective sane)
+    const vs = (this.viewportScale || 1) * 0.8;
+    const aspect = this.cellH / this.cellW;
+    const U = h / 2;
+    const sx = (w / 2) / (U * aspect);
+    const sy = 1;
+    const sz = (d / 2) / (U * aspect);
+    const e = 0.55 + 0.45 * k;
+    const V = [];
+    for (const yy of [-1, 1]) for (const xz of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) V.push([xz[0] * sx * e, yy * sy * e, xz[1] * sz * e]);
+    const E = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
+    this.drawWireframe3D(V, E, cx, cy, { scale: U / vs, rotX: tilt, rotY: ry, rotZ: 0, color: col, dim: col, ascii: false, vertices: false, packets: false, alpha: k * (opts.alpha !== undefined ? opts.alpha : 1) });
+    if (opts.label) this.drawText(cx, cy - h / 2 - 2, opts.label, col, false, 'center', null, k);
+  };
+
+  // grid.pipeline(x0, x1, y, ['propose', 'run', ...], { active, color, loop, speed })
+  // Stations on a line with a packet travelling through; `loop` adds a flat return path.
+  Engine.prototype.drawPipeline = function (x0, x1, y, steps, opts = {}) {
+    const pal = this.palette;
+    const col = opts.color || pal.accent;
+    const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'pipe' + x0, x0, y, 1);
+    const n = steps.length;
+    const xs = steps.map((_, i) => x0 + (n === 1 ? 0 : ((x1 - x0) * i) / (n - 1)));
+    const speed = opts.speed || 0.5;
+    const t = (this.time * speed) % 1;
+    const active = opts.active !== undefined ? opts.active : Math.min(n - 1, Math.floor(t * n));
+    this._vline(x0, y, x0 + (x1 - x0) * p, y, col, 0.35, 1.4);
+    if (opts.loop && p > 0.95) {
+      const dy = opts.loopDepth || 4;
+      this._vpath([[x1, y], [x1 + 2, y + 1], [x1 + 2, y + dy - 1], [x1, y + dy], [x0, y + dy], [x0 - 2, y + dy - 1], [x0 - 2, y + 1], [x0, y]], { color: col, alpha: 0.2, width: 1.2, dash: [2, 3] });
+    }
+    xs.forEach((x, i) => {
+      const k = c01(p * n - i);
+      if (k <= 0) return;
+      const on = i === active;
+      this._vdot(x, y, on ? 3.4 : 2.2, on ? '#ffffff' : col, k);
+      if (on) this.addGlow(x, y, 3, col, 1);
+      this.drawText(x, y - 2.2, steps[i], on ? '#ffffff' : col, on, 'center', null, k * (on ? 1 : 0.6));
+    });
+    if (opts.packets !== false && p > 0.95) {
+      const px = x0 + (x1 - x0) * t;
+      this._vdot(px, y, 1.8, '#ffffff', 0.9);
+    }
+    return xs;
+  };
+
+  // --------------------------------------------------------------------------
   // Register in the scene sandbox
   // --------------------------------------------------------------------------
   const baseSandbox = Engine.prototype._buildSandbox;
@@ -759,7 +1006,14 @@
       network: (nodes, edges, opts) => self.drawNetwork(nodes, edges, opts || {}),
       building: (kind, cx, cy, scale, rotY, opts) => self.drawBuilding(kind, cx, cy, scale, rotY, opts || {}),
       model: (name, cx, cy, scale, rx, ry, rz, opts) => self.drawModel(name, cx, cy, scale, rx, ry, rz, opts || {}),
-      globe: (cx, cy, r, opts) => self.drawGlobe(cx, cy, r, opts || {})
+      globe: (cx, cy, r, opts) => self.drawGlobe(cx, cy, r, opts || {}),
+      object: (kind, cx, cy, scale, rotY, opts) => self.drawBuilding(kind, cx, cy, scale, rotY, opts || {}),
+      person: (cx, cy, opts) => self.drawPerson(cx, cy, opts || {}),
+      fileGrid: (cx, cy, cols, rows, opts) => self.drawFileGrid(cx, cy, cols, rows, opts || {}),
+      calendar: (cx, cy, opts) => self.drawCalendar(cx, cy, opts || {}),
+      timeline: (x0, x1, y, opts) => self.drawTimeline(x0, x1, y, opts || {}),
+      glassBox: (cx, cy, w, h, d, opts) => self.drawGlassBox(cx, cy, w, h, d, opts || {}),
+      pipeline: (x0, x1, y, steps, opts) => self.drawPipeline(x0, x1, y, steps, opts || {})
     });
     return sb;
   };

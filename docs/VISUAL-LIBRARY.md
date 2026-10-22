@@ -1,7 +1,7 @@
 # Visual Library
 
 Show **what things are**, not just abstract shapes, in the same holographic style.
-All of these primitives live in `src/visuals.js`. You can preview them in the **Visual Library** scenes (L1–L5) at the bottom of the scene list.
+All of these primitives live in `src/visuals.js`. You can preview them in the **Visual Library** scenes (L1–L8) at the bottom of the scene list.
 
 ## Picking a visual
 
@@ -17,8 +17,16 @@ All of these primitives live in `src/visuals.js`. You can preview them in the **
 | A company, lab or datacenter | A 3D wireframe building, floors rising and windows lit | `grid.building(…)` |
 | A specific object (a chip, a robot, a rocket) | Your own `.obj` 3D model as a hologram | `grid.model(…)` |
 | Countries, cities, "worldwide" | A dotted rotating Earth with pulsing markers and arcs | `grid.globe(…)` |
+| Generic people (engineers, reviewers, evaluators) | A lit silhouette, optionally labelled | `grid.person(…)` |
+| Hardware (servers, GPUs, laptops, chips) | A rotating 3D hologram with blinking lights | `grid.object('rack' \| 'gpu' \| 'laptop' \| 'chip', …)` |
+| A codebase, PR queue, "X% of code" | A wall of files that light up in a scattered order | `grid.fileGrid(…)` |
+| Code being rewritten | A page whose lines turn red, then green | `grid.paper(…, { lineColor })` |
+| A date or release window | A month calendar with the days marked | `grid.calendar(…)` |
+| Events over years | A timeline with labelled events | `grid.timeline(…)` |
+| A sandbox, boundary or "contain" | A 3D glass box around the subject | `grid.glassBox(…)` |
+| A loop or process | Stations on a line with a packet and a flat return path | `grid.pipeline(…)` |
 
-Keep it to **one subject per stage**. A portrait beside a year, or a paper on its own, reads far better than a crowded frame.
+Keep it to **one subject per stage**, centred unless the stage is a comparison (left vs right) or something is moving with a purpose. Don't put spinning rings or orbiting icons around things: use a glass box for boundaries and a pipeline for loops. A portrait beside a year, or a paper on its own, reads far better than a crowded frame.
 
 ## Photos and models (assets)
 
@@ -55,6 +63,15 @@ grid.network([{ x: 64, y: 17, label: 'CORE' }, { x: 34, y: 8, label: 'A' }], [[0
 grid.building('tower' /* | 'datacenter' | 'lab' | 'house' */, 64, 18, 10, anim.spin('yaw', 0.2), { progress, tilt: 0.3, color });
 grid.model('model.obj', 64, 18, 9, rotX, rotY, rotZ, { color });
 grid.globe(64, 18, 14, { spin, tilt: -0.4, markers: [{ lat: 37.77, lon: -122.42, label: 'SF' }], arcs: [[0, 1]] });
+
+grid.person(40, 16, { size: 10, label: 'ENGINEER', color, photo: 'name.jpg', key });
+grid.object('rack' /* | 'gpu' | 'laptop' | 'chip' */, 64, 17, 8, anim.spin('yaw', 0.25), { tilt: 0.3, windowColor });
+grid.fileGrid(64, 15, 20, 5, { filled: 0.8, fillColor, cell: [4.4, 3.2] });
+grid.paper(64, 17, { title: 'train.py', lines: 10, lineColor: (i) => (i < pass ? '#00ff88' : null) });
+grid.calendar(64, 18, { month: 'OCTOBER 2026', startDay: 4, marks: { 15: { color } }, focus: 15 });
+grid.timeline(14, 114, 18, { from: 1960, to: 2030, ticks: 10, events: [{ at: 1965, label: 'I. J. Good' }] });
+grid.glassBox(64, 17, 34, 20, 26, { color, label: 'sandbox' });
+grid.pipeline(24, 104, 18, ['propose', 'run', 'evaluate', 'commit'], { loop: true, speed: 0.5 });
 ```
 
 Most primitives take `progress` (0–1) to drive the reveal yourself, for example to sync a chart to the narration, and `key` when two of the same kind share a stage.

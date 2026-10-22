@@ -155,6 +155,79 @@
           tilt: -0.45
         });
       }
+    },
+    {
+      id: 'lib-objects',
+      number: 'L6',
+      title: 'Objects & Hardware',
+      category: 'Visual Library',
+      prompt: 'Concrete hardware as rotating 3D holograms: a server rack, a GPU, a laptop, a chip.',
+      shows: 'Each object builds up from the floor with its lights blinking; use grid.object(kind, …).',
+      phases: ['Server Rack', 'GPU', 'Laptop', 'Chip'],
+      stageDurations: [5, 5, 5, 5],
+      update(ctx) {
+        const { phase, grid, palette, anim } = ctx;
+        grid.fade(0.2);
+        const yaw = anim.spin('yaw', 0.25) + 0.5;
+        if (phase === 1) grid.object('rack', 64, 17, 8, yaw, { tilt: 0.3, windowColor: '#00ff88', key: 'o1' });
+        if (phase === 2) grid.object('gpu', 64, 18, 13, yaw, { tilt: 0.45, key: 'o2' });
+        if (phase === 3) grid.object('laptop', 64, 18, 11, yaw, { tilt: 0.4, windowColor: palette.accent, key: 'o3' });
+        if (phase === 4) grid.object('chip', 64, 18, 11, yaw, { tilt: 0.55, windowColor: '#00ff88', key: 'o4' });
+      }
+    },
+    {
+      id: 'lib-documents',
+      number: 'L7',
+      title: 'Codebases, Dates & Timelines',
+      category: 'Visual Library',
+      prompt: 'A codebase as a wall of files, a file being rewritten, a calendar with marked dates, a timeline of events.',
+      shows: 'grid.fileGrid fills a codebase; grid.paper lineColor rewrites lines; grid.calendar marks dates; grid.timeline places events.',
+      phases: ['Codebase', 'Rewriting a File', 'Calendar', 'Timeline'],
+      stageDurations: [5, 5, 5, 5],
+      update(ctx) {
+        const { phase, phaseTime, grid, palette } = ctx;
+        grid.fade(0.2);
+        const G = '#00ff88';
+        if (phase === 1) grid.fileGrid(64, 16, 20, 6, { filled: Math.min(0.8, phaseTime / 4), key: 'l7a', cell: [4.4, 3.4] });
+        if (phase === 2) {
+          const pass = Math.floor(phaseTime * 2);
+          grid.paper(64, 17, { key: 'l7b', title: 'train.py', venue: 'rewritten by the agent', w: 32, h: 24, lines: 10, lineColor: (i) => (i < pass ? G : (i === pass ? palette.danger : null)) });
+        }
+        if (phase === 3) grid.calendar(64, 18, { month: 'OCTOBER 2026', startDay: 4, marks: { 7: { color: G }, 12: { color: palette.warn }, 15: { color: palette.accent }, 16: { color: palette.primary } }, focus: 15, key: 'l7c' });
+        if (phase === 4) grid.timeline(14, 114, 18, { from: 1960, to: 2030, ticks: 10, key: 'l7d', events: [
+          { at: 1965, label: 'I. J. Good', color: palette.accent }, { at: 2017, label: 'Transformer', color: palette.primary, above: false },
+          { at: 2025.1, label: 'Claude Code', color: palette.warn }, { at: 2026.8, label: 'now', color: G, above: false }
+        ] });
+      }
+    },
+    {
+      id: 'lib-systems',
+      number: 'L8',
+      title: 'Systems & Containment',
+      category: 'Visual Library',
+      prompt: 'Processes and boundaries without orbit rings: a pipeline loop, a glass sandbox, nested sandboxes, people in a system.',
+      shows: 'grid.pipeline for loops and processes, grid.glassBox for sandboxes and boundaries, grid.person for people.',
+      phases: ['Pipeline Loop', 'Glass Sandbox', 'Nested Boxes', 'People'],
+      stageDurations: [5, 5, 5, 5],
+      update(ctx) {
+        const { phase, grid, palette, anim } = ctx;
+        grid.fade(0.2);
+        const G = '#00ff88';
+        if (phase === 1) grid.pipeline(24, 104, 18, ['propose', 'run', 'evaluate', 'commit'], { loop: true, loopDepth: 5, color: G, key: 'l8a' });
+        if (phase >= 2 && phase <= 3) {
+          grid.icosahedron3D(64, 17, 2.6, anim.spin('a', 0.5), anim.spin('b', 0.6), 0, { color: palette.accent, accent: '#ffffff', dim: palette.dim });
+          grid.glassBox(64, 17, 30, 16, 24, { color: G, key: 'l8b', label: phase === 2 ? 'sandbox' : '' });
+          if (phase === 3) {
+            grid.glassBox(64, 17, 42, 21, 28, { color: palette.warn, key: 'l8c' });
+            grid.glassBox(64, 17, 54, 26, 32, { color: palette.accent, key: 'l8d' });
+          }
+        }
+        if (phase === 4) {
+          grid.person(34, 15, { size: 12, key: 'p1', label: 'ENGINEER' });
+          grid.person(64, 15, { size: 12, key: 'p2', label: 'REVIEWER', color: palette.warn });
+          grid.person(94, 15, { size: 12, key: 'p3', label: 'RESEARCHER', color: G });
+        }
+      }
     }
   ];
 

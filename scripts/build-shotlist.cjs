@@ -40,7 +40,7 @@ lines.push('1. **Each scene = one clip.** Scenes follow the script in order; eve
 lines.push('2. **Timing is built in.** Stage lengths are calculated from the words spoken in that stage, so a rendered scene lines up with the voice-over. The `Stage sec` box scales all of it: `4.6` = narration pace, higher = slower, lower = faster.');
 lines.push('3. **Record VO against it.** The strip under the stage shows the exact script line for the current stage and its length. It is never rendered into exports, and Clean View (`TAB`) hides it. Nothing but the visuals is drawn on screen — no titles, captions or stage tags — so add any on-screen text in your editor.');
 lines.push('4. **Render.** Pick the scene, press `F9`. MP4 for direct use; ProRes 4444 + Transparent background if you want to composite over other footage.');
-lines.push('5. **Fine-tune in the editor.** Each stage begins with a visible beat (scan sweep, shockwave or type-on), so cuts and VO nudges are easy to line up.');
+lines.push('5. **Fine-tune in the editor.** Each stage begins with a visible beat (a soft dissolve, then elements building in), so cuts and VO nudges are easy to line up.');
 lines.push('');
 lines.push('## Scene overview');
 lines.push('');
