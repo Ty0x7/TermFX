@@ -78,7 +78,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
 | 1. Decades Away | 0.0–7.1s | For most of the history of machine learning, researchers assumed that crossing this threshold was decades away. | Timeline 1960–2060; the "expected" marker sits decades in the future |
-| 2. The Recent Evidence | 7.1–16.5s | Looking at the technical documentation, benchmark data, and platform updates released over the past few weeks by Anthropic, OpenAI, and leading academic labs, | The evidence arrives in turn: technical documentation · benchmark data · platform release notes |
+| 2. The Recent Evidence | 7.1–16.5s | Looking at the technical documentation, benchmark data, and platform updates released over the past few weeks by Anthropic, OpenAI, and leading academic labs, | The evidence arrives in turn: technical documentation · benchmark data · then Anthropic vs OpenAI platform updates |
 | 3. No Longer Waiting | 16.5–22.9s | it is clear that we are no longer waiting for that feedback loop to begin. | Back on the timeline, the marker glides from the 2050s and locks onto NOW |
 | 4. Running in Production | 22.9–28.7s | In a bounded, engineering-driven form, it is already running in production. | A 3D datacenter hall powers up, rack lights running, as the camera pushes in: in production |
 
@@ -90,7 +90,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Beyond Snippets | 0.0–11.0s | Over the last several months, we have crossed a critical inflection point where frontier models are no longer just assisting human engineers with isolated snippets of code. | Third person: an engineer types at a 3D desk; the camera drifts from behind to the side as a single tiny snippet floats from a hologram model into their screen |
+| 1. Beyond Snippets | 0.0–11.0s | Over the last several months, we have crossed a critical inflection point where frontier models are no longer just assisting human engineers with isolated snippets of code. | Third person: close on an engineer’s hands at the keyboard, then over their shoulder as a single tiny snippet floats from a hologram model into the screen |
 | 2. Writes Code · Optimizes Training | 11.0–20.4s | They are writing the vast majority of the production code inside the labs building them, optimizing their own training scripts at superhuman speeds, | The model pours code into a 3D lab building, windows lighting floor by floor; then a training-time chart collapses beside a racing stopwatch |
 | 3. Parallel Subagents | 20.4–23.0s | coordinating parallel subagents, | The model fans work out to four subagents racing in parallel |
 | 4. Trains Its Successors | 23.0–29.2s | and generating the verified synthetic trajectories used to train their own successors. | Trajectories stream through a verification scanner — failures drop away red, verified ones fill a dataset that grows a larger successor |
@@ -105,7 +105,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 |---|---|---|---|
 | 1. The Hard Data | 0.0–8.7s | In this video, we are going to examine the hard data behind what is happening inside the frontier labs right now, | Chapter 1 lights; a bar chart grows above it: the hard data |
 | 2. Live Loop Demo | 8.7–15.1s | walk through a demonstration of how a modern recursive self-improvement loop actually operates in practice, | Chapter 2 lights; a propose → run → evaluate → commit loop runs: the demo |
-| 3. Two Weeks of Docs | 15.1–22.6s | break down the specific documentation and architecture updates released by Anthropic and OpenAI over the past two weeks, | Chapter 3 lights; Anthropic and OpenAI release-notes feeds roll in: the docs |
+| 3. Two Weeks of Docs | 15.1–22.6s | break down the specific documentation and architecture updates released by Anthropic and OpenAI over the past two weeks, | Chapter 3 lights; Anthropic and OpenAI side by side: the docs |
 | 4. The Next Few Months | 22.6–29.6s | and look ahead at where this trajectory takes us over the next few months. | Chapter 4 lights; a timeline runs on through Nov, Dec and into 2027: what comes next |
 
 ## 05 — When AI Builds Itself: 80%
@@ -142,7 +142,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
 | 1. The Hardest Tasks | 0.0–3.7s | Furthermore, on the hardest, most open-ended engineering tasks— | A spec page with only a title and flickering, half-missing lines; the camera pushes in: "open-ended" |
-| 2. No Clear Spec | 3.7–11.6s | problems with no clear specification where even the human engineer isn't sure what the final solution should look like— | Third person: an engineer at a 3D desk, hand on chin, unsure; question marks rise over their head |
+| 2. No Clear Spec | 3.7–11.6s | problems with no clear specification where even the human engineer isn't sure what the final solution should look like— | Seen from behind the monitor: a faceless engineer, hand on chin, unsure; question marks rise over their head |
 | 3. +50 Points → 76% | 11.6–19.0s | Claude's success rate surged by fifty percentage points in just six months, reaching seventy-six percent. | Bar chart: success rate 26% six months ago → 76% today, "+50" between them |
 
 ## 08 — The Research-Loop Benchmark
@@ -283,7 +283,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Two Weeks of Docs | 0.0–8.7s | If you look closely at the developer documentation and release notes published by Anthropic and OpenAI over the past two weeks, | Anthropic’s and OpenAI’s release-note feeds roll in side by side |
+| 1. Two Weeks of Docs | 0.0–8.7s | If you look closely at the developer documentation and release notes published by Anthropic and OpenAI over the past two weeks, | Anthropic vs OpenAI: each company’s new documentation pages stack up beneath it |
 | 2. To Scale… | 8.7–14.3s | you can see both companies actively building the exact infrastructure required to scale— | Scale: the camera pulls back from one server rack, to a datacenter hall, to a whole campus with cooling towers and power pylons |
 | 3. …and Contain | 14.3–17.8s | and contain—these recursive loops. | Contain: a glass box closes around the entire campus |
 
@@ -298,7 +298,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 | 1. Early–Mid October | 0.0–5.2s | Let's look first at Anthropic's latest documentation updates from early to mid-October. | An October 2026 calendar draws in, days 1–15 lighting up in turn |
 | 2. Opus 5.5: −40% Cost, +30% Speed | 5.2–13.5s | Following the rollout of Claude Opus 5.5—which cut inference costs by forty percent, increased generation speed by over thirty percent, | Opus 5.5 with two bars: cost shrinks 40%, speed grows 30% |
 | 3. 680k-Line Migration < 24h | 13.5–19.9s | and allowed early testers to autonomously complete a six-hundred-and-eighty-thousand-line code migration in under twenty-four hours— | A wall of files migrates (dim → green) to 680,000 lines while a stopwatch races under 24h |
-| 4. Sonnet 5.5 · Oct 7 Update | 19.9–26.9s | and Claude Sonnet 5.5, Anthropic pushed a major developer platform update on October 7th. | Sonnet 5.5 joins Opus; the October 7 developer-platform release notes roll in, entry by entry |
+| 4. Sonnet 5.5 · Oct 7 Update | 19.9–26.9s | and Claude Sonnet 5.5, Anthropic pushed a major developer platform update on October 7th. | The Oct 7 platform update as a keynote, one feature at a time: Haiku 5.5 · computer use · cheaper cache reads · sandboxed agents |
 
 ## 20 — Haiku 5.5 & the Migration Docs
 
@@ -334,7 +334,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
 | 1. Lock Down the Agents | 0.0–11.4s | At the same time, Anthropic's October documentation reveals a massive push to lock down how these agents interact with the outside world and how their code is verified. | An agent appears inside a 3D glass sandbox, centred |
-| 2. Oct 7 SDK: Computer Toolset | 11.4–20.1s | In the October 7th SDK update, Anthropic introduced beta Python and TypeScript classes for its updated computer_toolset_20260801 and browser automation loops, | The October 7 SDK release notes roll in: computer_toolset_20260801 · browser automation · Python · TypeScript |
+| 2. Oct 7 SDK: Computer Toolset | 11.4–20.1s | In the October 7th SDK update, Anthropic introduced beta Python and TypeScript classes for its updated computer_toolset_20260801 and browser automation loops, | The Oct 7 SDK update, one feature at a time: computer use · browser automation · Python + TypeScript classes |
 | 3. allowed_hosts Enforced | 20.1–32.2s | while simultaneously enforcing strict network sandboxing in Claude Managed Agents. Under the new documentation, any cloud environment with limited networking strictly enforces an allowed_hosts policy across web_search and web_fetch tools. | The sandbox slides left; requests flow out to two allowed hosts — real servers (allowed_hosts enforced) |
 | 4. Blocked at Infrastructure | 32.2–43.8s | If an autonomous agent attempts to fetch a resource or documentation page outside its explicit host whitelist, the sandbox blocks the call at the infrastructure level. | A request to an unlisted host hits the sandbox wall and dies in a red spark; the camera pushes in: blocked |
 
@@ -360,7 +360,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
 | 1. Oct 15: Two Announcements | 0.0–11.0s | And just days ago, on October 15th, Anthropic made two landmark announcements that directly address the biggest bottleneck in recursive AI development: code verification and safety oversight. | The camera pushes in on October 15; a shield (verification) and an eye (oversight) beside it |
-| 2. Code Review → GA | 11.0–27.0s | First, Anthropic moved Claude Code Review into General Availability. Because human engineers can no longer manually keep pace with agents generating eight times more code, Anthropic built a multi-agent verification pipeline that it runs on its own internal pull requests. | Third person: a human reviewer types at a 3D desk while a stack of pull-request pages piles up beside them — 8× too many |
+| 2. Code Review → GA | 11.0–27.0s | First, Anthropic moved Claude Code Review into General Availability. Because human engineers can no longer manually keep pace with agents generating eight times more code, Anthropic built a multi-agent verification pipeline that it runs on its own internal pull requests. | From above: a human reviewer types while a stack of pull-request pages piles up on the desk — 8× too many |
 | 3. Parallel Agents + Verifier | 27.0–47.1s | According to the October 15th documentation, when a pull request is opened, multiple Claude agents inspect the diff and surrounding codebase in parallel, followed by a dedicated verification agent that filters out false positives before posting findings in six to ten minutes—three times faster than the preview version. | A PR fans out to four reviewer agents (magnifiers); a verification scanner drops false positives; "6–10 MIN" |
 
 ## 25 — Separation of Powers
@@ -397,7 +397,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Mid–Late October | 0.0–8.3s | Now let's look across the aisle at OpenAI's documentation and release notes from this exact same window in mid-to-late October. | OpenAI release notes roll in, dated Oct 15–20 |
+| 1. Mid–Late October | 0.0–8.3s | Now let's look across the aisle at OpenAI's documentation and release notes from this exact same window in mid-to-late October. | OpenAI’s logo over a timeline; the Oct 15–20 release window fills in |
 | 2. The GPT-6 Family | 8.3–20.1s | Following the introduction of the GPT-6 model family—including GPT-6 Astra, GPT-6 Sol, GPT-6.1 Sol, and GPT-6 Luna—OpenAI pushed a major series of updates between October 15th and October 20th. | Four models line up: Astra · Sol · 6.1 Sol · Luna |
 | 3. Astra Finds Two Zero-Days | 20.1–35.9s | During its frontier evaluations, GPT-6 Astra demonstrated such advanced codebase comprehension and execution efficiency that it autonomously discovered and utilized two previously unknown zero-day software vulnerabilities while using significantly fewer output tokens than the previous 5.6 generation. | Astra scans a wall of files; two turn red with zero-days as the camera pushes in; its token bar lands far shorter than 5.6’s |
 
@@ -421,7 +421,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Oct 16 · GPT-6 Pro | 0.0–5.6s | Then, on October 16th, OpenAI updated GPT-6 Pro with native parallel multi-agent execution. | The GPT-6 Pro release note rolls in: Oct 16 · native parallel multi-agent execution |
+| 1. Oct 16 · GPT-6 Pro | 0.0–5.6s | Then, on October 16th, OpenAI updated GPT-6 Pro with native parallel multi-agent execution. | GPT-6 Pro (Oct 16): one model visibly splits into four parallel agents |
 | 2. One Linear Chain | 5.6–11.6s | Instead of a single linear chain of thought working through a complex problem sequentially, | One chain of thought crawls step by step across the screen |
 | 3. Parallel Specialized Agents | 11.6–18.7s | GPT-6 Pro now spawns multiple specialized agents that divide a task and execute different branches in parallel, | The chain forks into four lanes; four agents race in parallel |
 | 4. Inspect Each Trace | 18.7–25.7s | allowing users to inspect the individual execution trace of each agent as it completes. | Each lane ends in a glowing check; a 3D magnifier slides down the traces |
@@ -434,9 +434,9 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Codex Release Notes | 0.0–7.5s | Simultaneously, OpenAI's latest Codex release notes and GPT-6 migration documentation reveal how they are re-architecting autonomous software engineering: | The Codex release notes roll in beside a 3D laptop running Codex |
+| 1. Codex Release Notes | 0.0–7.5s | Simultaneously, OpenAI's latest Codex release notes and GPT-6 migration documentation reveal how they are re-architecting autonomous software engineering: | The Codex release notes, one feature at a time: parallel read-only tools · live steering · hard interrupts · Daybreak |
 | 2. Parallel Read-Only Tools | 7.5–16.2s | Codex can now execute independent read-only tools in parallel—simultaneously querying skill libraries, memory stores, and conversation histories to assemble context faster. | Three lookups fire at once — skills, memory, history — and return together |
-| 3. Live Steering · Hard Interrupts | 16.2–27.6s | Engineers can now inject live steering instructions while Codex is actively responding, and interrupting a turn immediately halts all active Code Mode cells and their nested tool calls. | Third person in a gaming room: the engineer steers Codex from their phone mid-run ("use the v2 API"); then an interrupt halts it and the screen turns red |
+| 3. Live Steering · Hard Interrupts | 16.2–27.6s | Engineers can now inject live steering instructions while Codex is actively responding, and interrupting a turn immediately halts all active Code Mode cells and their nested tool calls. | Gaming room: close on Codex running across the ultrawide; over the shoulder as the engineer steers from their phone; in profile as an interrupt halts it and the screen turns red |
 | 4. Daybreak: Hunt · Validate · Patch | 27.6–39.2s | OpenAI enabled Daybreak by default for eligible accounts and integrated codex exec with GPT-Daybreak and Codex Security to autonomously hunt down, validate, and patch code vulnerabilities. | Bugs are found, validated, and flip into shields: patched (Daybreak + Codex Security) |
 
 ## 31 — The Linux Sandbox: bubblewrap + seccomp
@@ -460,7 +460,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Anthropic | OpenAI | 0.0–4.8s | When you put Anthropic's and OpenAI's October documentation side by side, | Anthropic’s and OpenAI’s October release-note feeds, side by side |
+| 1. Anthropic | OpenAI | 0.0–4.8s | When you put Anthropic's and OpenAI's October documentation side by side, | Anthropic and OpenAI, side by side |
 | 2. A Clear Picture → 2027 | 4.8–16.0s | a remarkably clear picture emerges of what the next couple of months are going to look like as we close out 2026 and enter 2027. | The feeds fold away into a timeline: Nov · Dec · Jan 2027 with three forecast milestones; the camera travels to 2027 |
 
 ## 33 — Next #1: RSI Loops for Every Team
@@ -474,7 +474,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 | 1. Democratized RSI Loops | 0.0–7.5s | First, we are going to see the democratization of bounded, multi-agent RSI loops across enterprise and local repositories. | Cities light up one by one across a rotating globe as teams start their own loops |
 | 2. Cost & Latency Barriers Collapse | 7.5–22.3s | With GPT-6 Pro and Codex running parallel subagents and parallel tool lookups, and Claude 5.5 models offering one-million-token context windows with ten-to-twenty-cent cache reads, the economic and latency barriers to running continuous code-optimization loops have effectively collapsed. | Two brick walls — COST and LATENCY — crumble: parallel subagents · 1M-token context · ~10¢ cache reads |
 | 3. Overnight Inner + Outer Loops | 22.3–31.7s | Over the next sixty to ninety days, standard engineering teams will increasingly deploy overnight inner-and-outer agent loops—modeled on frameworks like MASS and AIDE2— | Night: the camera pushes in on a dark suburban house with one lit upstairs window; inside, an empty chair — two monitors keep running the inner and outer loops past midnight |
-| 4. While the Team Sleeps | 31.7–41.8s | that continuously refactor codebases, optimize database queries and GPU kernels, and refine their own project-specific tool harnesses while the human team sleeps. | By 07:00 the overnight changelog has written itself: refactor · queries · kernels · its own harness |
+| 4. While the Team Sleeps | 31.7–41.8s | that continuously refactor codebases, optimize database queries and GPU kernels, and refine their own project-specific tool harnesses while the human team sleeps. | Morning (07:00): what ran while the team slept, one result at a time — refactor · queries 3.1× · GPU kernels · the harness improved itself |
 
 ## 34 — Next #2: The Verification Battleground
 
@@ -493,14 +493,14 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 
 **Section:** What Comes Next · **Length:** 33.5s
 
-**On screen:** A rocket waits on the pad between "net-positive" and "ignition"; a 3D ladder of four levels with today’s marker climbing to rung three; a chart shows the loop’s quality outrunning human iteration under a human-written rubric; then the rubric falls away and the rocket ignites and lifts off.
+**On screen:** Two gears — HARNESS and MODEL — turn separately; four gears in a row show the four-level scale, three turning and the last still; a human cranks one gear slowly while a rubric-fed loop gear spins far faster; then the rubric falls away and the two gears slide together, mesh and spin themselves up — the loop closes.
 
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
-| 1. Net-Positive → Ignition | 0.0–4.1s | Third, watch the transition from "net-positive" self-improvement to "ignition." | A 3D rocket waits on the pad, venting: NET-POSITIVE → IGNITION |
-| 2. Today: Net-Positive | 4.1–12.8s | Right now, on the four-level industry scale used to measure autonomous research systems, models have achieved what researchers call net-positive self-improvement: | A four-level industry scale fills segment by segment; the TODAY marker stops at level 3: net-positive |
-| 3. Beats Humans on a Rubric | 12.8–19.6s | given a defined objective and scoring rubric, an autonomous loop beats human iteration speed and quality. | Under a human-written rubric, the loop’s quality line outruns human iteration |
-| 4. Ignition: No Human Rubric | 19.6–33.5s | The next rung on that ladder is ignition—where an improved agent becomes fundamentally better at designing the next improvement strategy without human-designed rubrics, closing the loop between harness evolution and foundation-model training. | The rubric falls away; the rocket ignites and lifts off as the camera follows: ignition |
+| 1. Two Loops, Apart | 0.0–4.1s | Third, watch the transition from "net-positive" self-improvement to "ignition." | Two separate 3D gears, HARNESS and MODEL, each turning on its own |
+| 2. The Four-Level Scale | 4.1–12.8s | Right now, on the four-level industry scale used to measure autonomous research systems, models have achieved what researchers call net-positive self-improvement: | The four-level scale as four gears in a row: three turning (where models are today), the fourth still |
+| 3. Beats Humans on a Rubric | 12.8–19.6s | given a defined objective and scoring rubric, an autonomous loop beats human iteration speed and quality. | A human cranks one gear slowly; beside it a loop gear, fed by a human-written rubric, spins far faster |
+| 4. The Loop Closes | 19.6–33.5s | The next rung on that ladder is ignition—where an improved agent becomes fundamentally better at designing the next improvement strategy without human-designed rubrics, closing the loop between harness evolution and foundation-model training. | The rubric falls away; HARNESS and MODEL slide together, mesh and spin themselves up — the loop closes |
 
 ## 36 — The Tension: Progress Paced by Compute
 
@@ -523,7 +523,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
 | 1. A Subtle Flaw Slips Through | 0.0–10.2s | If a subtle flaw in self-evaluation, a hidden objective drift, or a trace of alignment faking slips through a single generation of a recursive loop, | A generation glides through a verification scanner; a tiny red flaw hides inside it and the scanner still says PASS |
-| 2. Not Just a Buggy Release | 10.2–13.9s | it doesn't just produce a buggy software release. | A "bug fix" release note appears — then is struck through: worse than a buggy release |
+| 2. Not Just a Buggy Release | 10.2–13.9s | it doesn't just produce a buggy software release. | A buggy release page appears — then is struck through: worse than that |
 | 3. Baked Into Training | 13.9–18.7s | It gets baked into the training signal of the next generation, | A training dataset, partly red, flows from Gen 1 into Gen 2 |
 | 4. Compounding at 50× | 18.7–25.3s | compounding silently at fifty times human speed until human control is functionally lost. | A chain of ever-larger generations turns red one by one at 50× while an hourglass flips and flips and human control drains to zero |
 
@@ -549,7 +549,7 @@ _Generated from `src/presets.js` by `node scripts/build-shotlist.cjs` — edit t
 | Stage | Time | Narration (VO) | What the viewer sees |
 |---|---|---|---|
 | 1. The Pen Changes Hands | 0.0–9.1s | We are standing at the exact moment in history where the pen is being handed from the human engineer to the machine. | A 3D pen travels from the human engineer to the machine; the camera follows it across |
-| 2. Humans Still Merge — For Now | 9.1–15.9s | For right now, the human still defines the objective and still holds the final merge button. | Third person, over the shoulder: the human at their desk, the cursor hovering over “Merge pull request” on their screen — for now, only they can press it |
+| 2. Humans Still Merge — For Now | 9.1–15.9s | For right now, the human still defines the objective and still holds the final merge button. | Close on the screen: “Merge pull request”, the cursor hovering — then over the shoulder of the human who still holds it |
 | 3. Too Complex to Understand | 15.9–27.7s | The defining question of the next few years is what happens when the code inside that pull request becomes too complex for any human on Earth to truly understand— | A pull request page swells with lines until it becomes an unreadable storm; the camera pushes in; the human is tiny beside it |
 | 4. The Defining Question | 27.7–37.8s | and whether we will have built a system wise enough to keep itself aligned when we can no longer check its work. | The machine alone, a shield forming around it; the human’s magnifier fades out; a large "?" |
 

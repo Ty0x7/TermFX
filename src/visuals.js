@@ -1899,90 +1899,100 @@
     if (opts.label) this.drawBigText(cx, baseY - rows * bh - 2, opts.label, { size: opts.labelSize || 1.2, color: col, alpha: 1 - fall });
   };
 
-  // grid.scanner(cx, cy, { w, h, state: 'scan' | 'pass' | 'fail', label, readout, color })
-  // A verification gate drawn as an instrument: corner brackets, measured side rails, a sweeping
-  // scan beam with a trail, and a status readout. Returns the beam's current y.
+  // grid.scanner(cx, cy, { w, h, state: 'scan' | 'pass' | 'fail', label, readout, color, speed })
+  // A verification gate: two light pillars whose segments light up as a beam plane sweeps
+  // between them; a status light + word above; PASS washes green, BLOCKED washes red.
   Engine.prototype.drawScanner = function (cx, cy, opts = {}) {
-    { const w = opts.w || 16, h = opts.h || 18; this._bb(cx - w / 2 - 1.5, cy - h / 2 - (opts.readout ? 2 : 0.5), cx + w / 2 + 1.5, cy + h / 2 + 2.6, 'scanner', opts.alpha !== undefined ? opts.alpha : 1); }
+    { const w = opts.w || 16, h = opts.h || 18; this._bb(cx - w / 2 - 2, cy - h / 2 - 3, cx + w / 2 + 2, cy + h / 2 + (opts.readout ? 2.6 : 1), 'scanner', opts.alpha !== undefined ? opts.alpha : 1); }
     const pal = this.palette;
     const w = opts.w || 16;
     const h = opts.h || 18;
     const state = opts.state || 'scan';
-    const col = state === 'pass' ? '#00ff88' : state === 'fail' ? pal.danger : (opts.color || pal.warn);
+    const col = state === 'pass' ? '#00ff88' : state === 'fail' ? pal.danger : (opts.color || pal.accent);
     const p = opts.progress !== undefined ? opts.progress : revealK(this, opts.key || 'scan' + cx, opts.key ? 0 : cx, opts.key ? 0 : cy, 0.9);
     const k = smooth(p);
     const time = this.time;
     const speed = opts.speed || 0.6;
-    const beamT = state === 'scan' ? (time * speed) % 1 : 0.5;
+    const cyc = (time * speed) % 1;
+    const beamT = state === 'scan' ? (cyc < 0.5 ? cyc * 2 : 2 - cyc * 2) : 0.5;
     const x0 = cx - w / 2, x1 = cx + w / 2, y0 = cy - h / 2, y1 = cy + h / 2;
     const fs = this.fontSize;
+    const alpha = opts.alpha !== undefined ? opts.alpha : 1;
+    const segs = Math.max(5, Math.round(h / 1.4));
     this.vItems.push({
       t: 'draw', h: this._hudMode,
       fn(c, X, Y, cw, chh, ws) {
-        const L = Math.min(w * cw, h * chh) * 0.18 * k;
-        c.strokeStyle = col;
-        c.lineWidth = 2 * ws;
-        c.globalAlpha = 0.95 * k;
-        const corners = [[X(x0), Y(y0), 1, 1], [X(x1), Y(y0), -1, 1], [X(x0), Y(y1), 1, -1], [X(x1), Y(y1), -1, -1]];
-        c.beginPath();
-        for (const q of corners) { c.moveTo(q[0] + q[2] * L, q[1]); c.lineTo(q[0], q[1]); c.lineTo(q[0], q[1] + q[3] * L); }
-        c.stroke();
-        c.lineWidth = 1 * ws;
-        c.globalAlpha = 0.45 * k;
-        for (const x of [X(x0) - cw * 0.8, X(x1) + cw * 0.8]) {
-          c.beginPath();
-          c.moveTo(x, Y(y0) + L);
-          c.lineTo(x, Y(y1) - L);
-          c.stroke();
-          for (let i = 0; i <= 12; i++) {
-            const yy = Y(y0) + L + ((Y(y1) - Y(y0) - 2 * L) * i) / 12;
-            const tl = i % 4 === 0 ? cw * 0.7 : cw * 0.35;
-            c.beginPath();
-            c.moveTo(x, yy);
-            c.lineTo(x + (x < X(cx) ? tl : -tl), yy);
-            c.stroke();
+        const A = k * alpha;
+        const pw = cw * 1.1;
+        const top = Y(y0) - chh * 0.5;
+        const bot = Y(y1) + chh * 0.5;
+        const by = top + (bot - top) * beamT;
+        // field between the pillars
+        c.globalCompositeOperation = 'lighter';
+        if (state === 'scan') {
+          const g = c.createLinearGradient(0, by - chh * 2.6, 0, by + chh * 2.6);
+          g.addColorStop(0, 'rgba(0,0,0,0)');
+          g.addColorStop(0.5, col);
+          g.addColorStop(1, 'rgba(0,0,0,0)');
+          c.globalAlpha = 0.16 * A;
+          c.fillStyle = g;
+          c.fillRect(X(x0), by - chh * 2.6, X(x1) - X(x0), chh * 5.2);
+        } else {
+          c.globalAlpha = (0.12 + 0.05 * Math.sin(time * 6)) * A;
+          c.fillStyle = col;
+          c.fillRect(X(x0), top, X(x1) - X(x0), bot - top);
+        }
+        // pillars with segment lights
+        for (const px of [X(x0) - pw, X(x1)]) {
+          c.globalAlpha = 0.9 * A;
+          c.strokeStyle = col;
+          c.lineWidth = 1.4 * ws;
+          c.strokeRect(px, top, pw, bot - top);
+          for (let i = 0; i < segs; i++) {
+            const sy = top + ((bot - top) * (i + 0.5)) / segs;
+            const near = state === 'scan' ? Math.max(0, 1 - Math.abs(sy - by) / (chh * 2.4)) : 1;
+            c.globalAlpha = (0.18 + 0.82 * near) * A;
+            c.fillStyle = near > 0.6 ? '#ffffff' : col;
+            c.fillRect(px + pw * 0.25, sy - chh * 0.18, pw * 0.5, chh * 0.36);
           }
         }
-        const by = Y(y0) + (Y(y1) - Y(y0)) * beamT;
-        if (state === 'scan') {
-          const g = c.createLinearGradient(0, by - chh * 3, 0, by);
-          g.addColorStop(0, 'rgba(0,0,0,0)');
-          g.addColorStop(1, col);
-          c.globalAlpha = 0.18 * k;
-          c.fillStyle = g;
-          c.fillRect(X(x0), by - chh * 3, X(x1) - X(x0), chh * 3);
-          c.globalAlpha = 0.95 * k;
-          c.fillStyle = '#ffffff';
-          c.fillRect(X(x0) - cw * 0.5, by - 0.8, X(x1) - X(x0) + cw, 1.6);
-        } else {
-          c.globalAlpha = (0.1 + 0.06 * Math.sin(time * 6)) * k;
-          c.fillStyle = col;
-          c.fillRect(X(x0), Y(y0), X(x1) - X(x0), Y(y1) - Y(y0));
-        }
-        const status = state === 'pass' ? (opts.passText || 'PASS  ✓') : state === 'fail' ? (opts.failText || 'BLOCKED  ✕') : (opts.label || 'VERIFYING');
-        c.font = `800 ${fs * 0.95}px "Cascadia Mono", Consolas, monospace`;
-        c.textAlign = 'center';
-        c.textBaseline = 'middle';
-        const tw = c.measureText(status).width + fs * 1.4;
-        const sy = Y(y1) + chh * 1.6;
-        c.globalAlpha = 0.2 * k;
-        c.fillStyle = col;
-        c.fillRect(X(cx) - tw / 2, sy - fs * 0.7, tw, fs * 1.4);
-        c.globalAlpha = 0.95 * k;
+        // floor plate
+        c.globalAlpha = 0.6 * A;
         c.strokeStyle = col;
         c.lineWidth = 1.2 * ws;
-        c.strokeRect(X(cx) - tw / 2, sy - fs * 0.7, tw, fs * 1.4);
+        c.beginPath();
+        c.moveTo(X(x0) - pw * 1.6, bot + chh * 0.3);
+        c.lineTo(X(x1) + pw * 1.6, bot + chh * 0.3);
+        c.stroke();
+        // the beam itself
+        if (state === 'scan') {
+          c.globalAlpha = 0.95 * A;
+          c.fillStyle = '#ffffff';
+          c.fillRect(X(x0), by - 0.9, X(x1) - X(x0), 1.8);
+        }
+        // status light + word above
+        const status = state === 'pass' ? (opts.passText || 'PASS') : state === 'fail' ? (opts.failText || 'BLOCKED') : (opts.label || 'VERIFYING');
+        const sy = top - chh * 1.3;
+        c.globalAlpha = A * (state === 'scan' ? 0.6 + 0.4 * Math.sin(time * 5) : 1);
         c.fillStyle = col;
-        c.fillText(status, X(cx), sy);
+        c.font = `800 ${fs * 0.9}px "Cascadia Mono", Consolas, monospace`;
+        const tw = c.measureText(status).width;
+        c.beginPath();
+        c.arc(X(cx) - tw / 2 - fs * 0.7, sy, 3.2 * ws, 0, Math.PI * 2);
+        c.fill();
+        c.globalAlpha = A;
+        c.textAlign = 'left';
+        c.textBaseline = 'middle';
+        c.fillText(status, X(cx) - tw / 2, sy);
         if (opts.readout) {
           c.font = `600 ${fs * 0.75}px "Cascadia Mono", Consolas, monospace`;
-          c.globalAlpha = 0.75 * k;
-          c.fillText(opts.readout, X(cx), Y(y0) - chh * 1.1);
+          c.textAlign = 'center';
+          c.globalAlpha = 0.7 * A;
+          c.fillText(opts.readout, X(cx), bot + chh * 1.6);
         }
       }
     });
-    return Y0toCells(y0, h, beamT);
-    function Y0toCells(yy0, hh, t) { return yy0 + hh * t; }
+    return y0 + h * beamT;
   };
 
   // grid.mergeButton(cx, cy, { press (0..1), merged, title, sub, cursor (0..1) })
@@ -2191,6 +2201,122 @@
   };
 
   // --------------------------------------------------------------------------
+  // BRANDS: logos (from your assets) and side-by-side comparisons
+  // --------------------------------------------------------------------------
+  // A logo image is turned into a single-colour hologram: transparent PNG/SVG-rasterised logos use
+  // their alpha; opaque ones use contrast against their background colour.
+  const tintCache = new Map();
+  function tintedLogo(img, color) {
+    const key = img.src + '|' + color;
+    let cv = tintCache.get(key);
+    if (cv) return cv;
+    const sc = Math.min(1, 512 / Math.max(img.width, img.height));
+    const w = Math.max(1, Math.round(img.width * sc));
+    const h = Math.max(1, Math.round(img.height * sc));
+    cv = document.createElement('canvas');
+    cv.width = w;
+    cv.height = h;
+    const g = cv.getContext('2d', { willReadFrequently: true });
+    g.drawImage(img, 0, 0, w, h);
+    const id = g.getImageData(0, 0, w, h);
+    const d = id.data;
+    let opaque = true;
+    for (let i = 3; i < d.length; i += 4 * 97) if (d[i] < 250) { opaque = false; break; }
+    const lum = (i) => (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255;
+    const bgL = lum(0);
+    const r = parseInt(color.slice(1, 3), 16), gg = parseInt(color.slice(3, 5), 16), b = parseInt(color.slice(5, 7), 16);
+    for (let i = 0; i < d.length; i += 4) {
+      const m = opaque ? Math.min(1, Math.abs(lum(i) - bgL) * 2.2) : d[i + 3] / 255;
+      d[i] = r; d[i + 1] = gg; d[i + 2] = b; d[i + 3] = Math.round(m * 255);
+    }
+    g.putImageData(id, 0, 0);
+    if (tintCache.size > 40) tintCache.clear();
+    tintCache.set(key, cv);
+    return cv;
+  }
+
+  // grid.logo('anthropic', cx, cy, { h, color, wordmark, sub, alpha })
+  // Looks for assets/<name>.png (then .svg); without one it sets a clean wordmark instead.
+  Engine.prototype.drawLogo = function (name, cx, cy, opts = {}) {
+    const pal = this.palette;
+    const col = opts.color || pal.accent;
+    const h = opts.h || 6;
+    const alpha = opts.alpha !== undefined ? opts.alpha : 1;
+    const t0 = this._revealStart('§logo:' + name + (opts.key || ''), 0, 0, 'l');
+    const k = smooth((this.time - t0) / 0.8) * alpha;
+    let a = getImage(name.includes('.') ? name : name + '.png');
+    if (a.status === 'missing' && !name.includes('.')) a = getImage(name + '.svg');
+    if (a.status === 'ok') {
+      const img = a.img;
+      const ar = img.width / Math.max(1, img.height);
+      const self = this;
+      const wCells = h * ar * (this.cellH / this.cellW);
+      this._bb(cx - wCells / 2, cy - h / 2, cx + wCells / 2, cy + h / 2 + (opts.sub ? 2.5 : 0), 'logo', k);
+      this.vItems.push({
+        t: 'draw', h: this._hudMode,
+        fn(c, X, Y, cw, chh, ws) {
+          const tint = tintedLogo(img, col);
+          const ph = h * chh;
+          const pw = ph * ar;
+          c.globalAlpha = k * (ws > 1 ? 0.6 : 0.95);
+          c.drawImage(tint, X(cx) - pw / 2, Y(cy) - ph / 2, pw, ph);
+          void self;
+        }
+      });
+    } else {
+      const word = String(opts.wordmark || name).toUpperCase();
+      const size = opts.wordSize || Math.max(1.4, h * 0.42);
+      this.drawBigText(cx, cy, word, { size, color: col, alpha: k, reveal: false });
+      const wv = word.length * size * 0.96;
+      this._vline(cx - wv / 2, cy + size * 0.75, cx - wv / 2 + wv * smooth(k), cy + size * 0.75, col, 0.5 * k, 1.4);
+      if (a.status === 'missing') warnOnce('logo', name + '.png');
+    }
+    if (opts.sub) this.drawText(cx, cy + h / 2 + 1.8, opts.sub, pal.dim, false, 'center', null, k);
+  };
+
+  // grid.vs({ name, wordmark, color, sub }, { ... }, { cx, cy, gap, h }) — two brands compared
+  Engine.prototype.drawVs = function (left, right, opts = {}) {
+    const pal = this.palette;
+    const cx = opts.cx !== undefined ? opts.cx : 64;
+    const cy = opts.cy !== undefined ? opts.cy : 15;
+    const gap = opts.gap || 30;
+    const h = opts.h || 6;
+    const k = smooth((this.time - this._revealStart('§vs:' + left.name + right.name, 0, 0, 'v')) / 1.2);
+    this.drawLogo(left.name, cx - gap * (0.7 + 0.3 * k), cy, { h, color: left.color || pal.accent, wordmark: left.wordmark, sub: left.sub, key: 'vsL' });
+    this.drawLogo(right.name, cx + gap * (0.7 + 0.3 * k), cy, { h, color: right.color || pal.primary, wordmark: right.wordmark, sub: right.sub, key: 'vsR' });
+    this.drawBigText(cx, cy, opts.label || 'vs', { size: 1.3, color: pal.dim, alpha: k, reveal: false });
+  };
+
+  // --------------------------------------------------------------------------
+  // FEATURE REEL: an update shown the way a keynote would — one feature at a time,
+  // centred, as the actual thing (each item draws its own visual), with a title under it.
+  // --------------------------------------------------------------------------
+  // grid.featureReel(cx, cy, [{ title, sub, draw(cx, cy, alpha, local) }], { t, each, header, color })
+  Engine.prototype.drawFeatureReel = function (cx, cy, items, opts = {}) {
+    const pal = this.palette;
+    const col = opts.color || pal.accent;
+    const n = items.length;
+    if (!n) return;
+    const each = opts.each || 3.2;
+    const t = Math.max(0, opts.t || 0);
+    const idx = Math.min(n - 1, Math.floor(t / each));
+    const local = Math.min(1, (t - idx * each) / each);
+    const fin = smooth(local * 7);
+    const fout = idx < n - 1 ? smooth((1 - local) * 7) : 1;
+    const a = fin * fout;
+    const it = items[idx];
+    if (opts.header) this.drawBigText(cx, cy - 14, opts.header, { size: 1, color: pal.dim, reveal: false });
+    if (it.draw) it.draw(cx + (1 - fin) * 6, cy - 2.5, a, local);
+    if (it.title) this.drawBigText(cx, cy + 8.5, it.title, { size: opts.titleSize || 1.7, color: it.color || col, alpha: a, reveal: false });
+    if (it.sub) this.drawText(cx, cy + 11.3, it.sub, pal.dim, false, 'center', null, a);
+    for (let i = 0; i < n; i++) {
+      const x = cx + (i - (n - 1) / 2) * 4;
+      const on = i === idx;
+      this._vline(x - 1.2, cy + 14, x + 1.2, cy + 14, on ? '#ffffff' : (i < idx ? col : pal.dim), on ? 0.95 : 0.5, on ? 2.4 : 1.6);
+    }
+  };
+
+  // --------------------------------------------------------------------------
   // Register in the scene sandbox
   // --------------------------------------------------------------------------
   const baseSandbox = Engine.prototype._buildSandbox;
@@ -2221,7 +2347,10 @@
       scanner: (cx, cy, opts) => self.drawScanner(cx, cy, opts || {}),
       mergeButton: (cx, cy, opts) => self.drawMergeButton(cx, cy, opts || {}),
       levelMeter: (cx, cy, opts) => self.drawLevelMeter(cx, cy, opts || {}),
-      chatBubble: (x, y, text, opts) => self.drawChatBubble(x, y, text, opts || {})
+      chatBubble: (x, y, text, opts) => self.drawChatBubble(x, y, text, opts || {}),
+      logo: (name, cx, cy, opts) => self.drawLogo(name, cx, cy, opts || {}),
+      vs: (left, right, opts) => self.drawVs(left, right, opts || {}),
+      featureReel: (cx, cy, items, opts) => self.drawFeatureReel(cx, cy, items, opts || {})
     });
     return sb;
   };

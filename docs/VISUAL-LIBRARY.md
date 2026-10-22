@@ -134,3 +134,13 @@ Outside of world shots the camera now moves on its own: odd stages slowly push i
 ## Rendering the whole video
 
 **● All 39 [F10]** renders every video scene back to back into one continuous MP4 (stages auto-advance at narration pace). **Shift+click / Shift+F10** renders one file per scene instead.
+
+## Shots, brands and updates (latest pass)
+
+**3D shot presets.** Instead of hand-placing cameras, `w.shot(name, { t })` frames a desk setup cinematically, with a slow built-in move driven by `t` (0..1): `wide`, `overShoulder`, `hands`, `screen`, `profile`, `low`, `top`, `face` (from behind the monitor), `crane`. Cut between two or three within a stage, and don't always show the character: a shot of the screen, the hands, or the pile on the desk often says more.
+
+**Logos and comparisons.** `grid.logo('anthropic', cx, cy, { h, color })` looks for `assets/anthropic.png` (then `.svg`) and renders it as a single-colour hologram (transparent logos use their alpha; opaque ones use contrast). Without a file it sets a clean wordmark. `grid.vs(left, right, { cy, gap, h })` puts two brands side by side. Drop logo files you have the rights to use into the assets folder (🖼 in the toolbar) as `anthropic.png` and `openai.png`.
+
+**Release notes → feature reel.** Don't list updates; show them. `grid.featureReel(cx, cy, [{ title, sub, draw(x, y, alpha, local) }], { t: phaseTime, each, header })` presents one feature at a time, centred, as the actual thing (each item draws its own visual), with progress pips under it. `grid.releaseNotes` still exists for the rare case where a list is the point.
+
+**Scanner.** `grid.scanner` is now a gate with two light pillars whose segments light up as the beam plane sweeps between them, a status light + word above, and a green or red wash on PASS / BLOCKED.

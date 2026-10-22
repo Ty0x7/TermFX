@@ -59,6 +59,27 @@
       return this.camera(from, target, fov);
     }
 
+    // Cinematic shot presets around a desk setup (person seated at z≈0.64 facing the desk at
+    // the origin). `t` is the shot's progress 0..1 and drives a slow built-in move.
+    shot(name, o = {}) {
+      const t = Math.max(0, Math.min(1, o.t || 0));
+      const yaw = o.yaw || 0;
+      const at = o.at || [0, 0, 0];
+      const R = (p) => add(rotY(p, yaw), at);
+      const S = {
+        wide: [[2.7 - t * 0.7, 1.95 - t * 0.2, 3.3 - t * 0.6], [0, 0.95, 0.1], 40],
+        overShoulder: [[0.78 - t * 0.12, 1.62, 1.95 - t * 0.35], [-0.04, 1.0, -0.22], 36],
+        hands: [[0.62 - t * 0.35, 1.18, 0.62 - t * 0.08], [0, 0.78, 0.12], 34],
+        screen: [[0.2 - t * 0.12, 1.06, 0.5 - t * 0.14], [0, 1.0, -0.22], 32],
+        profile: [[1.95, 1.12, 0.62 - t * 0.25], [0, 0.98, 0.42], 38],
+        low: [[1.15 - t * 0.3, 0.32, 2.0 - t * 0.3], [0, 1.08, 0.32], 42],
+        top: [[0.25, 3.3 - t * 0.7, 1.05 + t * 0.2], [0, 0.75, 0.1], 40],
+        face: [[0.38 - t * 0.2, 1.5, -0.78], [0, 1.18, 0.62], 38],
+        crane: [[1.5 + t * 0.6, 1.0 + t * 1.9, 2.1 + t * 1.5], [0, 0.95, 0], 40]
+      }[name] || [[2.5, 1.8, 3], [0, 0.95, 0], 40];
+      return this.camera(R(S[0]), R(S[1]), o.fov || S[2]);
+    }
+
     // --- transforms -----------------------------------------------------------
     push(pos = [0, 0, 0], yaw = 0, scale = 1) { this.T.push({ pos, yaw, scale }); return this; }
     pop() { this.T.pop(); return this; }
@@ -173,7 +194,10 @@
         let shade = 1;
         if (it.type === 'f' && it.pts.length >= 3) {
           const n = norm(cross(sub(it.pts[1], it.pts[0]), sub(it.pts[2], it.pts[0])));
-          shade = 0.35 + 0.65 * Math.abs(dot(n, L));
+          const nl = Math.abs(dot(n, L));
+          const toCam = norm(sub(this.from, it.pts[0]));
+          const rim = 1 - Math.abs(dot(n, toCam));
+          shade = 0.32 + 0.55 * (nl * 0.5 + 0.5) * nl + (it.st.smooth ? 0.28 * rim * rim : 0);
         }
         out.push({ it, P, z, shade });
       }
@@ -218,7 +242,7 @@
                 c.fillStyle = '#000000';
                 c.fill();
               }
-              const ea = (st.edge !== undefined ? st.edge : (st.smooth ? 0.16 : 0.55)) * fogK * alpha;
+              const ea = (st.edge !== undefined ? st.edge : (st.smooth ? 0.045 : 0.5)) * fogK * alpha;
               if (ea > 0.01) {
                 c.globalCompositeOperation = 'lighter';
                 c.globalAlpha = ea;
@@ -265,12 +289,13 @@
       const head = add(neckTop, add(mul(headDir, 0.12), [pose.headTurn || 0, 0, 0]));
       // torso + pelvis
       this.box(add(pelvis, [-0.17, -0.07, -0.11]), add(pelvis, [0.17, 0.09, 0.11]), pants, 0);
-      this.tube(add(pelvis, mul(spine, 0.06)), add(chest, mul(spine, -0.02)), 0.135, 0.17, shirt, 9);
-      for (const sd of [-1, 1]) this.ellipsoid(add(chest, [sd * 0.19, -0.04, 0]), 0.065, 0.06, 0.065, shirt, 6, 4);
-      this.tube(add(chest, mul(spine, -0.04)), neckTop, 0.05, 0.045, skin, 6);
+      this.tube(add(pelvis, mul(spine, 0.06)), add(chest, mul(spine, -0.02)), 0.135, 0.17, shirt, 16);
+      for (const sd of [-1, 1]) this.ellipsoid(add(chest, [sd * 0.19, -0.04, 0]), 0.065, 0.06, 0.065, shirt, 10, 6);
+      this.ellipsoid(add(chest, mul(spine, -0.01)), 0.19, 0.06, 0.12, shirt, 14, 6, 0.5);
+      this.tube(add(chest, mul(spine, -0.04)), neckTop, 0.05, 0.045, skin, 10);
       // head (faceless) + hair
-      this.ellipsoid(head, 0.105, 0.13, 0.115, skin, 10, 7);
-      if (o.hair !== false) this.ellipsoid(add(head, [0, 0.03, -0.012]), 0.118, 0.13, 0.13, hairSt, 10, 7, o.hairCut || 0.45);
+      this.ellipsoid(head, 0.105, 0.13, 0.115, skin, 18, 12);
+      if (o.hair !== false) this.ellipsoid(add(head, [0, 0.03, -0.012]), 0.118, 0.13, 0.13, hairSt, 18, 12, o.hairCut || 0.45);
       if (o.glasses) this.line(add(head, [-0.09, 0.01, 0.11]), add(head, [0.09, 0.01, 0.11]), { col: '#ffffff', a: 0.8, lw: 1.4 });
       const J = { head, chest, pelvis, hands: [] };
       // arms
@@ -281,9 +306,10 @@
         const fore = dirP(A.pitch + A.bend, side * (A.froll !== undefined ? A.froll : A.roll));
         const wrist = add(elbow, mul(fore, 0.26));
         const hand = add(wrist, mul(fore, 0.06));
-        this.tube(sh, elbow, 0.055, 0.047, shirt, 6);
-        this.tube(elbow, wrist, 0.045, 0.036, o.sleeves === 'short' ? skin : shirt, 6);
-        this.ellipsoid(hand, 0.04, 0.05, 0.045, skin, 6, 4);
+        this.tube(sh, elbow, 0.055, 0.047, shirt, 12);
+        this.ellipsoid(elbow, 0.047, 0.047, 0.047, shirt, 8, 5);
+        this.tube(elbow, wrist, 0.045, 0.036, o.sleeves === 'short' ? skin : shirt, 12);
+        this.ellipsoid(hand, 0.038, 0.052, 0.045, skin, 10, 7);
         J.hands.push(hand);
       }
       // legs
@@ -293,9 +319,10 @@
         const knee = add(hip, mul(dirP(Lg.pitch, side * (Lg.roll || 0)), 0.43));
         const shinD = dirP(Lg.pitch - Lg.bend, side * (Lg.roll || 0));
         const ankle = add(knee, mul(shinD, 0.43));
-        this.tube(hip, knee, 0.08, 0.06, pants, 6);
-        this.tube(knee, ankle, 0.056, 0.045, pants, 6);
-        this.box(add(ankle, [-0.05, -0.06, -0.05]), add(ankle, [0.05, 0.0, 0.17]), { col: '#556070', k: 0.35 });
+        this.tube(hip, knee, 0.08, 0.06, pants, 12);
+        this.ellipsoid(knee, 0.06, 0.06, 0.06, pants, 8, 5);
+        this.tube(knee, ankle, 0.056, 0.045, pants, 12);
+        this.ellipsoid(add(ankle, [0, -0.03, 0.06]), 0.052, 0.035, 0.11, { col: '#556070', k: 0.35 }, 10, 6);
       }
       this.pop();
       // world-space joints for props (phone in hand etc.)
